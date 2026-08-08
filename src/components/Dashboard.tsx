@@ -12,7 +12,8 @@ import {
   Tag, 
   Sparkles,
   PhoneCall,
-  UserCheck
+  UserCheck,
+  Compass
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 import { formatCurrency, formatPercent, formatDateShort, getPaymentStatusLabel } from '../utils/formatters';
@@ -48,19 +49,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <div className="space-y-6 pb-12">
       
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl">
-        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-rose-400 via-purple-500 to-transparent pointer-events-none" />
+      <div className="bg-gradient-to-r from-[#2A3722] via-[#3A452F] to-[#576945] border border-[#3A4A30] rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl">
+        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-15 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#8FA079] via-[#CAD7BE] to-transparent pointer-events-none" />
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold">
-              <Sparkles className="h-3.5 w-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8FA079]/30 border border-[#8FA079]/40 text-[#E5EBDE] text-xs font-semibold">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
               Painel de Controle em Tempo Real
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Resumo do Rx do Bazar de Sucesso 🛍️
             </h2>
-            <p className="text-slate-300 text-sm max-w-2xl leading-relaxed">
+            <p className="text-[#D8C7AC] text-sm max-w-2xl leading-relaxed">
               Acompanhe seu estoque atualizado, margem de lucro por peça, clientes e o faturamento real das suas vendas em um único lugar.
             </p>
           </div>
@@ -68,16 +69,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex flex-wrap gap-3">
             <button
               onClick={onOpenNewSale}
-              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center gap-2 transition active:scale-95"
+              className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold px-5 py-3 rounded-2xl shadow-lg shadow-[#8FA079]/20 flex items-center gap-2 transition active:scale-95"
             >
               <ShoppingCart className="h-5 w-5" />
               <span>Registrar Venda</span>
             </button>
             <button
-              onClick={() => onNavigateTab('catalog')}
-              className="bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-3 rounded-2xl border border-slate-700 flex items-center gap-2 transition"
+              onClick={() => onNavigateTab('next_steps')}
+              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-4 py-3 rounded-2xl border border-[#576945] flex items-center gap-2 transition shadow-md"
             >
-              <Tag className="h-4 w-4 text-rose-400" />
+              <Compass className="h-4 w-4 text-amber-300" />
+              <span>Próximos Passos</span>
+            </button>
+            <button
+              onClick={() => onNavigateTab('catalog')}
+              className="bg-[#3A452F]/70 hover:bg-[#3A452F] text-[#D8C7AC] font-medium px-4 py-3 rounded-2xl border border-[#576945] flex items-center gap-2 transition"
+            >
+              <Tag className="h-4 w-4 text-[#CAD7BE]" />
               <span>Ver Vitrine</span>
             </button>
           </div>

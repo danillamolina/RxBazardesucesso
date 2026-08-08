@@ -9,7 +9,8 @@ import {
   Calendar, 
   Settings,
   LayoutDashboard,
-  Store
+  Store,
+  Compass
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 
@@ -191,6 +192,19 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Store className="h-4 w-4" />
             <span>Dados da Loja</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('next_steps')}
+            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap relative ${
+              activeTab === 'next_steps'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                : 'text-[#CAD7BE] hover:text-white hover:bg-[#3A452F] font-semibold'
+            }`}
+          >
+            <Compass className="h-4 w-4 text-amber-300" />
+            <span>Próximos Passos</span>
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
           </button>
 
         </div>
