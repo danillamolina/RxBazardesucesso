@@ -1,1 +1,45 @@
 @import "tailwindcss";
+
+@theme {
+  --color-sage-50: #f4f6f1;
+  --color-sage-100: #e5ebde;
+  --color-sage-200: #ccd8bf;
+  --color-sage-300: #adc09b;
+  --color-sage-400: #8fa079;
+  --color-sage-500: #71845b;
+  --color-sage-600: #576945;
+  --color-sage-700: #465437;
+  --color-sage-800: #3a452f;
+  --color-sage-900: #2a3322;
+
+  --color-linen-50: #fbf9f4;
+  --color-linen-100: #f5f0e6;
+  --color-linen-200: #e9decb;
+  --color-linen-300: #d8c7ac;
+  --color-linen-400: #c2ad8e;
+  --color-linen-500: #aa9372;
+  --color-linen-600: #8f7959;
+  --color-linen-700: #715f46;
+  --color-linen-800: #332c22;
+  --color-linen-900: #1f1b15;
+}
+
+@layer base {
+  body {
+    background-color: #f7f4eb; /* Warm Cream Linen */
+    color: #2b3323;
+  }
+}
+
+/* Custom Palette Utility Classes */
+.bg-linen-canvas { background-color: #f7f4eb; }
+.bg-linen-card { background-color: #ffffff; }
+.bg-linen-subtle { background-color: #f2ebd9; }
+.border-linen { border-color: #e2d5c3; }
+
+.bg-sage-primary { background-color: #4a5d3b; }
+.bg-sage-hover { background-color: #3d4f2f; }
+.bg-sage-light { background-color: #8fa079; }
+.bg-sage-soft { background-color: #f0f4eb; }
+.text-sage-brand { color: #3a462e; }
+.border-sage-subtle { border-color: #cad7be; }

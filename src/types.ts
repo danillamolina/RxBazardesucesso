@@ -4,6 +4,16 @@ export type PaymentMethod = 'pix' | 'cartao_credito' | 'cartao_debito' | 'dinhei
 
 export type ProductCategory = string;
 
+export interface StoreInfo {
+  name: string;
+  address: string;
+  phone: string;
+  whatsapp: string;
+  instagram?: string;
+  pixKey?: string;
+  notes?: string;
+}
+
 export interface Product {
   id: string;
   name: string;

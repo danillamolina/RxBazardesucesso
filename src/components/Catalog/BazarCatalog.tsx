@@ -14,20 +14,27 @@ import {
   FileText,
   AlertTriangle,
   CheckCircle2,
-  XCircle
+  XCircle,
+  MessageSquare,
+  Building2,
+  UserCheck
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { formatCurrency, getProductPriceDetails } from '../../utils/formatters';
 import { Product, ProductCategory } from '../../types';
+import { shareProductJpgWhatsApp, downloadProductJpg } from '../../utils/productJpgGenerator';
 import { ExportCatalogModal } from './ExportCatalogModal';
+import { SendToCustomerModal } from './SendToCustomerModal';
 
 export const BazarCatalog: React.FC = () => {
-  const { products } = useBazar();
+  const { products, sales } = useBazar();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
   const [stockFilter, setStockFilter] = useState<'todos' | 'disponiveis' | 'pouco_estoque' | 'esgotados'>('todos');
   const [viewMode, setViewMode] = useState<'horizontal' | 'grid'>('horizontal');
   const [isExportCatalogOpen, setIsExportCatalogOpen] = useState(false);
+  const [sendCustomerProduct, setSendCustomerProduct] = useState<Product | null>(null);
+  const [isSendCustomerOpen, setIsSendCustomerOpen] = useState(false);
 
   // All catalog eligible products
   const catalogProducts = products.filter((p) => p.showInCatalog !== false);
@@ -68,6 +75,42 @@ export const BazarCatalog: React.FC = () => {
     navigator.clipboard.writeText(text);
     setCopiedId(prod.id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleOpenWhatsApp = (prod: Product, isBusiness: boolean = false) => {
+    const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(prod);
+    const text = 
+      `🔥 *ACHADO DO RX DO BAZAR DE SUCESSO!* 🔥\n\n` +
+      `✨ *${prod.name}*${prod.sku ? ` (Cód: ${prod.sku})` : ''}\n` +
+      (prod.sizeColor ? `📏 Detalhes: ${prod.sizeColor}\n` : '') +
+      (prod.expirationDate ? `📅 Validade: ${prod.expirationDate}\n` : '') +
+      (prod.description ? `📝 ${prod.description}\n` : '') +
+      (hasDiscount 
+        ? `\n🏷️ Preço Cheio: ~${formatCurrency(fullPrice)}~\n🔥 Preço no Bazar: *${formatCurrency(bazarPrice)}* (🔥 *${discountPercent}% OFF*)\n💰 Desconto Realizado: *${formatCurrency(discountAmount)}* de economia!\n`
+        : `\n💰 Preço no Bazar: *${formatCurrency(bazarPrice)}*!\n`) +
+      (prod.quantity > 0 ? `📦 Estoque Disponível: *${prod.quantity} un.*\n` : `🔴 *PRODUTO ESGOTADO*\n`) +
+      (prod.imageUrl && !prod.imageUrl.startsWith('data:') ? `\n📸 Foto da peça: ${prod.imageUrl}\n` : '') +
+      `\nMe chama no privado para garantir ou tirar dúvidas! 🛍️💖`;
+
+    const encoded = encodeURIComponent(text);
+    const url = isBusiness ? `whatsapp://send?text=${encoded}` : `https://api.whatsapp.com/send?text=${encoded}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSendJpgWhatsApp = async (prod: Product, isBusiness: boolean = false) => {
+    try {
+      await shareProductJpgWhatsApp(prod, isBusiness);
+    } catch (err) {
+      console.error('Erro ao compartilhar imagem JPG:', err);
+    }
+  };
+
+  const handleDownloadJpg = async (prod: Product) => {
+    try {
+      await downloadProductJpg(prod);
+    } catch (err) {
+      console.error('Erro ao baixar imagem JPG:', err);
+    }
   };
 
   return (
@@ -426,23 +469,27 @@ export const BazarCatalog: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Actions Bar */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                  {/* Actions Bar - Exactly 2 options: Baixar JPG & Enviar para Cliente */}
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
-                      onClick={() => handleCopyText(prod)}
-                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm py-3.5 px-5 rounded-2xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-98"
+                      onClick={() => handleDownloadJpg(prod)}
+                      className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-extrabold text-xs sm:text-sm py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md active:scale-98"
+                      title="Baixar imagem (JPG) do anúncio do produto"
                     >
-                      {copiedId === prod.id ? (
-                        <>
-                          <Check className="h-4 w-4 text-emerald-200" />
-                          <span>Texto Copiado para o WhatsApp!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4" />
-                          <span>Copiar Texto do Produto (WhatsApp)</span>
-                        </>
-                      )}
+                      <Download className="h-4 w-4 text-emerald-400" />
+                      <span>Baixar JPG</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSendCustomerProduct(prod);
+                        setIsSendCustomerOpen(true);
+                      }}
+                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-98"
+                      title="Enviar imagem (JPG) do anúncio para um cliente"
+                    >
+                      <UserCheck className="h-4 w-4" />
+                      <span>Enviar para Cliente</span>
                     </button>
                   </div>
                 </div>
@@ -588,23 +635,27 @@ export const BazarCatalog: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Card Footer Actions */}
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800/80">
+                {/* Card Footer Actions - Exactly 2 options: Baixar JPG & Enviar para Cliente */}
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
-                    onClick={() => handleCopyText(prod)}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-98"
+                    onClick={() => handleDownloadJpg(prod)}
+                    className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 active:scale-98"
+                    title="Baixar imagem JPG do anúncio"
                   >
-                    {copiedId === prod.id ? (
-                      <>
-                        <Check className="h-4 w-4 text-emerald-200" />
-                        <span>Texto Copiado!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4" />
-                        <span>Copiar Texto</span>
-                      </>
-                    )}
+                    <Download className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Baixar JPG</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setSendCustomerProduct(prod);
+                      setIsSendCustomerOpen(true);
+                    }}
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 active:scale-98"
+                    title="Enviar imagem JPG do anúncio para cliente"
+                  >
+                    <UserCheck className="h-3.5 w-3.5" />
+                    <span>Enviar para Cliente</span>
                   </button>
                 </div>
 
@@ -619,6 +670,14 @@ export const BazarCatalog: React.FC = () => {
         isOpen={isExportCatalogOpen}
         onClose={() => setIsExportCatalogOpen(false)}
         products={products}
+      />
+
+      {/* Send to Customer X Modal */}
+      <SendToCustomerModal
+        isOpen={isSendCustomerOpen}
+        onClose={() => setIsSendCustomerOpen(false)}
+        product={sendCustomerProduct}
+        sales={sales}
       />
 
     </div>

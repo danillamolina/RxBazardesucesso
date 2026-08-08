@@ -6,16 +6,31 @@ import {
   PaymentStatus, 
   PaymentMethod,
   StockMetrics, 
-  FinancialSummary 
+  FinancialSummary,
+  StoreInfo
 } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_SALES, INITIAL_EDITIONS } from '../data/initialData';
 import { calculateMarginPercent } from '../utils/formatters';
+
+const DEFAULT_STORE_INFO: StoreInfo = {
+  name: 'Rx do Bazar de Sucesso',
+  address: 'Rua Principal, 100 - Centro',
+  phone: '(11) 99999-8888',
+  whatsapp: '(11) 99999-8888',
+  instagram: '@danillafinancas',
+  pixKey: '11999998888',
+  notes: 'Horário de Atendimento: Segunda a Sábado das 09h às 18h. Retiradas no local ou entregas combinadas!',
+};
 
 interface BazarContextType {
   products: Product[];
   sales: Sale[];
   editions: BazarEdition[];
   activeEditionId: string; // 'all' or specific ID
+  storeInfo: StoreInfo;
+  
+  // Store info action
+  updateStoreInfo: (info: Partial<StoreInfo>) => void;
   
   // Product actions
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'profitMarginPercent' | 'initialQuantity'>) => void;
@@ -49,11 +64,20 @@ const STORAGE_KEYS = {
   SALES: 'bazar_secreto_sales_v1',
   EDITIONS: 'bazar_secreto_editions_v1',
   ACTIVE_EDITION: 'bazar_secreto_active_edition_v1',
+  STORE_INFO: 'bazar_secreto_store_info_v1',
 };
 
 const BazarContext = createContext<BazarContextType | undefined>(undefined);
 
 export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [storeInfo, setStoreInfo] = useState<StoreInfo>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.STORE_INFO);
+    if (saved) {
+      try { return { ...DEFAULT_STORE_INFO, ...JSON.parse(saved) }; } catch (e) { console.error(e); }
+    }
+    return DEFAULT_STORE_INFO;
+  });
+
   const [products, setProducts] = useState<Product[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
     if (saved) {
@@ -84,6 +108,10 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   // Persistence
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.STORE_INFO, JSON.stringify(storeInfo));
+  }, [storeInfo]);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
   }, [products]);
@@ -570,6 +598,10 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, [filteredSales]);
 
+  const updateStoreInfo = (info: Partial<StoreInfo>) => {
+    setStoreInfo((prev) => ({ ...prev, ...info }));
+  };
+
   return (
     <BazarContext.Provider
       value={{
@@ -577,6 +609,8 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         sales: filteredSales,
         editions,
         activeEditionId,
+        storeInfo,
+        updateStoreInfo,
         addProduct,
         updateProduct,
         deleteProduct,

@@ -14,6 +14,7 @@ import { NewSaleModal } from './components/Sales/NewSaleModal';
 import { SettingsModal } from './components/Settings/SettingsModal';
 import { ProfitReport } from './components/Reports/ProfitReport';
 import { BazarCatalog } from './components/Catalog/BazarCatalog';
+import { StoreDetails } from './components/Store/StoreDetails';
 import { Product } from './types';
 import { useBazar } from './context/BazarContext';
 
@@ -50,7 +51,7 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased flex flex-col selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-[#F7F4EB] dark:bg-[#1A2216] text-[#2B3323] dark:text-[#F7F4EB] font-sans antialiased flex flex-col selection:bg-[#8FA079] selection:text-white transition-colors duration-300">
       
       {/* Top Header & Navigation */}
       <Header
@@ -91,38 +92,48 @@ function MainApp() {
         {activeTab === 'catalog' && (
           <BazarCatalog />
         )}
+
+        {activeTab === 'store' && (
+          <StoreDetails />
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 border-t border-slate-800 py-6 text-center text-xs mt-auto">
+      <footer className="bg-[#2A3722] text-[#D8C7AC] border-t border-[#3A4A30] py-6 text-center text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="font-semibold text-rose-300">
+          <p className="font-semibold text-[#CAD7BE]">
             Rx do Bazar de Sucesso • Feito por <span className="text-white font-bold">@danillafinancas</span> © Todos os direitos reservados
           </p>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 overflow-x-auto py-1">
             <button 
               onClick={() => setActiveTab('dashboard')} 
-              className="hover:text-rose-400 transition"
+              className="hover:text-[#F7F4EB] transition"
             >
               Dashboard
             </button>
             <button 
               onClick={() => setActiveTab('inventory')} 
-              className="hover:text-rose-400 transition"
+              className="hover:text-[#F7F4EB] transition"
             >
               Estoque
             </button>
             <button 
               onClick={() => setActiveTab('sales')} 
-              className="hover:text-rose-400 transition"
+              className="hover:text-[#F7F4EB] transition"
             >
               Vendas
             </button>
             <button 
               onClick={() => setActiveTab('reports')} 
-              className="hover:text-rose-400 transition"
+              className="hover:text-[#F7F4EB] transition"
             >
-              Relatório de Lucro
+              Relatórios
+            </button>
+            <button 
+              onClick={() => setActiveTab('store')} 
+              className="hover:text-[#F7F4EB] transition font-bold text-[#CAD7BE]"
+            >
+              Dados da Loja
             </button>
           </div>
         </div>
