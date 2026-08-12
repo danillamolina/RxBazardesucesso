@@ -230,57 +230,58 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl text-slate-900 dark:text-white my-8">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl text-slate-900 dark:text-white my-auto max-h-[92vh] flex flex-col">
         
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl">
-              <ShoppingCart className="h-6 w-6" />
+        {/* Header - Fixed top */}
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 sm:pb-4 sm:mb-4 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 sm:p-2.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl shrink-0">
+              <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <h3 className="text-xl font-bold tracking-tight">
+              <h3 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                 Registrar Venda / Novo Pedido
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Adicione 1 ou múltiplos produtos no mesmo pedido com controle de estoque
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                Informe o cliente e selecione os produtos do pedido
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="overflow-y-auto pr-1 flex-1 space-y-4 sm:space-y-5">
           
           {/* Customer Info with Quick Search & Auto-complete */}
-          <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 relative">
-            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 relative">
+            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
               <User className="h-4 w-4 text-emerald-500" />
-              Cliente do Bazar
+              <span>Cliente do Bazar</span>
             </h4>
 
             <div className="relative">
-              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
-                Buscar ou Digitar Nome do Cliente *
+              <label className="block text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-1">
+                Nome do Cliente (Obrigatório) *
               </label>
               <input
                 type="text"
                 required
-                placeholder="Digite o nome da cliente (ex: Ana Maria)"
+                placeholder="Digite o nome do cliente (ex: Ana Maria)"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                className="w-full bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-700 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 shadow-sm"
               />
 
               {/* Suggestions Dropdown */}
               {customerSuggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-20 overflow-hidden">
+                <div className="absolute left-0 right-0 top-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-30 overflow-hidden max-h-48 overflow-y-auto">
                   <div className="p-2 text-[10px] font-bold text-slate-400 uppercase bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
                     Clientes Encontradas no Histórico:
                   </div>
@@ -289,7 +290,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                       key={idx}
                       type="button"
                       onClick={() => selectCustomerSuggestion(sug)}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-emerald-50 dark:hover:bg-emerald-950/50 flex justify-between items-center transition"
+                      className="w-full text-left px-3 py-2.5 text-xs hover:bg-emerald-50 dark:hover:bg-emerald-950/50 flex justify-between items-center transition border-b border-slate-100 dark:border-slate-800/50 last:border-0"
                     >
                       <span className="font-bold text-slate-900 dark:text-white">{sug.name}</span>
                       <span className="text-[10px] text-slate-400">{sug.phone || sug.notes || 'Cliente cadastrada'}</span>
@@ -301,7 +302,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                   WhatsApp (DDD + Telefone)
                 </label>
                 <input
@@ -309,19 +310,19 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                   placeholder="ex: 11988887777"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                   Forma de Entrega
                 </label>
                 <div className="relative">
                   <select
                     value={deliveryMethod}
                     onChange={(e) => setDeliveryMethod(e.target.value)}
-                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                   >
                     <option value="Retirada no Local">📍 Retirada no Local / Espaço Bazar</option>
                     <option value="Motoboy">🛵 Motoboy / Tele-entrega</option>
@@ -337,7 +338,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 flex items-center gap-1">
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1 flex items-center gap-1">
                   <MapPin className="h-3 w-3 text-emerald-500" />
                   Endereço Completo de Entrega
                 </label>
@@ -346,12 +347,12 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                   placeholder="Rua, nº, bairro, complemento, cidade"
                   value={customerAddress}
                   onChange={(e) => setCustomerAddress(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                   @Instagram ou Observação
                 </label>
                 <input
@@ -359,7 +360,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                   placeholder="ex: @ana_maria / Entregar no trabalho"
                   value={customerNotes}
                   onChange={(e) => setCustomerNotes(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                 />
               </div>
             </div>

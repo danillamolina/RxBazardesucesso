@@ -199,44 +199,44 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl text-slate-900 dark:text-white my-8">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl text-slate-900 dark:text-white my-auto max-h-[92vh] flex flex-col">
         
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-2xl">
-              <Edit3 className="h-6 w-6" />
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-3 sm:pb-4 sm:mb-4 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 sm:p-2.5 bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-2xl shrink-0">
+              <Edit3 className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div>
-              <h3 className="text-xl font-bold tracking-tight">
+              <h3 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                 Alterar Pedido / Incluir Produtos
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Adicione ou remova itens e calcule a soma total comprada por {customerName || 'Cliente'}
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                Altere os dados do pedido de {customerName || 'Cliente'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="overflow-y-auto pr-1 flex-1 space-y-4 sm:space-y-5">
           
           {/* Customer Info */}
-          <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700">
-            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+          <div className="space-y-3 bg-slate-50 dark:bg-slate-800/50 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700">
+            <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
               <User className="h-4 w-4 text-sky-500" />
-              Dados do Cliente
+              <span>Dados do Cliente</span>
             </h4>
 
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
-                Nome do Cliente *
+              <label className="block text-xs font-bold text-sky-700 dark:text-sky-400 uppercase mb-1">
+                Nome do Cliente (Obrigatório) *
               </label>
               <input
                 type="text"
@@ -244,13 +244,13 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
                 placeholder="ex: Maria Silva"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500"
+                className="w-full bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-700 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 shadow-sm"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                   WhatsApp (DDD + Número)
                 </label>
                 <input
@@ -258,18 +258,18 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
                   placeholder="11988887777"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-sky-500"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sky-500 text-slate-900 dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                   Forma de Entrega
                 </label>
                 <select
                   value={deliveryMethod}
                   onChange={(e) => setDeliveryMethod(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-sky-500 text-slate-900 dark:text-white"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:border-sky-500 text-slate-900 dark:text-white"
                 >
                   <option value="Retirada no Local">📍 Retirada no Local / Espaço Bazar</option>
                   <option value="Motoboy">🛵 Motoboy / Tele-entrega</option>
@@ -284,7 +284,7 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 flex items-center gap-1">
+                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1 flex items-center gap-1">
                   <MapPin className="h-3 w-3 text-sky-500" />
                   Endereço Completo de Entrega
                 </label>
@@ -293,7 +293,7 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
                   placeholder="Rua, nº, bairro, complemento, cidade"
                   value={customerAddress}
                   onChange={(e) => setCustomerAddress(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-sky-500"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sky-500 text-slate-900 dark:text-white"
                 />
               </div>
 

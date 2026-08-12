@@ -163,11 +163,11 @@ export const ShareProductModal: React.FC<ShareProductModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 shadow-2xl relative my-8 space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] flex flex-col">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-2.5 bg-emerald-100 dark:bg-emerald-950/50 rounded-2xl text-emerald-600 dark:text-emerald-400">
               <Share2 className="h-5 w-5" />
@@ -189,6 +189,8 @@ export const ShareProductModal: React.FC<ShareProductModalProps> = ({
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        <div className="overflow-y-auto pr-1 flex-1 space-y-4 mt-3">
 
         {/* Product Visual Card Preview */}
         <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col sm:flex-row gap-4 items-center">
@@ -327,6 +329,7 @@ export const ShareProductModal: React.FC<ShareProductModalProps> = ({
 
         </div>
 
+        </div>
       </div>
     </div>
   );

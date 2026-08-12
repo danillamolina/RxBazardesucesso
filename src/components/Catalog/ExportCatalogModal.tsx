@@ -494,32 +494,34 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative my-8 space-y-5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] flex flex-col">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2.5 bg-emerald-100 dark:bg-emerald-950/50 rounded-2xl text-emerald-600 dark:text-emerald-400">
+            <div className="p-2 sm:p-2.5 bg-emerald-100 dark:bg-emerald-950/50 rounded-2xl text-emerald-600 dark:text-emerald-400 shrink-0">
               <Share2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
-                Exportar Catálogo Completo (Fotos + Descrições)
+              <h3 className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg">
+                Exportar Catálogo Completo
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Divulgue todas as {availableProducts.length} peças com fotos e detalhes de uma só vez
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                Divulgue todas as {availableProducts.length} peças com fotos e detalhes
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        <div className="overflow-y-auto pr-1 flex-1 space-y-4 mt-3">
 
         {/* Catalog Summary Stats Card */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -680,6 +682,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
 
         </div>
 
+        </div>
       </div>
     </div>
   );
