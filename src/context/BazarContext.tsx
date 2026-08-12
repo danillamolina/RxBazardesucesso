@@ -581,8 +581,8 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const totalRevenueSold = totalRevenuePaid + totalRevenuePending;
 
     const averageMarginPercent =
-      totalCostOfGoodsSold > 0
-        ? ((totalRevenuePaid - totalCostOfGoodsSold) / totalCostOfGoodsSold) * 100
+      totalRevenuePaid > 0
+        ? ((totalRevenuePaid - totalCostOfGoodsSold) / totalRevenuePaid) * 100
         : 0;
 
     return {

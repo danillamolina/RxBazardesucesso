@@ -8,7 +8,9 @@ export function formatCurrency(value: number): string {
 }
 
 export function formatPercent(value: number): string {
-  return `${(value || 0).toFixed(1)}%`;
+  const val = value || 0;
+  const rounded = Math.round(val * 10) / 10;
+  return `${rounded.toLocaleString('pt-BR')}%`;
 }
 
 export function formatDate(dateString: string): string {
@@ -32,28 +34,39 @@ export function formatDateShort(dateString: string): string {
   }).format(date);
 }
 
-// Calculate profit margin % given cost and bazaar price
+// Calculate profit margin % given cost and bazaar price (Margem de Lucro sobre o Preço de Venda)
 export function calculateMarginPercent(cost: number, sell: number): number {
-  if (!cost || cost <= 0) return 0;
-  return ((sell - cost) / cost) * 100;
+  if (!sell || sell <= 0 || !cost || cost <= 0) return 0;
+  return ((sell - cost) / sell) * 100;
 }
 
-// Calculate bazaar sell price given cost and desired margin %
+// Calculate bazaar sell price given cost and desired profit margin % (Preço = Custo / (1 - Margem/100))
 export function calculatePriceFromMargin(cost: number, marginPercent: number): number {
   if (!cost || cost <= 0) return 0;
-  return cost * (1 + marginPercent / 100);
+  if (marginPercent >= 100) return cost;
+  const divisor = 1 - marginPercent / 100;
+  if (divisor <= 0) return cost;
+  return cost / divisor;
 }
 
 // Get standardized pricing details (Full Price, Bazar Price, Savings, Discount %)
 export function getProductPriceDetails(prod: { fullPrice?: number; bazarPrice: number; costPrice?: number }) {
   const bazarPrice = prod.bazarPrice || 0;
-  // If fullPrice is specified and higher than bazarPrice, use it. Otherwise calculate estimated store list price (45% markup)
-  const fullPrice = (prod.fullPrice && prod.fullPrice > bazarPrice)
+  // O Preço Cheio vem estritamente do preço cheio cadastrado no produto (prod.fullPrice)
+  const fullPrice = (prod.fullPrice && prod.fullPrice > 0)
     ? prod.fullPrice
-    : Math.round(bazarPrice * 1.45 * 10) / 10;
+    : bazarPrice;
   
-  const discountAmount = Math.max(0, fullPrice - bazarPrice);
-  const discountPercent = fullPrice > 0 ? Math.round((discountAmount / fullPrice) * 100) : 0;
+  const discountAmount = (prod.fullPrice && prod.fullPrice > bazarPrice)
+    ? prod.fullPrice - bazarPrice
+    : 0;
+
+  // Cálculo da porcentagem de desconto: (1 - (bazarPrice / fullPrice)) * 100
+  const rawDiscountRatio = (fullPrice > 0 && prod.fullPrice && prod.fullPrice > bazarPrice)
+    ? (1 - (bazarPrice / fullPrice)) * 100
+    : 0;
+
+  const discountPercent = Math.round(rawDiscountRatio * 10) / 10;
 
   return {
     fullPrice,

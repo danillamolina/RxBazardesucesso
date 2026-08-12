@@ -17,7 +17,7 @@ import {
   Download
 } from 'lucide-react';
 import { Product, Sale } from '../../types';
-import { formatCurrency, getProductPriceDetails } from '../../utils/formatters';
+import { formatCurrency, formatPercent, getProductPriceDetails } from '../../utils/formatters';
 import { shareProductJpgWhatsApp, downloadProductJpg } from '../../utils/productJpgGenerator';
 
 interface SendToCustomerModalProps {
@@ -214,18 +214,18 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
             <h4 className="font-extrabold text-slate-900 dark:text-white text-base leading-snug line-clamp-1">
               {product.name}
             </h4>
-            <div className="flex items-center gap-2 text-xs font-bold">
+            <div className="flex items-center gap-2 text-xs font-bold flex-wrap">
               <span className="text-emerald-600 dark:text-emerald-400 font-black">
                 Por {formatCurrency(bazarPrice)}
               </span>
               {hasDiscount && (
-                <span className="text-slate-400 line-through text-[11px]">
-                  De {formatCurrency(fullPrice)}
+                <span className="text-slate-400 font-medium text-[11px]">
+                  Preço Cheio: <span className="line-through">{formatCurrency(fullPrice)}</span>
                 </span>
               )}
               {hasDiscount && (
-                <span className="text-[10px] font-black text-rose-600 bg-rose-50 dark:bg-rose-950 px-1.5 py-0.5 rounded">
-                  🔥 {discountPercent}% OFF
+                <span className="text-[10px] font-black text-white bg-rose-600 px-2 py-0.5 rounded shadow-sm">
+                  🔥 {formatPercent(discountPercent)} OFF
                 </span>
               )}
             </div>

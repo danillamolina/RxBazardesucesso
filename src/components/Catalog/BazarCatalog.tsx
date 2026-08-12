@@ -20,7 +20,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
-import { formatCurrency, getProductPriceDetails } from '../../utils/formatters';
+import { formatCurrency, formatPercent, getProductPriceDetails } from '../../utils/formatters';
 import { Product, ProductCategory } from '../../types';
 import { shareProductJpgWhatsApp, downloadProductJpg } from '../../utils/productJpgGenerator';
 import { ExportCatalogModal } from './ExportCatalogModal';
@@ -358,22 +358,20 @@ export const BazarCatalog: React.FC = () => {
                   </div>
 
                   {/* Full Price, Bazar Price & Discount Badge DIRECTLY ON THE PHOTO (Bottom Right Overlay) */}
-                  <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-1.5 max-w-[85%]">
+                  <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-1.5 max-w-[88%]">
                     {/* Discount OFF Pill - Prominent & Large */}
                     {hasDiscount && (
-                      <span className="bg-rose-600 text-white font-black text-sm sm:text-base px-4 py-1.5 rounded-2xl shadow-2xl border-2 border-white/80 dark:border-rose-400 animate-pulse flex items-center gap-1.5 tracking-wide">
+                      <span className="bg-rose-600 text-white font-black text-xs sm:text-sm px-3.5 py-1.5 rounded-2xl shadow-2xl border-2 border-white/80 dark:border-rose-400 animate-pulse flex items-center gap-1.5 tracking-wide">
                         <Tag className="h-4 w-4" />
-                        🔥 {discountPercent}% OFF
+                        🔥 {formatPercent(discountPercent)} OFF (Economia {formatCurrency(discountAmount)})
                       </span>
                     )}
 
                     {/* Price Tag Box Overlay on Photo */}
                     <div className="bg-slate-950/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-2xl border border-slate-700/80 text-right space-y-1">
                       {hasDiscount && (
-                        <div className="flex items-center justify-end gap-2">
-                          <span className="text-xs text-slate-300 line-through font-semibold">
-                            Preço Cheio: {formatCurrency(fullPrice)}
-                          </span>
+                        <div className="text-xs text-slate-300 font-bold">
+                          Preço Cheio: <span className="line-through text-slate-400 font-normal">{formatCurrency(fullPrice)}</span>
                         </div>
                       )}
                       <div className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
@@ -381,7 +379,7 @@ export const BazarCatalog: React.FC = () => {
                       </div>
                       {hasDiscount && (
                         <div className="text-xs font-black text-rose-300 bg-rose-950/90 px-2.5 py-1 rounded-lg border border-rose-800/80">
-                          Economia de {formatCurrency(discountAmount)}
+                          Desconto: {formatCurrency(discountAmount)} ({formatPercent(discountPercent)} OFF)
                         </div>
                       )}
                     </div>
@@ -434,25 +432,29 @@ export const BazarCatalog: React.FC = () => {
 
                     {/* Prominent Price & Discount Breakdown Box */}
                     <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 rounded-2xl p-4 sm:p-5 space-y-2">
-                      <div className="flex items-baseline gap-3 flex-wrap">
-                        <span className="text-xs font-bold text-slate-500 uppercase">Valor de Bazar:</span>
+                      {hasDiscount && (
+                        <div className="flex items-baseline gap-3 flex-wrap">
+                          <span className="text-xs font-bold text-slate-500 uppercase">Preço Cheio:</span>
+                          <span className="text-sm text-slate-400 line-through font-bold">
+                            {formatCurrency(fullPrice)}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="flex items-baseline gap-3 flex-wrap pt-0.5">
+                        <span className="text-xs font-bold text-slate-500 uppercase">{hasDiscount ? "Por:" : "Valor no Bazar:"}</span>
                         <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
                           {formatCurrency(bazarPrice)}
                         </span>
-                        {hasDiscount && (
-                          <span className="text-sm text-slate-400 line-through font-semibold">
-                            De {formatCurrency(fullPrice)}
-                          </span>
-                        )}
                       </div>
 
                       {hasDiscount && (
-                        <div className="flex items-center gap-2 pt-0.5 flex-wrap">
-                          <span className="text-xs font-black text-rose-700 dark:text-rose-300 bg-rose-100 dark:bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800">
-                            🔥 {discountPercent}% de Desconto
+                        <div className="flex items-center gap-2 pt-1 flex-wrap">
+                          <span className="text-xs sm:text-sm font-black text-white bg-rose-600 px-3 py-1.5 rounded-xl shadow-md flex items-center gap-1 border border-rose-400 animate-pulse">
+                            🔥 Etiqueta de Desconto: {formatPercent(discountPercent)} OFF
                           </span>
                           <span className="text-xs font-black text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900/80 px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700">
-                            💰 Economia Real: {formatCurrency(discountAmount)}
+                            💰 Economia: {formatCurrency(discountAmount)}
                           </span>
                         </div>
                       )}
@@ -544,26 +546,26 @@ export const BazarCatalog: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Photo Overlay with Full Price, Bazar Price & Discount % */}
-                    <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10">
+                    {/* Photo Overlay with Full Price, Por & Discount Value */}
+                    <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10 max-w-[85%]">
                       {hasDiscount && (
-                        <span className="bg-rose-600 text-white font-black text-xs sm:text-sm px-3 py-1 rounded-xl shadow-xl border border-rose-300 animate-pulse flex items-center gap-1">
-                          🔥 {discountPercent}% OFF
+                        <span className="bg-rose-600 text-white font-black text-xs px-3 py-1 rounded-xl shadow-xl border border-rose-300 animate-pulse flex items-center gap-1">
+                          🔥 {formatPercent(discountPercent)} OFF
                         </span>
                       )}
                       
                       <div className="bg-slate-950/95 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-lg text-right border border-slate-700/80 space-y-0.5">
                         {hasDiscount && (
-                          <div className="text-[10px] text-slate-300 line-through font-medium">
-                            De {formatCurrency(fullPrice)}
+                          <div className="text-[10px] text-slate-300 font-bold">
+                            Preço Cheio: <span className="line-through text-slate-400 font-normal">{formatCurrency(fullPrice)}</span>
                           </div>
                         )}
                         <div className="text-xs sm:text-sm font-black text-emerald-400">
                           {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
                         </div>
                         {hasDiscount && (
-                          <div className="text-[10px] font-bold text-rose-300">
-                            Econ. {formatCurrency(discountAmount)}
+                          <div className="text-[10px] font-black text-rose-300 bg-rose-950/90 px-2 py-0.5 rounded border border-rose-800/80">
+                            Desconto: {formatCurrency(discountAmount)} ({formatPercent(discountPercent)} OFF)
                           </div>
                         )}
                       </div>
@@ -606,18 +608,18 @@ export const BazarCatalog: React.FC = () => {
                     <div className="pt-1 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5">
                       {hasDiscount && (
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs text-slate-400 line-through font-medium">
-                            De {formatCurrency(fullPrice)}
+                          <span className="text-xs text-slate-400 font-bold">
+                            Preço Cheio: <span className="line-through font-normal">{formatCurrency(fullPrice)}</span>
                           </span>
-                          <span className="text-xs font-black text-white bg-rose-600 dark:bg-rose-600 px-2.5 py-0.5 rounded-lg shadow-sm">
-                            🔥 {discountPercent}% OFF
+                          <span className="text-xs font-black text-white bg-rose-600 px-2.5 py-1 rounded-lg shadow-sm border border-rose-400 animate-pulse">
+                            🔥 {formatPercent(discountPercent)} OFF
                           </span>
                         </div>
                       )}
 
                       <div className="flex items-baseline justify-between gap-2 pt-0.5">
                         <span className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400">
-                          {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
+                          Por {formatCurrency(bazarPrice)}
                         </span>
                         {hasDiscount && (
                           <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900/80 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">

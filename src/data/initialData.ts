@@ -19,6 +19,24 @@ export const INITIAL_EDITIONS: BazarEdition[] = [
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
+    id: 'prod-kaiak',
+    name: 'Kaiak Masculino 100ml',
+    sku: 'PERF-001',
+    category: 'Cosméticos & Perfumes',
+    fullPrice: 180.00,
+    costPrice: 67.00,
+    bazarPrice: 83.75,
+    bazarDiscountValue: 96.25,
+    profitMarginPercent: 20.0,
+    quantity: 3,
+    initialQuantity: 3,
+    imageUrl: 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=600',
+    description: 'Natura Homem Essence celebra a sofisticação e a elegância masculina. com notas amadeiradas e especiadas, esta fragrância exala personalidade e é ideal para o homem que busca uma presença marcante.',
+    sizeColor: '100ml',
+    bazarEditionId: 'ed-1',
+    createdAt: '2026-08-01T09:30:00.000Z',
+  },
+  {
     id: 'prod-1',
     name: 'Vestido Midi Elegante Floral',
     sku: 'VEST-001',

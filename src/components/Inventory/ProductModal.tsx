@@ -68,10 +68,16 @@ export const ProductModal: React.FC<ProductModalProps> = ({
         setCustomCategory(productToEdit.category);
       }
 
-      setFullPrice(productToEdit.fullPrice || '');
-      setBazarDiscountValue(productToEdit.bazarDiscountValue || '');
+      const editFull = productToEdit.fullPrice || '';
+      const editBazar = productToEdit.bazarPrice || 0;
+      const initialDiscount = typeof editFull === 'number' && editFull > editBazar
+        ? parseFloat((editFull - editBazar).toFixed(2))
+        : (productToEdit.bazarDiscountValue || '');
+
+      setFullPrice(editFull);
+      setBazarDiscountValue(initialDiscount);
       setCostPrice(productToEdit.costPrice);
-      setBazarPrice(productToEdit.bazarPrice);
+      setBazarPrice(editBazar);
       setQuantity(productToEdit.quantity);
       setSizeColor(productToEdit.sizeColor || '');
       setDescription(productToEdit.description || '');
@@ -106,42 +112,55 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const unitProfit = numPrice - numCost;
   const totalPotentialProfit = unitProfit * numQty;
 
-  // Calculate discount automatically if full price is set
-  const calculatedDiscountAmount = numFull > 0 && numPrice > 0 ? Math.max(0, numFull - numPrice) : 0;
-  const calculatedDiscountPercent = numFull > 0 && calculatedDiscountAmount > 0 ? ((calculatedDiscountAmount / numFull) * 100) : 0;
+  // Calculate discount automatically if full price is set: (1 - (bazarPrice / fullPrice)) * 100
+  const calculatedDiscountAmount = numFull > 0 && numPrice > 0 && numFull > numPrice ? Math.max(0, numFull - numPrice) : 0;
+  const calculatedDiscountPercent = numFull > 0 && numPrice > 0 && numFull > numPrice
+    ? Math.max(0, (1 - (numPrice / numFull)) * 100)
+    : 0;
 
   const handleFullPriceChange = (val: number | '') => {
     setFullPrice(val);
-    if (typeof val === 'number' && val > 0 && typeof bazarDiscountValue === 'number' && bazarDiscountValue > 0) {
-      setBazarPrice(Math.max(0, val - bazarDiscountValue));
-    } else if (typeof val === 'number' && val > 0 && numPrice > 0) {
-      setBazarDiscountValue(Math.max(0, val - numPrice));
+    if (typeof val === 'number' && val > 0) {
+      if (numPrice > 0) {
+        const disc = Math.max(0, val - numPrice);
+        setBazarDiscountValue(parseFloat(disc.toFixed(2)));
+      } else if (typeof bazarDiscountValue === 'number' && bazarDiscountValue > 0) {
+        const newBazar = Math.max(0, val - bazarDiscountValue);
+        setBazarPrice(parseFloat(newBazar.toFixed(2)));
+      }
+    } else {
+      setBazarDiscountValue('');
     }
   };
 
   const handleBazarDiscountChange = (val: number | '') => {
     setBazarDiscountValue(val);
-    if (typeof numFull === 'number' && numFull > 0 && typeof val === 'number') {
-      setBazarPrice(Math.max(0, numFull - val));
-    }
-  };
-
-  const handleApplyMarginPreset = (marginPct: number) => {
-    if (numCost > 0) {
-      const newPrice = calculatePriceFromMargin(numCost, marginPct);
-      setBazarPrice(parseFloat(newPrice.toFixed(2)));
-      if (numFull > 0) {
-        setBazarDiscountValue(Math.max(0, numFull - newPrice));
-      }
+    if (typeof val === 'number' && val >= 0 && typeof numFull === 'number' && numFull > 0) {
+      const newBazar = Math.max(0, numFull - val);
+      setBazarPrice(parseFloat(newBazar.toFixed(2)));
     }
   };
 
   const handleApplyCustomMargin = () => {
     const pct = parseFloat(customMarginInput);
-    if (!isNaN(pct) && pct >= 0) {
-      handleApplyMarginPreset(pct);
-    } else {
-      alert('Informe uma porcentagem de margem válida (ex: 85, 120, 250)');
+    if (isNaN(pct) || pct < 0) {
+      alert('Informe uma porcentagem de margem válida (ex: 20, 30, 50).');
+      return;
+    }
+    if (pct >= 100) {
+      alert('A margem de lucro sobre o preço de venda deve ser menor que 100% (ex: 20%, 30%, 50%).');
+      return;
+    }
+    if (numCost <= 0) {
+      alert('Informe primeiro o Preço de Custo (ex: R$ 18,00).');
+      return;
+    }
+
+    const newPrice = calculatePriceFromMargin(numCost, pct);
+    const roundedPrice = parseFloat(newPrice.toFixed(2));
+    setBazarPrice(roundedPrice);
+    if (numFull > 0) {
+      setBazarDiscountValue(Math.max(0, numFull - roundedPrice));
     }
   };
 
@@ -381,14 +400,19 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 />
               </div>
 
-              {numFull > 0 && numPrice > 0 && (
-                <div className="col-span-1 sm:col-span-2 text-[11px] text-rose-600 dark:text-rose-400 font-bold flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
+              {numFull > 0 && numPrice > 0 && numFull > numPrice && (
+                <div className="col-span-1 sm:col-span-2 text-[11px] text-rose-600 dark:text-rose-400 font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
                   <span>
                     De {formatCurrency(numFull)} por {formatCurrency(numPrice)}
                   </span>
-                  <span className="bg-rose-100 dark:bg-rose-950 px-2 py-0.5 rounded-full">
-                    🔥 Desconto de {formatCurrency(calculatedDiscountAmount)} ({formatPercent(calculatedDiscountPercent)} OFF)
-                  </span>
+                  <div className="text-left sm:text-right">
+                    <span className="bg-rose-100 dark:bg-rose-950 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900 inline-block">
+                      🔥 Desconto de {formatCurrency(calculatedDiscountAmount)} ({formatPercent(calculatedDiscountPercent)} OFF)
+                    </span>
+                    <span className="block text-[10px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">
+                      Fórmula: (1 - ({numPrice.toFixed(2)} / {numFull.toFixed(2)})) × 100
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
@@ -446,44 +470,43 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               </div>
             </div>
 
-            {/* Quick Margin Preset Buttons + Custom Margin Input */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-                Aplicar Margem Rápida sobre o Custo:
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {[50, 70, 100, 150, 200].map((margin) => (
-                  <button
-                    key={margin}
-                    type="button"
-                    onClick={() => handleApplyMarginPreset(margin)}
-                    className="text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950 dark:hover:text-rose-300 border border-slate-200 dark:border-slate-700 transition"
-                  >
-                    +{margin}%
-                  </button>
-                ))}
-
-                {/* Custom Percentage Input */}
-                <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-xl border border-rose-300 dark:border-rose-800">
+            {/* Margin Calculator (Lucro sobre Preço de Venda) */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 space-y-2">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Aplicar Margem de Lucro Desejada (%):
+              </label>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 flex-1">
                   <input
                     type="number"
-                    step="1"
+                    step="0.1"
                     min="0"
-                    placeholder="ex: 85"
+                    max="99.9"
+                    placeholder="ex: 20"
                     value={customMarginInput}
                     onChange={(e) => setCustomMarginInput(e.target.value)}
-                    className="w-16 bg-transparent px-2 py-0.5 text-xs font-bold focus:outline-none text-slate-900 dark:text-white"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleApplyCustomMargin();
+                      }
+                    }}
+                    className="w-full bg-transparent text-sm font-bold focus:outline-none text-slate-900 dark:text-white"
                   />
-                  <span className="text-xs font-bold text-slate-400">%</span>
-                  <button
-                    type="button"
-                    onClick={handleApplyCustomMargin}
-                    className="bg-rose-500 hover:bg-rose-600 text-white text-[11px] font-bold px-2 py-1 rounded-lg transition"
-                  >
-                    Aplicar
-                  </button>
+                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">%</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleApplyCustomMargin}
+                  className="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm shrink-0 flex items-center justify-center gap-1.5"
+                >
+                  <Calculator className="h-4 w-4" />
+                  <span>Aplicar Margem</span>
+                </button>
               </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                Cálculo: Custo ÷ (1 - Margem/100). Exemplo: R$ 18,00 ÷ 0,80 = R$ 22,50 (20% de margem).
+              </p>
             </div>
 
             {/* Live Profit Summary Box */}

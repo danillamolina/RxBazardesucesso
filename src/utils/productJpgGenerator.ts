@@ -1,5 +1,5 @@
 import { Product } from '../types';
-import { formatCurrency, getProductPriceDetails } from './formatters';
+import { formatCurrency, formatPercent, getProductPriceDetails } from './formatters';
 
 /**
  * Utility to load an image safely into HTMLImageElement for canvas drawing
@@ -178,7 +178,7 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
 
   // Discount OFF Floating Pill above Price Card Box
   if (hasDiscount) {
-    const offText = `🔥 ${discountPercent}% OFF`;
+    const offText = `🔥 ${formatPercent(discountPercent)} OFF`;
     ctx.font = 'black 14px system-ui, sans-serif';
     const offW = ctx.measureText(offText).width + 24;
     const offX = overlayRight - offW;
@@ -217,11 +217,11 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
 
     ctx.fillStyle = '#E5EBDE';
     ctx.font = 'bold 11px system-ui, sans-serif';
-    ctx.fillText(`Economia de ${formatCurrency(discountAmount)}`, overlayRight - 16, boxY + 76);
+    ctx.fillText(`Desconto: ${formatCurrency(discountAmount)} (${formatPercent(discountPercent)} OFF)`, overlayRight - 16, boxY + 76);
   } else {
     ctx.fillStyle = '#CAD7BE';
-    ctx.font = '900 22px system-ui, sans-serif';
-    ctx.fillText(formatCurrency(bazarPrice), overlayRight - 16, boxY + 35);
+    ctx.font = '900 20px system-ui, sans-serif';
+    ctx.fillText(`Valor no Bazar: ${formatCurrency(bazarPrice)}`, overlayRight - 16, boxY + 45);
   }
 
   // Right Section: Product Details & Pricing Info
@@ -318,7 +318,7 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
     ctx.fillText(`De ${formatCurrency(fullPrice)}`, rightX + 380, currentY + 40);
 
     // Pill 1: % Discount
-    const pill1Text = `🔥 ${discountPercent}% de Desconto`;
+    const pill1Text = `🔥 ${formatPercent(discountPercent)} de Desconto`;
     ctx.font = 'bold 12px system-ui, sans-serif';
     const p1W = ctx.measureText(pill1Text).width + 20;
     ctx.fillStyle = '#E5EBDE';
@@ -433,7 +433,7 @@ export async function shareProductJpgWhatsApp(
     (product.expirationDate ? `📅 Validade: ${product.expirationDate}\n` : '') +
     (product.description ? `📝 ${product.description}\n` : '') +
     (hasDiscount
-      ? `\n🏷️ Preço Cheio: ~${formatCurrency(fullPrice)}~\n🔥 Preço no Bazar: *${formatCurrency(bazarPrice)}* (🔥 *${discountPercent}% OFF*)\n💰 Desconto Realizado: *${formatCurrency(discountAmount)}* de economia!\n`
+      ? `\n🏷️ Preço Cheio: ~${formatCurrency(fullPrice)}~\n🔥 Preço no Bazar: *${formatCurrency(bazarPrice)}* (🔥 *${formatPercent(discountPercent)} OFF*)\n💰 Desconto Realizado: *${formatCurrency(discountAmount)}* de economia!\n`
       : `\n💰 Preço no Bazar: *${formatCurrency(bazarPrice)}*!\n`) +
     (product.quantity > 0 ? `📦 Estoque Disponível: *${product.quantity} un.*\n` : `🔴 *PRODUTO ESGOTADO*\n`) +
     `\nMe chama no privado para garantir ou tirar dúvidas! 🛍️💖`;

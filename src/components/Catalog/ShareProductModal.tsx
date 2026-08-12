@@ -12,7 +12,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { Product } from '../../types';
-import { formatCurrency, generateProductShareText, createWhatsAppProductShareLink } from '../../utils/formatters';
+import { formatCurrency, formatPercent, generateProductShareText, createWhatsAppProductShareLink } from '../../utils/formatters';
 
 interface ShareProductModalProps {
   isOpen: boolean;
@@ -214,20 +214,25 @@ export const ShareProductModal: React.FC<ShareProductModalProps> = ({
               {product.fullPrice && product.fullPrice > product.bazarPrice ? (
                 <>
                   <span className="bg-rose-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
-                    🔥 {Math.round(((product.fullPrice - product.bazarPrice) / product.fullPrice) * 100)}% OFF
+                    🔥 {formatPercent((1 - (product.bazarPrice / product.fullPrice)) * 100)} OFF
                   </span>
-                  <div className="bg-slate-900/90 text-white text-[9px] px-1.5 py-0.5 rounded shadow text-right">
-                    <span className="line-through text-slate-300 block text-[8px]">
-                      De {formatCurrency(product.fullPrice)}
+                  <div className="bg-slate-900/95 text-white text-[9px] px-2 py-1 rounded shadow text-right space-y-0.5">
+                    <span className="text-slate-300 block text-[8px] font-bold">
+                      Preço Cheio: <span className="line-through font-normal">{formatCurrency(product.fullPrice)}</span>
                     </span>
-                    <span className="font-black text-emerald-400 block">
+                    <span className="font-black text-emerald-400 block text-[10px]">
                       Por {formatCurrency(product.bazarPrice)}
+                    </span>
+                    <span className="text-rose-300 block text-[8px] font-bold">
+                      Desconto: {formatCurrency(product.fullPrice - product.bazarPrice)}
                     </span>
                   </div>
                 </>
               ) : (
-                <div className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
-                  {formatCurrency(product.bazarPrice)}
+                <div className="bg-slate-900/95 text-white text-[9px] px-2 py-1 rounded shadow text-right">
+                  <span className="font-black text-emerald-400 block text-[10px]">
+                    Valor no Bazar: {formatCurrency(product.bazarPrice)}
+                  </span>
                 </div>
               )}
             </div>
@@ -255,7 +260,7 @@ export const ShareProductModal: React.FC<ShareProductModalProps> = ({
                     De {formatCurrency(product.fullPrice)}
                   </span>
                   <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
-                    Economia: {formatCurrency(product.fullPrice - product.bazarPrice)} ({Math.round(((product.fullPrice - product.bazarPrice) / product.fullPrice) * 100)}% OFF)
+                    Economia: {formatCurrency(product.fullPrice - product.bazarPrice)} ({formatPercent((1 - (product.bazarPrice / product.fullPrice)) * 100)} OFF)
                   </span>
                 </>
               )}
