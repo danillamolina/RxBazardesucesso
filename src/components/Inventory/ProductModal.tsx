@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { X, Calculator, Package, Sparkles, Image as ImageIcon, Upload, Camera, Plus, Tag, Barcode, Calendar } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Calculator, Package, Sparkles, Image as ImageIcon, Camera, Plus, Tag, Barcode, Calendar, Trash2, Loader2, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Product, ProductCategory } from '../../types';
 import { formatCurrency, formatPercent, calculateMarginPercent, calculatePriceFromMargin } from '../../utils/formatters';
+import { optimizeProductImage } from '../../utils/imageOptimizer';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -18,15 +19,6 @@ const DEFAULT_CATEGORIES = [
   'Semijoias',
   'Casa & Decoração',
   'Outros',
-];
-
-const SAMPLE_IMAGES = [
-  { label: 'Vestido', url: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?auto=format&fit=crop&q=80&w=600' },
-  { label: 'Perfume', url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=600' },
-  { label: 'Bolsa', url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&q=80&w=600' },
-  { label: 'Semijoia', url: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600' },
-  { label: 'Calçado', url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&q=80&w=600' },
-  { label: 'Cosmético', url: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=600' },
 ];
 
 export const ProductModal: React.FC<ProductModalProps> = ({
@@ -53,6 +45,15 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [showInCatalog, setShowInCatalog] = useState<boolean>(true);
+
+  // Photo Upload & Camera States
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [imageStats, setImageStats] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (productToEdit) {
@@ -83,6 +84,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setDescription(productToEdit.description || '');
       setImageUrl(productToEdit.imageUrl || '');
       setShowInCatalog(productToEdit.showInCatalog !== false);
+      setImageStats(productToEdit.imageUrl ? 'Foto atual carregada' : null);
+      setImageError(null);
     } else {
       setName('');
       setSku('');
@@ -98,6 +101,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setDescription('');
       setImageUrl('');
       setShowInCatalog(true);
+      setImageStats(null);
+      setImageError(null);
     }
   }, [productToEdit, isOpen]);
 
@@ -164,22 +169,64 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     }
   };
 
-  // Handle Photo File Upload (PC / Mobile Camera)
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // High-performance image processing with automatic compression for mobile/desktop
+  const processImageFile = async (file: File) => {
+    if (!file) return;
+    
+    // Check if file is image
+    if (!file.type.startsWith('image/') && !file.name.match(/\.(jpg|jpeg|png|webp|gif|heic|heif)$/i)) {
+      setImageError('Selecione um arquivo de foto válido (JPG, PNG, WEBP).');
+      return;
+    }
+
+    try {
+      setIsProcessingImage(true);
+      setImageError(null);
+      setImageStats(null);
+
+      const optimized = await optimizeProductImage(file, 1080, 1080, 0.82);
+      setImageUrl(optimized.dataUrl);
+      setImageStats(`Foto otimizada com sucesso! (${optimized.optimizedSizeKb} KB)`);
+    } catch (err: any) {
+      console.error('Erro ao processar foto:', err);
+      setImageError('Não foi possível processar a foto. Tente novamente ou escolha outra imagem.');
+    } finally {
+      setIsProcessingImage(false);
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
+      if (galleryInputRef.current) galleryInputRef.current.value = '';
+    }
+  };
+
+  const handleCameraChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        alert('A foto é muito grande! Escolha uma imagem de até 10MB.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setImageUrl(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
+      processImageFile(file);
     }
+  };
+
+  const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDraggingOver(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -399,22 +446,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-rose-500"
                 />
               </div>
-
-              {numFull > 0 && numPrice > 0 && numFull > numPrice && (
-                <div className="col-span-1 sm:col-span-2 text-[11px] text-rose-600 dark:text-rose-400 font-bold flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <span>
-                    De {formatCurrency(numFull)} por {formatCurrency(numPrice)}
-                  </span>
-                  <div className="text-left sm:text-right">
-                    <span className="bg-rose-100 dark:bg-rose-950 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-900 inline-block">
-                      🔥 Desconto de {formatCurrency(calculatedDiscountAmount)} ({formatPercent(calculatedDiscountPercent)} OFF)
-                    </span>
-                    <span className="block text-[10px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">
-                      Fórmula: (1 - ({numPrice.toFixed(2)} / {numFull.toFixed(2)})) × 100
-                    </span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Row 2: Preço Custo, Valor Bazar, Estoque */}
@@ -523,73 +554,157 @@ export const ProductModal: React.FC<ProductModalProps> = ({
             </div>
           </div>
 
-          {/* Photo Upload Options (Device / PC / Camera / URL) */}
+          {/* Photo Upload & Camera Section (Mobile Gallery + Direct Camera + Desktop File) */}
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                Foto do Produto (Celular ou Computador)
-              </label>
-
-              {/* Photo Upload Button & Camera Trigger */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                <label className="cursor-pointer bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800/80 rounded-2xl p-3 flex items-center justify-center gap-2 text-rose-700 dark:text-rose-300 text-xs font-bold transition">
-                  <Camera className="h-4 w-4 text-rose-500" />
-                  <span>Tirar Foto / Galeria (Celular/PC)</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                  Foto da Peça / Produto
                 </label>
-
                 {imageUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setImageUrl('')}
-                    className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 text-xs font-semibold p-3 rounded-2xl transition"
-                  >
-                    Remover Foto Atual
-                  </button>
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>Foto carregada</span>
+                  </span>
                 )}
               </div>
 
-              {/* Image Preview */}
-              {imageUrl && (
-                <div className="relative h-32 w-32 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 mb-2">
-                  <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] px-1.5 py-0.5 rounded">
-                    Carregada
-                  </span>
+              {/* Hidden File Inputs */}
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleCameraChange}
+                className="hidden"
+                id="camera-photo-input"
+              />
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleGalleryChange}
+                className="hidden"
+                id="gallery-photo-input"
+              />
+
+              {/* Action Buttons: Camera & Gallery */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  disabled={isProcessingImage}
+                  className="bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-bold text-xs p-3 rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-rose-500/20 transition disabled:opacity-50 cursor-pointer"
+                >
+                  <Camera className="h-4 w-4 shrink-0" />
+                  <span>Tirar Foto (Câmera)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current?.click()}
+                  disabled={isProcessingImage}
+                  className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-[0.98] text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold text-xs p-3 rounded-2xl flex items-center justify-center gap-2 transition disabled:opacity-50 cursor-pointer"
+                >
+                  <ImageIcon className="h-4 w-4 text-rose-500 shrink-0" />
+                  <span>Galeria / Arquivo (Celular/PC)</span>
+                </button>
+              </div>
+
+              {/* Processing Loader */}
+              {isProcessingImage && (
+                <div className="bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-2xl p-4 flex items-center justify-center gap-3 text-rose-700 dark:text-rose-300 text-xs font-semibold animate-pulse mb-3">
+                  <Loader2 className="h-5 w-5 animate-spin text-rose-500" />
+                  <span>Processando e otimizando foto para o catálogo...</span>
                 </div>
               )}
 
-              {/* URL Input */}
-              <input
-                type="text"
-                placeholder="Ou cole a URL da imagem (ex: https://exemplo.com/foto.jpg)"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-2 text-xs focus:outline-none focus:border-rose-500 transition"
-              />
+              {/* Error Notification */}
+              {imageError && (
+                <div className="bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 p-3 rounded-2xl text-xs font-medium border border-rose-300 dark:border-rose-800 mb-3">
+                  {imageError}
+                </div>
+              )}
 
-              {/* Sample Images Picker */}
-              <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
-                <span className="text-[11px] text-slate-400 shrink-0 flex items-center gap-1">
-                  <ImageIcon className="h-3 w-3" />
-                  Ou escolha um exemplo:
-                </span>
-                {SAMPLE_IMAGES.map((sample) => (
-                  <button
-                    key={sample.label}
-                    type="button"
-                    onClick={() => setImageUrl(sample.url)}
-                    className="text-[11px] bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-lg shrink-0 transition"
-                  >
-                    {sample.label}
-                  </button>
-                ))}
-              </div>
+              {/* Photo Preview & Control Card */}
+              {imageUrl ? (
+                <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 flex flex-col sm:flex-row items-center gap-4">
+                  <div className="relative h-28 w-28 sm:h-32 sm:w-32 rounded-2xl overflow-hidden border-2 border-rose-500 shadow-md shrink-0 bg-slate-900">
+                    <img src={imageUrl} alt="Foto do produto" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-1 right-1 bg-slate-950/85 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-lg backdrop-blur-sm border border-emerald-500/30">
+                      ✓ Pronta
+                    </span>
+                  </div>
+
+                  <div className="flex-1 text-center sm:text-left space-y-2 w-full">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Foto pronta para o Catálogo e WhatsApp
+                      </p>
+                      {imageStats && (
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          {imageStats}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap pt-1">
+                      <button
+                        type="button"
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="bg-white dark:bg-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 text-[11px] font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-600 transition flex items-center gap-1.5"
+                      >
+                        <RefreshCw className="h-3 w-3 text-rose-500" />
+                        <span>Tirar Outra</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => galleryInputRef.current?.click()}
+                        className="bg-white dark:bg-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 text-[11px] font-bold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-600 transition flex items-center gap-1.5"
+                      >
+                        <ImageIcon className="h-3 w-3 text-slate-500" />
+                        <span>Trocar Galeria</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageUrl('');
+                          setImageStats(null);
+                          setImageError(null);
+                        }}
+                        className="bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-600 dark:text-rose-400 text-[11px] font-bold px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900 transition flex items-center gap-1.5"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span>Remover</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onClick={() => galleryInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-2xl p-4 sm:p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${
+                    isDraggingOver
+                      ? 'border-rose-500 bg-rose-50/50 dark:bg-rose-950/30'
+                      : 'border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80'
+                  }`}
+                >
+                  <div className="p-3 bg-rose-50 dark:bg-rose-950/50 text-rose-500 rounded-full">
+                    <Camera className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                      Tire uma foto ou selecione da galeria do celular/PC
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Arquivos JPG, PNG ou fotos tiradas na hora (otimização automática)
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>

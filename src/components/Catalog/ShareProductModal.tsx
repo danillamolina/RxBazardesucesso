@@ -212,25 +212,20 @@ export const ShareProductModal: React.FC<ShareProductModalProps> = ({
 
             <div className="absolute top-1.5 right-1.5 flex flex-col items-end gap-1">
               {product.fullPrice && product.fullPrice > product.bazarPrice ? (
-                <>
-                  <span className="bg-rose-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
-                    🔥 {formatPercent((1 - (product.bazarPrice / product.fullPrice)) * 100)} OFF
+                <div className="bg-white/95 text-slate-900 text-[9px] px-2 py-1 rounded shadow-md border border-slate-200 text-right space-y-0.5">
+                  <span className="text-slate-500 block text-[8px] font-bold">
+                    Preço Cheio: <span className="line-through font-normal text-slate-400">{formatCurrency(product.fullPrice)}</span>
                   </span>
-                  <div className="bg-slate-900/95 text-white text-[9px] px-2 py-1 rounded shadow text-right space-y-0.5">
-                    <span className="text-slate-300 block text-[8px] font-bold">
-                      Preço Cheio: <span className="line-through font-normal">{formatCurrency(product.fullPrice)}</span>
-                    </span>
-                    <span className="font-black text-emerald-400 block text-[10px]">
-                      Por {formatCurrency(product.bazarPrice)}
-                    </span>
-                    <span className="text-rose-300 block text-[8px] font-bold">
-                      Desconto: {formatCurrency(product.fullPrice - product.bazarPrice)}
-                    </span>
-                  </div>
-                </>
+                  <span className="font-black text-emerald-600 block text-[10px]">
+                    Por {formatCurrency(product.bazarPrice)}
+                  </span>
+                  <span className="text-rose-600 block text-[8px] font-bold">
+                    Desconto: {formatCurrency(product.fullPrice - product.bazarPrice)}
+                  </span>
+                </div>
               ) : (
-                <div className="bg-slate-900/95 text-white text-[9px] px-2 py-1 rounded shadow text-right">
-                  <span className="font-black text-emerald-400 block text-[10px]">
+                <div className="bg-white/95 text-slate-900 text-[9px] px-2 py-1 rounded shadow-md border border-slate-200 text-right">
+                  <span className="font-black text-emerald-600 block text-[10px]">
                     Valor no Bazar: {formatCurrency(product.bazarPrice)}
                   </span>
                 </div>

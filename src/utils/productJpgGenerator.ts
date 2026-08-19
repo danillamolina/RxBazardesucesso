@@ -176,50 +176,30 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
   const boxX = overlayRight - boxW;
   const boxY = overlayBottom - boxH;
 
-  // Discount OFF Floating Pill above Price Card Box
-  if (hasDiscount) {
-    const offText = `🔥 ${formatPercent(discountPercent)} OFF`;
-    ctx.font = 'black 14px system-ui, sans-serif';
-    const offW = ctx.measureText(offText).width + 24;
-    const offX = overlayRight - offW;
-    const offY = boxY - 36;
-
-    ctx.fillStyle = '#71845B';
-    ctx.shadowColor = 'rgba(113, 132, 91, 0.4)';
-    ctx.shadowBlur = 12;
-    ctx.beginPath();
-    ctx.roundRect(offX, offY, offW, 30, 15);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.fillText(offText, offX + offW / 2, offY + 20);
-  }
-
-  // Price Overlay Box
-  ctx.fillStyle = 'rgba(42, 55, 34, 0.95)';
+  // Price Overlay Box (Clean White Background)
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
   ctx.beginPath();
   ctx.roundRect(boxX, boxY, boxW, boxH, 16);
   ctx.fill();
-  ctx.strokeStyle = '#576945';
+  ctx.strokeStyle = '#E2E8F0';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
   ctx.textAlign = 'right';
   if (hasDiscount) {
-    ctx.fillStyle = '#D8C7AC';
+    ctx.fillStyle = '#64748B';
     ctx.font = '600 12px system-ui, sans-serif';
     ctx.fillText(`Preço Cheio: ${formatCurrency(fullPrice)}`, overlayRight - 16, boxY + 24);
 
-    ctx.fillStyle = '#CAD7BE';
+    ctx.fillStyle = '#059669';
     ctx.font = '900 22px system-ui, sans-serif';
     ctx.fillText(`Por ${formatCurrency(bazarPrice)}`, overlayRight - 16, boxY + 54);
 
-    ctx.fillStyle = '#E5EBDE';
+    ctx.fillStyle = '#E11D48';
     ctx.font = 'bold 11px system-ui, sans-serif';
     ctx.fillText(`Desconto: ${formatCurrency(discountAmount)} (${formatPercent(discountPercent)} OFF)`, overlayRight - 16, boxY + 76);
   } else {
-    ctx.fillStyle = '#CAD7BE';
+    ctx.fillStyle = '#059669';
     ctx.font = '900 20px system-ui, sans-serif';
     ctx.fillText(`Valor no Bazar: ${formatCurrency(bazarPrice)}`, overlayRight - 16, boxY + 45);
   }

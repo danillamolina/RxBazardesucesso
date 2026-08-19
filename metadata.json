@@ -1,6 +1,8 @@
 {
   "name": "Rx do Bazar de Sucesso",
   "description": "Sistema completo do Rx do Bazar de Sucesso: estoque em tempo real, margem de lucro, controle de vendas, clientes e relatórios em PDF por @danillafinancas.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": [
+    "camera"
+  ],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

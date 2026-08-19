@@ -11,6 +11,7 @@ import {
 } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_SALES, INITIAL_EDITIONS } from '../data/initialData';
 import { calculateMarginPercent } from '../utils/formatters';
+import { safeSave, safeRemove, idbGet } from '../utils/storage';
 
 const DEFAULT_STORE_INFO: StoreInfo = {
   name: 'Rx do Bazar de Sucesso',
@@ -107,25 +108,61 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return saved || 'ed-1';
   });
 
-  // Persistence
+  // Initial hydration from IndexedDB if available and richer
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.STORE_INFO, JSON.stringify(storeInfo));
+    async function hydrateFromIndexedDB() {
+      try {
+        const idbProducts = await idbGet<Product[]>(STORAGE_KEYS.PRODUCTS);
+        if (idbProducts && Array.isArray(idbProducts) && idbProducts.length > 0) {
+          setProducts((current) => {
+            // If indexedDB has data and current is either initial or smaller, sync with IndexedDB
+            if (idbProducts.length >= current.length) {
+              return idbProducts;
+            }
+            return current;
+          });
+        }
+
+        const idbSales = await idbGet<Sale[]>(STORAGE_KEYS.SALES);
+        if (idbSales && Array.isArray(idbSales) && idbSales.length > 0) {
+          setSales((current) => (idbSales.length >= current.length ? idbSales : current));
+        }
+
+        const idbEditions = await idbGet<BazarEdition[]>(STORAGE_KEYS.EDITIONS);
+        if (idbEditions && Array.isArray(idbEditions) && idbEditions.length > 0) {
+          setEditions(idbEditions);
+        }
+
+        const idbStore = await idbGet<StoreInfo>(STORAGE_KEYS.STORE_INFO);
+        if (idbStore) {
+          setStoreInfo((current) => ({ ...current, ...idbStore }));
+        }
+      } catch (err) {
+        console.warn('Hydration from IndexedDB failed:', err);
+      }
+    }
+    hydrateFromIndexedDB();
+  }, []);
+
+  // Safe Persistence
+  useEffect(() => {
+    safeSave(STORAGE_KEYS.STORE_INFO, storeInfo);
   }, [storeInfo]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+    safeSave(STORAGE_KEYS.PRODUCTS, products);
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify(sales));
+    safeSave(STORAGE_KEYS.SALES, sales);
   }, [sales]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.EDITIONS, JSON.stringify(editions));
+    safeSave(STORAGE_KEYS.EDITIONS, editions);
   }, [editions]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_EDITION, activeEditionId);
+    safeSave(STORAGE_KEYS.ACTIVE_EDITION, activeEditionId);
   }, [activeEditionId]);
 
   // Product Actions
@@ -476,10 +513,10 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSales(INITIAL_SALES);
     setEditions(INITIAL_EDITIONS);
     setActiveEditionId('ed-1');
-    localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
-    localStorage.removeItem(STORAGE_KEYS.SALES);
-    localStorage.removeItem(STORAGE_KEYS.EDITIONS);
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_EDITION);
+    safeRemove(STORAGE_KEYS.PRODUCTS);
+    safeRemove(STORAGE_KEYS.SALES);
+    safeRemove(STORAGE_KEYS.EDITIONS);
+    safeRemove(STORAGE_KEYS.ACTIVE_EDITION);
   };
 
   const clearAllData = () => {
@@ -487,10 +524,10 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSales([]);
     setEditions(INITIAL_EDITIONS);
     setActiveEditionId('all');
-    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
-    localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify([]));
-    localStorage.setItem(STORAGE_KEYS.EDITIONS, JSON.stringify(INITIAL_EDITIONS));
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_EDITION, 'all');
+    safeSave(STORAGE_KEYS.PRODUCTS, []);
+    safeSave(STORAGE_KEYS.SALES, []);
+    safeSave(STORAGE_KEYS.EDITIONS, INITIAL_EDITIONS);
+    safeSave(STORAGE_KEYS.ACTIVE_EDITION, 'all');
   };
 
   const importAllData = (data: { products: Product[]; sales: Sale[]; editions: BazarEdition[]; activeEditionId?: string }) => {
