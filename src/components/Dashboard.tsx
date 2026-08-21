@@ -13,7 +13,8 @@ import {
   Sparkles,
   PhoneCall,
   UserCheck,
-  Compass
+  Compass,
+  BookOpen
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 import { formatCurrency, formatPercent, formatDateShort, getPaymentStatusLabel } from '../utils/formatters';
@@ -66,24 +67,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             <button
               onClick={onOpenNewSale}
-              className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold px-5 py-3 rounded-2xl shadow-lg shadow-[#8FA079]/20 flex items-center gap-2 transition active:scale-95"
+              className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold px-4 py-2.5 rounded-2xl shadow-lg shadow-[#8FA079]/20 flex items-center gap-2 transition active:scale-95 text-xs sm:text-sm"
             >
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Registrar Venda</span>
             </button>
             <button
+              onClick={() => onNavigateTab('guide')}
+              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-3.5 py-2.5 rounded-2xl border border-[#576945] flex items-center gap-2 transition shadow-md text-xs sm:text-sm"
+              title="Abrir Guia e Manual Prático"
+            >
+              <BookOpen className="h-4 w-4 text-[#CAD7BE]" />
+              <span>Manual de Uso</span>
+            </button>
+            <button
               onClick={() => onNavigateTab('next_steps')}
-              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-4 py-3 rounded-2xl border border-[#576945] flex items-center gap-2 transition shadow-md"
+              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-3.5 py-2.5 rounded-2xl border border-[#576945] flex items-center gap-2 transition shadow-md text-xs sm:text-sm"
             >
               <Compass className="h-4 w-4 text-amber-300" />
               <span>Próximos Passos</span>
             </button>
             <button
               onClick={() => onNavigateTab('catalog')}
-              className="bg-[#3A452F]/70 hover:bg-[#3A452F] text-[#D8C7AC] font-medium px-4 py-3 rounded-2xl border border-[#576945] flex items-center gap-2 transition"
+              className="bg-[#3A452F]/70 hover:bg-[#3A452F] text-[#D8C7AC] font-medium px-3.5 py-2.5 rounded-2xl border border-[#576945] flex items-center gap-2 transition text-xs sm:text-sm"
             >
               <Tag className="h-4 w-4 text-[#CAD7BE]" />
               <span>Ver Vitrine</span>
@@ -398,6 +407,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
           )}
         </div>
 
+      </div>
+
+      {/* Quick Guide & Support Callout */}
+      <div className="bg-white dark:bg-[#242F1E] border border-slate-200 dark:border-[#3A4A30] rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 bg-[#8FA079]/20 text-[#2B3323] dark:text-[#CAD7BE] rounded-2xl border border-[#8FA079]/30">
+            <BookOpen className="h-6 w-6" />
+          </div>
+          <div>
+            <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+              Precisa de ajuda ou quer tirar dúvidas sobre o sistema?
+            </h4>
+            <p className="text-xs text-slate-500 dark:text-[#D8C7AC]">
+              Acesse o Manual de Uso Prático com checklist do evento, dicas de fotos e fluxo passo a passo.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => onNavigateTab('guide')}
+          className="bg-[#3A452F] hover:bg-[#4A5D3B] text-white font-extrabold text-xs px-4 py-2.5 rounded-xl border border-[#576945] transition shadow-sm whitespace-nowrap shrink-0"
+        >
+          Abrir Manual de Uso
+        </button>
       </div>
 
     </div>

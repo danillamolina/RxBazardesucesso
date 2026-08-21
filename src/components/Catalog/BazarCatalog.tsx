@@ -17,7 +17,9 @@ import {
   XCircle,
   MessageSquare,
   Building2,
-  UserCheck
+  UserCheck,
+  Search,
+  X
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { formatCurrency, formatPercent, getProductPriceDetails } from '../../utils/formatters';
@@ -28,6 +30,7 @@ import { SendToCustomerModal } from './SendToCustomerModal';
 
 export const BazarCatalog: React.FC = () => {
   const { products, sales } = useBazar();
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('Todas');
   const [stockFilter, setStockFilter] = useState<'todos' | 'disponiveis' | 'pouco_estoque' | 'esgotados'>('todos');
@@ -56,6 +59,18 @@ export const BazarCatalog: React.FC = () => {
     filteredProducts = filteredProducts.filter((p) => p.quantity > 0 && p.quantity <= 3);
   } else if (stockFilter === 'esgotados') {
     filteredProducts = filteredProducts.filter((p) => p.quantity === 0);
+  }
+
+  // Filter by search term (by product name, SKU/code, description or size/color)
+  if (searchTerm.trim()) {
+    const query = searchTerm.toLowerCase().trim();
+    filteredProducts = filteredProducts.filter((p) =>
+      p.name.toLowerCase().includes(query) ||
+      (p.sku && p.sku.toLowerCase().includes(query)) ||
+      (p.description && p.description.toLowerCase().includes(query)) ||
+      (p.sizeColor && p.sizeColor.toLowerCase().includes(query)) ||
+      (p.category && p.category.toLowerCase().includes(query))
+    );
   }
 
   const handleCopyText = (prod: Product) => {
@@ -184,6 +199,44 @@ export const BazarCatalog: React.FC = () => {
           </div>
         </div>
 
+        {/* Search Bar by Product Name / Code */}
+        <div className="pt-1">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Search className="h-4 w-4" />
+            </div>
+            <input
+              type="text"
+              placeholder="Buscar produto por nome, código ou detalhes na vitrine..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                title="Limpar busca"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {searchTerm && (
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mt-1.5 px-1">
+              <span>
+                Filtrando por: <strong className="text-rose-600 dark:text-rose-400">"{searchTerm}"</strong> ({filteredProducts.length} resultado{filteredProducts.length !== 1 ? 's' : ''})
+              </span>
+              <button
+                onClick={() => setSearchTerm('')}
+                className="text-xs text-rose-500 hover:text-rose-600 font-semibold"
+              >
+                Limpar filtro
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Filters Bar: Categories + Stock Filter + View Mode Switcher */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           
@@ -293,10 +346,23 @@ export const BazarCatalog: React.FC = () => {
       {filteredProducts.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <Package className="h-12 w-12 text-slate-300 mx-auto" />
-          <h3 className="text-base font-bold text-slate-700 dark:text-slate-300">Nenhum produto encontrado neste filtro</h3>
+          <h3 className="text-base font-bold text-slate-700 dark:text-slate-300">
+            {searchTerm ? `Nenhum produto encontrado com o termo "${searchTerm}"` : 'Nenhum produto encontrado neste filtro'}
+          </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Tente alterar o filtro de estoque ou selecionar outra categoria.
+            {searchTerm 
+              ? 'Tente buscar por outro nome ou código, ou limpe a busca.' 
+              : 'Tente alterar o filtro de estoque ou selecionar outra categoria.'}
           </p>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="inline-flex items-center gap-1.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-sm mt-2"
+            >
+              <X className="h-3.5 w-3.5" />
+              <span>Limpar Busca de Produtos</span>
+            </button>
+          )}
         </div>
       ) : viewMode === 'horizontal' ? (
         /* HORIZONTAL LAYOUT: LARGER PHOTO ON LEFT, DESCRIPTION & DETAILS ON RIGHT */
@@ -334,44 +400,44 @@ export const BazarCatalog: React.FC = () => {
                   )}
 
                   {/* Stock Status Badge Overlay on Photo (Top Left) */}
-                  <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5 items-start">
-                    <span className="bg-slate-900/90 backdrop-blur-md text-white text-xs font-extrabold px-3 py-1 rounded-full shadow-lg border border-slate-700/50">
+                  <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-20 flex flex-col gap-1 sm:gap-1.5 items-start">
+                    <span className="bg-slate-900/90 backdrop-blur-md text-white text-[10px] sm:text-xs font-extrabold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full shadow-md border border-slate-700/50">
                       {prod.category}
                     </span>
 
                     {isSoldOut ? (
-                      <span className="bg-rose-600 text-white font-black text-xs px-3.5 py-1.5 rounded-xl shadow-xl flex items-center gap-1.5 border border-rose-400">
-                        <XCircle className="h-4 w-4" />
-                        PRODUTO ESGOTADO
+                      <span className="bg-rose-600 text-white font-black text-[10px] sm:text-xs px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl shadow-lg flex items-center gap-1 sm:gap-1.5 border border-rose-400">
+                        <XCircle className="h-3 sm:h-4 w-3 sm:w-4" />
+                        ESGOTADO
                       </span>
                     ) : isLowStock ? (
-                      <span className="bg-amber-500 text-slate-950 font-black text-xs px-3 py-1 rounded-xl shadow-lg flex items-center gap-1.5 animate-pulse border border-amber-300">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        RESTAM APENAS {prod.quantity} UNID.!
+                      <span className="bg-amber-500 text-slate-950 font-black text-[10px] sm:text-xs px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl shadow-md flex items-center gap-1 animate-pulse border border-amber-300">
+                        <AlertTriangle className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                        RESTAM {prod.quantity} UNID.
                       </span>
                     ) : (
-                      <span className="bg-emerald-600 text-white font-bold text-xs px-3 py-1 rounded-xl shadow-md flex items-center gap-1">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Estoque: {prod.quantity} un.
+                      <span className="bg-emerald-600 text-white font-bold text-[10px] sm:text-xs px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-lg sm:rounded-xl shadow-md flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                        Estoque: {prod.quantity}
                       </span>
                     )}
                   </div>
 
-                  {/* Full Price & Bazar Price DIRECTLY ON THE PHOTO (Bottom Right Overlay) */}
-                  <div className="absolute bottom-4 right-4 z-20 flex flex-col items-end gap-1.5 max-w-[88%]">
-                    {/* Price Tag Box Overlay on Photo */}
-                    <div className="bg-white/95 backdrop-blur-md text-slate-900 px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-200 text-right space-y-0.5">
+                  {/* Full Price & Bazar Price DIRECTLY ON THE PHOTO (Bottom Right Overlay - Compact on Mobile) */}
+                  <div className="absolute bottom-2.5 right-2.5 sm:bottom-4 sm:right-4 z-20 flex flex-col items-end gap-1 max-w-[80%] sm:max-w-[85%]">
+                    {/* Compact Price Tag Box Overlay on Photo */}
+                    <div className="bg-white/95 backdrop-blur-md text-slate-900 px-2.5 py-1.5 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-xl border border-slate-200 text-right space-y-0.5">
                       {hasDiscount && (
-                        <div className="text-xs text-slate-500 font-bold">
-                          Preço Cheio: <span className="line-through text-slate-400 font-medium">{formatCurrency(fullPrice)}</span>
+                        <div className="text-[10px] sm:text-xs text-slate-500 font-bold leading-tight">
+                          De: <span className="line-through text-slate-400 font-medium">{formatCurrency(fullPrice)}</span>
                         </div>
                       )}
-                      <div className="text-xl sm:text-2xl font-black text-emerald-600 tracking-tight">
+                      <div className="text-sm sm:text-2xl font-black text-emerald-600 tracking-tight leading-none">
                         {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
                       </div>
                       {hasDiscount && (
-                        <div className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-0.5 rounded-lg border border-rose-200">
-                          Desconto: {formatCurrency(discountAmount)} ({formatPercent(discountPercent)} OFF)
+                        <div className="text-[9px] sm:text-xs font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 sm:px-2.5 sm:py-0.5 rounded-md sm:rounded-lg border border-rose-200 mt-0.5 inline-block">
+                          {formatPercent(discountPercent)} OFF ({formatCurrency(discountAmount)})
                         </div>
                       )}
                     </div>
@@ -539,19 +605,19 @@ export const BazarCatalog: React.FC = () => {
                     </div>
 
                     {/* Photo Overlay with Full Price, Por & Discount Value */}
-                    <div className="absolute top-3 right-3 flex flex-col items-end gap-1.5 z-10 max-w-[85%]">
-                      <div className="bg-white/95 backdrop-blur-md text-slate-900 px-3 py-2 rounded-xl shadow-lg text-right border border-slate-200 space-y-0.5">
+                    <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex flex-col items-end gap-1 z-10 max-w-[80%]">
+                      <div className="bg-white/95 backdrop-blur-md text-slate-900 px-2 py-1 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl shadow-md text-right border border-slate-200 space-y-0.5">
                         {hasDiscount && (
-                          <div className="text-[10px] text-slate-500 font-bold">
-                            Preço Cheio: <span className="line-through text-slate-400 font-medium">{formatCurrency(fullPrice)}</span>
+                          <div className="text-[9px] sm:text-[10px] text-slate-500 font-bold leading-tight">
+                            De: <span className="line-through text-slate-400 font-medium">{formatCurrency(fullPrice)}</span>
                           </div>
                         )}
-                        <div className="text-xs sm:text-sm font-black text-emerald-600">
+                        <div className="text-xs sm:text-sm font-black text-emerald-600 leading-none">
                           {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
                         </div>
                         {hasDiscount && (
-                          <div className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                            Desconto: {formatCurrency(discountAmount)} ({formatPercent(discountPercent)} OFF)
+                          <div className="text-[8px] sm:text-[10px] font-bold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 inline-block mt-0.5">
+                            {formatPercent(discountPercent)} OFF
                           </div>
                         )}
                       </div>

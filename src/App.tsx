@@ -16,6 +16,7 @@ import { ProfitReport } from './components/Reports/ProfitReport';
 import { BazarCatalog } from './components/Catalog/BazarCatalog';
 import { StoreDetails } from './components/Store/StoreDetails';
 import { NextSteps } from './components/NextSteps/NextSteps';
+import { UserGuide } from './components/Guide/UserGuide';
 import { Product } from './types';
 import { useBazar } from './context/BazarContext';
 
@@ -98,6 +99,14 @@ function MainApp() {
           <StoreDetails />
         )}
 
+        {activeTab === 'guide' && (
+          <UserGuide
+            onNavigateTab={(tab) => setActiveTab(tab)}
+            onOpenNewProduct={() => handleOpenNewProduct()}
+            onOpenNewSale={() => handleOpenQuickSale()}
+          />
+        )}
+
         {activeTab === 'next_steps' && (
           <NextSteps
             onNavigateTab={(tab) => setActiveTab(tab)}
@@ -143,6 +152,12 @@ function MainApp() {
               className="hover:text-[#F7F4EB] transition"
             >
               Dados da Loja
+            </button>
+            <button 
+              onClick={() => setActiveTab('guide')} 
+              className="hover:text-[#F7F4EB] transition font-semibold text-[#8FA079] flex items-center gap-1"
+            >
+              Manual de Uso
             </button>
             <button 
               onClick={() => setActiveTab('next_steps')} 

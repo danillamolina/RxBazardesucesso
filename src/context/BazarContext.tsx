@@ -104,8 +104,24 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [activeEditionId, setActiveEditionId] = useState<string>(() => {
+    const savedEditionsStr = localStorage.getItem(STORAGE_KEYS.EDITIONS);
+    let currentEditions = INITIAL_EDITIONS;
+    if (savedEditionsStr) {
+      try {
+        const parsed = JSON.parse(savedEditionsStr);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          currentEditions = parsed;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
     const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_EDITION);
-    return saved || 'ed-1';
+    if (saved && currentEditions.some(e => e.id === saved)) {
+      return saved;
+    }
+    // Always default to the latest/most recent bazar edition on open
+    return currentEditions[0]?.id || 'ed-1';
   });
 
   // Initial hydration from IndexedDB if available and richer
@@ -115,7 +131,6 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const idbProducts = await idbGet<Product[]>(STORAGE_KEYS.PRODUCTS);
         if (idbProducts && Array.isArray(idbProducts) && idbProducts.length > 0) {
           setProducts((current) => {
-            // If indexedDB has data and current is either initial or smaller, sync with IndexedDB
             if (idbProducts.length >= current.length) {
               return idbProducts;
             }
@@ -131,6 +146,12 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const idbEditions = await idbGet<BazarEdition[]>(STORAGE_KEYS.EDITIONS);
         if (idbEditions && Array.isArray(idbEditions) && idbEditions.length > 0) {
           setEditions(idbEditions);
+          setActiveEditionId((prev) => {
+            if (prev && idbEditions.some(e => e.id === prev)) {
+              return prev;
+            }
+            return idbEditions[0]?.id || 'ed-1';
+          });
         }
 
         const idbStore = await idbGet<StoreInfo>(STORAGE_KEYS.STORE_INFO);
