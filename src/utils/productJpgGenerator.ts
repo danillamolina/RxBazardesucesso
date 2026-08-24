@@ -1,16 +1,58 @@
 import { Product } from '../types';
 import { formatCurrency, formatPercent, getProductPriceDetails } from './formatters';
 
+// Simple in-memory cache for loaded images to make subsequent exports instant
+const imageCache = new Map<string, HTMLImageElement>();
+
 /**
- * Utility to load an image safely into HTMLImageElement for canvas drawing
+ * Checks if current environment is desktop / PC
  */
-function loadImage(src: string): Promise<HTMLImageElement | null> {
+export function isDesktopDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+/**
+ * Utility to load an image safely into HTMLImageElement with timeout & cache
+ */
+function loadImage(src: string, timeoutMs: number = 2000): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     if (!src) return resolve(null);
+
+    // Return from cache if already loaded
+    if (imageCache.has(src)) {
+      const cached = imageCache.get(src)!;
+      if (cached.complete && cached.naturalWidth > 0) {
+        return resolve(cached);
+      }
+    }
+
     const img = new Image();
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        resolve(null);
+      }
+    }, timeoutMs);
+
     img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
+    img.onload = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        imageCache.set(src, img);
+        resolve(img);
+      }
+    };
+    img.onerror = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve(null);
+      }
+    };
     img.src = src;
   });
 }
@@ -381,10 +423,41 @@ export async function generateProductJpgBlob(product: Product): Promise<Blob> {
 }
 
 /**
+ * Copies product card image directly to system clipboard (PNG format supported by modern browsers)
+ * Super useful on PC to paste (Ctrl+V) directly into WhatsApp Web in 1 second!
+ */
+export async function copyProductImageToClipboard(product: Product): Promise<boolean> {
+  try {
+    const canvas = await generateProductJpgCanvas(product);
+    return new Promise((resolve) => {
+      canvas.toBlob(async (blob) => {
+        if (!blob) return resolve(false);
+        try {
+          if (navigator.clipboard && window.ClipboardItem) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        } catch (e) {
+          console.warn('Clipboard write failed:', e);
+          resolve(false);
+        }
+      }, 'image/png');
+    });
+  } catch (err) {
+    console.error('Erro ao copiar imagem para área de transferência:', err);
+    return false;
+  }
+}
+
+/**
  * Downloads the JPG Vitrine Banner Image
  */
-export async function downloadProductJpg(product: Product): Promise<void> {
-  const dataUrl = await generateProductJpgDataUrl(product);
+export async function downloadProductJpg(product: Product, preloadedDataUrl?: string): Promise<void> {
+  const dataUrl = preloadedDataUrl || (await generateProductJpgDataUrl(product));
   const link = document.createElement('a');
   const sanitizedName = product.name.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 25);
   link.download = `anuncio-${sanitizedName || 'produto'}.jpg`;
@@ -392,6 +465,42 @@ export async function downloadProductJpg(product: Product): Promise<void> {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+/**
+ * Builds the direct WhatsApp Web / Mobile URL
+ */
+export function buildWhatsAppDirectUrl(
+  shareText: string,
+  targetPhone?: string,
+  forceBusiness: boolean = false,
+  preferWhatsAppWebOnDesktop: boolean = true
+): string {
+  let formattedPhone = targetPhone ? targetPhone.replace(/\D/g, '') : '';
+  if (formattedPhone && (formattedPhone.length === 10 || formattedPhone.length === 11)) {
+    formattedPhone = `55${formattedPhone}`;
+  }
+
+  const encodedText = encodeURIComponent(shareText);
+  const isDesktop = isDesktopDevice();
+
+  if (forceBusiness) {
+    return formattedPhone
+      ? `whatsapp://send?phone=${formattedPhone}&text=${encodedText}`
+      : `whatsapp://send?text=${encodedText}`;
+  }
+
+  // On Desktop PC, route directly to WhatsApp Web to prevent the slow intermediate landing page
+  if (isDesktop && preferWhatsAppWebOnDesktop) {
+    return formattedPhone
+      ? `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedText}`
+      : `https://web.whatsapp.com/send?text=${encodedText}`;
+  }
+
+  // Mobile or standard Web API
+  return formattedPhone
+    ? `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedText}`
+    : `https://api.whatsapp.com/send?text=${encodedText}`;
 }
 
 /**
@@ -424,39 +533,36 @@ export async function shareProductJpgWhatsApp(
     formattedPhone = `55${formattedPhone}`;
   }
 
-  // Try Native Web Share API with JPG File if browser supports sharing files
-  try {
-    const blob = await generateProductJpgBlob(product);
-    const fileName = `anuncio-${product.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.jpg`;
-    const file = new File([blob], fileName, { type: 'image/jpeg' });
+  // Generate canvas ONCE for single-pass conversion
+  const canvas = await generateProductJpgCanvas(product);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        title: product.name,
-        text: shareText,
-        files: [file],
-      });
-      return;
+  // Try Native Web Share API with JPG File if browser supports sharing files (Mobile browsers)
+  if (!isDesktopDevice() && typeof navigator !== 'undefined' && navigator.canShare) {
+    try {
+      const blob = await new Promise<Blob | null>((res) => canvas.toBlob((b) => res(b), 'image/jpeg', 0.92));
+      if (blob) {
+        const fileName = `anuncio-${product.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.jpg`;
+        const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: product.name,
+            text: shareText,
+            files: [file],
+          });
+          return;
+        }
+      }
+    } catch (err) {
+      console.log('Native file share failed or not supported:', err);
     }
-  } catch (err) {
-    console.log('Native file share failed or not supported, falling back to download + WhatsApp link:', err);
   }
 
-  // Fallback: Download the JPG and open WhatsApp / WhatsApp Business link
-  await downloadProductJpg(product);
+  // PC or Desktop / fallback: Download the pre-generated JPG (instant, no re-render) and open direct WhatsApp Web
+  await downloadProductJpg(product, dataUrl);
 
-  const encodedText = encodeURIComponent(shareText);
-  let url = '';
-
-  if (formattedPhone) {
-    url = isBusiness
-      ? `whatsapp://send?phone=${formattedPhone}&text=${encodedText}`
-      : `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedText}`;
-  } else {
-    url = isBusiness
-      ? `whatsapp://send?text=${encodedText}`
-      : `https://api.whatsapp.com/send?text=${encodedText}`;
-  }
-
+  const url = buildWhatsAppDirectUrl(shareText, formattedPhone, isBusiness, true);
   window.open(url, '_blank', 'noopener,noreferrer');
 }
+

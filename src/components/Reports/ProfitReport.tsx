@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -8,7 +8,10 @@ import {
   Award, 
   ArrowUpRight,
   ShieldCheck,
-  PackageCheck
+  PackageCheck,
+  FileText,
+  Printer,
+  ChevronDown
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -23,9 +26,18 @@ import {
 } from 'recharts';
 import { useBazar } from '../../context/BazarContext';
 import { formatCurrency, formatPercent } from '../../utils/formatters';
+import { 
+  generateProfitReportPdf, 
+  generateExecutiveSummaryPdf, 
+  generateSalesPdf, 
+  generateStockPdf 
+} from '../../utils/pdfGenerator';
 
 export const ProfitReport: React.FC = () => {
-  const { products, sales, financialSummary, stockMetrics } = useBazar();
+  const { products, sales, financialSummary, stockMetrics, editions, activeEditionId } = useBazar();
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
+  const activeEditionName = editions.find(e => e.id === activeEditionId)?.name || 'Geral';
 
   // Category Profit Breakdown
   const categoryProfitMap: Record<string, { revenue: number; profit: number; count: number }> = {};
@@ -91,7 +103,21 @@ export const ProfitReport: React.FC = () => {
     },
   ];
 
-  const CATEGORY_COLORS = ['#f43f5e', '#8b5cf6', '#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#06b6d4'];
+  const exportPDF = () => {
+    generateProfitReportPdf(products, sales, financialSummary, stockMetrics, activeEditionName);
+  };
+
+  const exportExecutivePDF = () => {
+    generateExecutiveSummaryPdf(products, sales, stockMetrics, financialSummary, editions, activeEditionName);
+  };
+
+  const exportSalesPDF = () => {
+    generateSalesPdf(sales, activeEditionName);
+  };
+
+  const exportStockPDF = () => {
+    generateStockPdf(products, stockMetrics, activeEditionName);
+  };
 
   const exportCSV = () => {
     const headers = ['ID Venda', 'Cliente', 'Telefone', 'Produto', 'Qtd', 'Valor Total', 'Lucro', 'Status', 'Data'];
@@ -111,7 +137,7 @@ export const ProfitReport: React.FC = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Relatorio_Bazar_Secreto_${new Date().toISOString().slice(0,10)}.csv`);
+    link.setAttribute('download', `Relatorio_Lucro_Bazar_${new Date().toISOString().slice(0,10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -120,7 +146,7 @@ export const ProfitReport: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       
-      {/* Title & Export */}
+      {/* Title & Export Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
@@ -132,13 +158,103 @@ export const ProfitReport: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={exportCSV}
-          className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-2xl border border-slate-700 shadow-sm flex items-center justify-center gap-2 transition"
-        >
-          <Download className="h-4 w-4 text-rose-400" />
-          <span>Exportar Relatório (CSV)</span>
-        </button>
+        {/* Action Export Buttons */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Main PDF Export Button */}
+          <button
+            type="button"
+            onClick={exportPDF}
+            className="bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-2xl shadow-lg shadow-rose-600/20 flex items-center justify-center gap-2 transition active:scale-95"
+            title="Gera o PDF completo com análise financeira, categorias, ranking e demonstrativo"
+          >
+            <FileText className="h-4 w-4" />
+            <span>Exportar em PDF</span>
+          </button>
+
+          {/* Quick Dropdown for other PDF / CSV formats */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowExportMenu(!showExportMenu)}
+              className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-2xl border border-slate-700 shadow-sm flex items-center justify-center gap-2 transition"
+            >
+              <Download className="h-4 w-4 text-emerald-400" />
+              <span>Outros Formatos</span>
+              <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+            </button>
+
+            {showExportMenu && (
+              <div 
+                className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-30 p-2 space-y-1 animate-in fade-in zoom-in-95 duration-100"
+                onClick={() => setShowExportMenu(false)}
+              >
+                <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                  Exportação de Relatórios
+                </div>
+
+                <button
+                  type="button"
+                  onClick={exportPDF}
+                  className="w-full text-left p-2.5 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition"
+                >
+                  <FileText className="h-4 w-4 text-rose-500" />
+                  <div>
+                    <div>Relatório de Lucro (PDF)</div>
+                    <div className="text-[10px] font-normal text-slate-400">Completo com KPIs e categorias</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={exportExecutivePDF}
+                  className="w-full text-left p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition"
+                >
+                  <Printer className="h-4 w-4 text-purple-500" />
+                  <div>
+                    <div>Resumo Executivo (PDF)</div>
+                    <div className="text-[10px] font-normal text-slate-400">Balanço geral e meios de pagamento</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={exportSalesPDF}
+                  className="w-full text-left p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition"
+                >
+                  <FileText className="h-4 w-4 text-emerald-500" />
+                  <div>
+                    <div>Relatório de Vendas (PDF)</div>
+                    <div className="text-[10px] font-normal text-slate-400">Histórico detalhado de pedidos</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={exportStockPDF}
+                  className="w-full text-left p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition"
+                >
+                  <PackageCheck className="h-4 w-4 text-blue-500" />
+                  <div>
+                    <div>Inventário de Estoque (PDF)</div>
+                    <div className="text-[10px] font-normal text-slate-400">Peças, custos e valor no bazar</div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={exportCSV}
+                  className="w-full text-left p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition border-t border-slate-100 dark:border-slate-800 mt-1"
+                >
+                  <Download className="h-4 w-4 text-amber-500" />
+                  <div>
+                    <div>Planilha Excel / CSV</div>
+                    <div className="text-[10px] font-normal text-slate-400">Exportar dados em formato tabular</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Hero Profit Summary Card */}

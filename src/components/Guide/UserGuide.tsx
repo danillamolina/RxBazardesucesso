@@ -25,8 +25,11 @@ import {
   ChevronDown,
   ChevronUp,
   LayoutDashboard,
-  Compass
+  Compass,
+  Printer
 } from 'lucide-react';
+import { useBazar } from '../../context/BazarContext';
+import { generateUserGuidePdf } from '../../utils/pdfGenerator';
 
 interface UserGuideProps {
   onNavigateTab: (tab: string) => void;
@@ -39,9 +42,16 @@ export const UserGuide: React.FC<UserGuideProps> = ({
   onOpenNewProduct,
   onOpenNewSale,
 }) => {
+  const { editions, activeEditionId } = useBazar();
+  const activeEditionName = editions.find(e => e.id === activeEditionId)?.name || 'Geral';
+
   const [activeSection, setActiveSection] = useState<'flow' | 'modules' | 'checklist' | 'faq'>('flow');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(0);
+
+  const handlePrintPdf = () => {
+    generateUserGuidePdf(activeEditionName);
+  };
 
   const toggleFaq = (index: number) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -191,6 +201,14 @@ export const UserGuide: React.FC<UserGuideProps> = ({
 
           {/* Action shortcuts */}
           <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto">
+            <button
+              onClick={handlePrintPdf}
+              className="bg-amber-400 hover:bg-amber-300 text-[#1F2919] font-black text-xs px-4 py-2.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 active:scale-95"
+              title="Gera uma versão formatada para impressão ou salvamento em PDF"
+            >
+              <Printer className="h-4 w-4" />
+              <span>Imprimir / Salvar PDF</span>
+            </button>
             <button
               onClick={onOpenNewProduct}
               className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-2"
@@ -482,14 +500,25 @@ export const UserGuide: React.FC<UserGuideProps> = ({
       {activeSection === 'checklist' && (
         <div className="space-y-6">
           <div className="bg-white dark:bg-[#242F1E] border border-slate-200 dark:border-[#3A4A30] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
-            <div className="space-y-1">
-              <span className="text-xs font-bold text-[#8FA079] uppercase tracking-wider">Passo a Passo Prático</span>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                Checklist Operacional do Bazar de Sucesso
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-[#CAD7BE]">
-                Use este checklist para garantir que nada passe despercebido antes, durante e depois do seu bazar.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-[#8FA079] uppercase tracking-wider">Passo a Passo Prático</span>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                  Checklist Operacional do Bazar de Sucesso
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-[#CAD7BE]">
+                  Use este checklist para garantir que nada passe despercebido antes, durante e depois do seu bazar.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePrintPdf}
+                className="bg-[#3A452F] hover:bg-[#4A5D3B] text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md flex items-center justify-center gap-2 transition shrink-0"
+              >
+                <Printer className="h-4 w-4 text-amber-400" />
+                <span>Imprimir Checklist (PDF)</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -501,7 +530,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                     FASE 1
                   </span>
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                    Antes do Bazar (1 a 2 dias antes)
+                    Antes do Bazar (1 semana)
                   </h4>
                 </div>
 

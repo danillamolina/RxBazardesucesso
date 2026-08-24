@@ -14,11 +14,12 @@ import {
   FileSpreadsheet,
   PieChart,
   ShoppingBag,
-  PackageCheck
+  PackageCheck,
+  BookOpen
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { exportBazarData, importBazarDataFromFile } from '../../utils/backup';
-import { generateStockPdf, generateSalesPdf, generateExecutiveSummaryPdf } from '../../utils/pdfGenerator';
+import { generateStockPdf, generateSalesPdf, generateExecutiveSummaryPdf, generateUserGuidePdf } from '../../utils/pdfGenerator';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -135,6 +136,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     generateExecutiveSummaryPdf(products, sales, stockMetrics, financialSummary, editions, activeEditionName);
   };
 
+  const handleGenerateGuidePdf = () => {
+    generateUserGuidePdf(activeEditionName);
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-3xl w-full my-auto shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
@@ -195,71 +200,93 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
               
               {/* PDF 1: Estoque & Produtos */}
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between hover:border-rose-300 dark:hover:border-rose-500/50 transition">
                 <div>
-                  <div className="w-10 h-10 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center mb-3">
-                    <PackageCheck className="h-5 w-5" />
+                  <div className="w-9 h-9 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center mb-2.5">
+                    <PackageCheck className="h-4.5 w-4.5" />
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-1">
-                    PDF do Estoque / Bazar
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-1">
+                    PDF do Estoque
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                    Lista completa dos {products.length} produtos em estoque, valores de custo, preço bazar, margens e total investido.
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                    Catálogo com {products.length} itens, custos, preço no bazar e margens.
                   </p>
                 </div>
                 <button
                   onClick={handleGenerateStockPdf}
-                  className="w-full flex items-center justify-center space-x-2 bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs py-2.5 rounded-xl shadow-sm transition active:scale-95"
+                  className="w-full flex items-center justify-center space-x-1.5 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs py-2 rounded-xl shadow-sm transition active:scale-95"
                 >
-                  <FileText className="h-4 w-4" />
-                  <span>Gerar PDF do Estoque</span>
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>Gerar Estoque</span>
                 </button>
               </div>
 
               {/* PDF 2: Relatório de Vendas */}
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-300 dark:hover:border-emerald-500/50 transition">
                 <div>
-                  <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center mb-3">
-                    <ShoppingBag className="h-5 w-5" />
+                  <div className="w-9 h-9 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center mb-2.5">
+                    <ShoppingBag className="h-4.5 w-4.5" />
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-1">
-                    PDF de Relatório de Vendas
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-1">
+                    PDF de Vendas
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                    Detalhamento dos {sales.length} pedidos de clientes com itens, valores pagos, saldo fiado e meio de pagamento.
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                    Histórico com {sales.length} pedidos, formas de pagamento e saldos.
                   </p>
                 </div>
                 <button
                   onClick={handleGenerateSalesPdf}
-                  className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs py-2.5 rounded-xl shadow-sm transition active:scale-95"
+                  className="w-full flex items-center justify-center space-x-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2 rounded-xl shadow-sm transition active:scale-95"
                 >
-                  <FileSpreadsheet className="h-4 w-4" />
-                  <span>Gerar PDF de Vendas</span>
+                  <FileSpreadsheet className="h-3.5 w-3.5" />
+                  <span>Gerar Vendas</span>
                 </button>
               </div>
 
               {/* PDF 3: Resumo Executivo */}
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between hover:border-purple-300 dark:hover:border-purple-500/50 transition">
                 <div>
-                  <div className="w-10 h-10 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center mb-3">
-                    <PieChart className="h-5 w-5" />
+                  <div className="w-9 h-9 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center mb-2.5">
+                    <PieChart className="h-4.5 w-4.5" />
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-1">
-                    PDF do Resumo Executivo
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-1">
+                    Resumo Executivo
                   </h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                    Balanço gerencial consolidado com faturamento, lucro líquido real, CMV, fiado pendente e indicadores gerais.
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                    Balanço gerencial consolidado com faturamento, lucro e CMV.
                   </p>
                 </div>
                 <button
                   onClick={handleGenerateSummaryPdf}
-                  className="w-full flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-500 text-white font-medium text-xs py-2.5 rounded-xl shadow-sm transition active:scale-95"
+                  className="w-full flex items-center justify-center space-x-1.5 bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs py-2 rounded-xl shadow-sm transition active:scale-95"
                 >
-                  <Printer className="h-4 w-4" />
-                  <span>Gerar PDF do Resumo</span>
+                  <Printer className="h-3.5 w-3.5" />
+                  <span>Gerar Resumo</span>
+                </button>
+              </div>
+
+              {/* PDF 4: Manual & Checklist */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 flex flex-col justify-between hover:border-amber-300 dark:hover:border-amber-500/50 transition">
+                <div>
+                  <div className="w-9 h-9 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center mb-2.5">
+                    <BookOpen className="h-4.5 w-4.5" />
+                  </div>
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-1">
+                    Guia & Checklist
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
+                    Manual impresso com fluxo em 4 passos, módulos e checklist do evento.
+                  </p>
+                </div>
+                <button
+                  onClick={handleGenerateGuidePdf}
+                  className="w-full flex items-center justify-center space-x-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2 rounded-xl shadow-sm transition active:scale-95"
+                >
+                  <Printer className="h-3.5 w-3.5" />
+                  <span>Imprimir Guia</span>
                 </button>
               </div>
 

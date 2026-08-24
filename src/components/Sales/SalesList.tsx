@@ -19,7 +19,8 @@ import {
   Send,
   CreditCard,
   MapPin,
-  Truck
+  Truck,
+  Download
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { Sale, PaymentStatus, PaymentMethod } from '../../types';
@@ -33,13 +34,16 @@ import {
 } from '../../utils/formatters';
 import { PartialPaymentModal } from './PartialPaymentModal';
 import { EditSaleModal } from './EditSaleModal';
+import { generateSalesPdf } from '../../utils/pdfGenerator';
 
 interface SalesListProps {
   onOpenNewSale: () => void;
 }
 
 export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
-  const { sales, updateSaleStatus, deleteSale } = useBazar();
+  const { sales, updateSaleStatus, deleteSale, editions, activeEditionId } = useBazar();
+
+  const activeEditionName = editions.find(e => e.id === activeEditionId)?.name || 'Geral';
 
   const [viewMode, setViewMode] = useState<'vendas' | 'clientes'>('vendas');
   const [search, setSearch] = useState('');
@@ -118,13 +122,25 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
           </p>
         </div>
 
-        <button
-          onClick={onOpenNewSale}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition active:scale-95"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Registrar Nova Venda</span>
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            type="button"
+            onClick={() => generateSalesPdf(filteredSales, activeEditionName)}
+            className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-4 py-3 rounded-2xl border border-slate-700 shadow-sm flex items-center justify-center gap-2 transition"
+            title="Exportar listagem filtrada em PDF"
+          >
+            <Download className="h-4 w-4 text-emerald-400" />
+            <span>Exportar PDF</span>
+          </button>
+
+          <button
+            onClick={onOpenNewSale}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition active:scale-95"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Registrar Nova Venda</span>
+          </button>
+        </div>
       </div>
 
       {/* Mode Switcher Tabs */}

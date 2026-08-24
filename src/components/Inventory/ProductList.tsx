@@ -21,6 +21,8 @@ import { Product, ProductCategory } from '../../types';
 import { formatCurrency, formatPercent, createWhatsAppProductShareLink } from '../../utils/formatters';
 import { ShareProductModal } from '../Catalog/ShareProductModal';
 import { ExportCatalogModal } from '../Catalog/ExportCatalogModal';
+import { generateStockPdf } from '../../utils/pdfGenerator';
+import { Download } from 'lucide-react';
 
 interface ProductListProps {
   onOpenNewProduct: (productToEdit?: Product) => void;
@@ -42,7 +44,9 @@ export const ProductList: React.FC<ProductListProps> = ({
   onOpenNewProduct,
   onOpenQuickSale,
 }) => {
-  const { products, adjustStock, deleteProduct } = useBazar();
+  const { products, adjustStock, deleteProduct, stockMetrics, editions, activeEditionId } = useBazar();
+
+  const activeEditionName = editions.find(e => e.id === activeEditionId)?.name || 'Geral';
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'Todas'>('Todas');
@@ -85,6 +89,16 @@ export const ProductList: React.FC<ProductListProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => generateStockPdf(filteredProducts, stockMetrics, activeEditionName)}
+            className="bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-4 py-3 rounded-2xl border border-slate-700 shadow-sm flex items-center justify-center gap-2 transition"
+            title="Exportar inventário filtrado em PDF"
+          >
+            <Download className="h-4 w-4 text-emerald-400" />
+            <span>Exportar PDF</span>
+          </button>
+
           <button
             onClick={() => setIsExportCatalogOpen(true)}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm px-4 py-3 rounded-2xl shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition active:scale-95"
