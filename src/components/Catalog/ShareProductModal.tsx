@@ -150,12 +150,12 @@ export const ShareProductModal: React.FC<ShareProductModalProps> = ({
         {/* Product Visual Card Preview */}
         <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
           
-          <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0 bg-slate-200 dark:bg-slate-700 rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-600">
+          <div className="relative w-28 h-28 sm:w-32 sm:h-32 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center">
             {product.imageUrl ? (
               <img
                 src={product.imageUrl}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-1.5"
                 referrerPolicy="no-referrer"
               />
             ) : (

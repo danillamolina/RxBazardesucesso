@@ -84,63 +84,57 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 
 /**
  * Generates an HTML5 Canvas containing the exact Vitrine Product Card layout
+ * as requested (Photo with stock pill, white price overlay, category pill,
+ * and dark offer bottom section with De/Por, % OFF and Economia pills).
  */
 export async function generateProductJpgCanvas(product: Product): Promise<HTMLCanvasElement> {
   const canvas = document.createElement('canvas');
-  const width = 1200;
-  const height = 850;
+  // 4:5 vertical proportion (1080 x 1350) - gold standard for WhatsApp / Instagram / Mobile sharing
+  const width = 1080;
+  const height = 1350;
   canvas.width = width;
   canvas.height = height;
 
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D context not available');
 
-  // Background - Warm Linen Canvas
-  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-  bgGrad.addColorStop(0, '#F7F4EB');
-  bgGrad.addColorStop(1, '#ECE4D4');
-  ctx.fillStyle = bgGrad;
+  // Background - Clean Light Premium Studio Palette (#F8FAFC)
+  ctx.fillStyle = '#F8FAFC';
   ctx.fillRect(0, 0, width, height);
 
-  // Outer Card Frame (White rounded card with subtle border)
-  const cardX = 30;
-  const cardY = 30;
-  const cardW = width - 60;
-  const cardH = height - 60;
-  const borderRadius = 28;
+  // Soft border around entire canvas
+  ctx.strokeStyle = '#E2E8F0';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(2, 2, width - 4, height - 4);
 
-  ctx.shadowColor = 'rgba(42, 55, 34, 0.08)';
-  ctx.shadowBlur = 30;
-  ctx.shadowOffsetY = 10;
-  ctx.fillStyle = '#ffffff';
+  // Top Section: Product Photo Container (Height: 780px)
+  const imgBoxX = 28;
+  const imgBoxY = 28;
+  const imgBoxW = width - 56;
+  const imgBoxH = 780;
+  const imgRadius = 32;
+
+  // Draw Photo Container Background (Studio Neutral Clean Canvas)
+  ctx.save();
   ctx.beginPath();
-  ctx.roundRect(cardX, cardY, cardW, cardH, borderRadius);
-  ctx.fill();
+  ctx.roundRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH, imgRadius);
+  ctx.clip();
 
-  // Reset shadow
-  ctx.shadowColor = 'transparent';
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetY = 0;
+  const studioGrad = ctx.createLinearGradient(imgBoxX, imgBoxY, imgBoxX, imgBoxY + imgBoxH);
+  studioGrad.addColorStop(0, '#FFFFFF');
+  studioGrad.addColorStop(1, '#F1F5F9');
+  ctx.fillStyle = studioGrad;
+  ctx.fillRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH);
+  ctx.restore();
 
-  // Border line
-  ctx.strokeStyle = '#E2D5C3';
+  // Subtle border around photo container
+  ctx.save();
+  ctx.strokeStyle = '#E2E8F0';
   ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Left Section: Product Photo Container
-  const imgBoxX = cardX + 24;
-  const imgBoxY = cardY + 24;
-  const imgBoxW = 510;
-  const imgBoxH = cardH - 48;
-
-  // Draw Image Box Background
-  ctx.fillStyle = '#F7F4EB';
   ctx.beginPath();
-  ctx.roundRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH, 20);
-  ctx.fill();
-  ctx.strokeStyle = '#E2D5C3';
-  ctx.lineWidth = 1;
+  ctx.roundRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH, imgRadius);
   ctx.stroke();
+  ctx.restore();
 
   // Load and Draw Product Image if available
   let loadedImg: HTMLImageElement | null = null;
@@ -151,248 +145,406 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
   if (loadedImg) {
     ctx.save();
     ctx.beginPath();
-    ctx.roundRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH, 20);
+    ctx.roundRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH, imgRadius);
     ctx.clip();
 
-    // Scale to cover or contain nicely
-    const imgRatio = loadedImg.width / loadedImg.height;
-    const boxRatio = imgBoxW / imgBoxH;
-    let drawW = imgBoxW;
-    let drawH = imgBoxH;
-    let drawX = imgBoxX;
-    let drawY = imgBoxY;
-
-    if (imgRatio > boxRatio) {
-      drawW = imgBoxH * imgRatio;
-      drawX = imgBoxX - (drawW - imgBoxW) / 2;
-    } else {
-      drawH = imgBoxW / imgRatio;
-      drawY = imgBoxY - (drawH - imgBoxH) / 2;
+    // 1. Subtle Ambient background of the photo (smooth, soft blur to harmonize colors)
+    try {
+      ctx.save();
+      ctx.globalAlpha = 0.12;
+      ctx.filter = 'blur(30px)';
+      ctx.drawImage(loadedImg, imgBoxX - 30, imgBoxY - 30, imgBoxW + 60, imgBoxH + 60);
+      ctx.restore();
+    } catch {
+      // In case filter is unsupported in some legacy contexts
     }
 
+    // 2. High-Fidelity Centered Product Framing (Contain with balanced safe padding)
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // Safe padding so the entire product (edges, top, bottom) is 100% visible and beautifully framed
+    const safePadX = 36;
+    const safePadY = 32;
+    const availW = imgBoxW - safePadX * 2;
+    const availH = imgBoxH - safePadY * 2;
+
+    const imgRatio = loadedImg.width / loadedImg.height;
+    const boxRatio = availW / availH;
+
+    let drawW: number;
+    let drawH: number;
+
+    if (imgRatio > boxRatio) {
+      // Wider than box
+      drawW = availW;
+      drawH = availW / imgRatio;
+    } else {
+      // Taller or square
+      drawH = availH;
+      drawW = availH * imgRatio;
+    }
+
+    // Center product precisely inside the photo container
+    const drawX = imgBoxX + safePadX + (availW - drawW) / 2;
+    const drawY = imgBoxY + safePadY + (availH - drawH) / 2;
+
+    // Soft realistic studio shadow for depth
+    ctx.save();
+    ctx.shadowColor = 'rgba(15, 23, 42, 0.14)';
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 6;
     ctx.drawImage(loadedImg, drawX, drawY, drawW, drawH);
+    ctx.restore();
+
     ctx.restore();
   } else {
     // Fallback graphic for missing photo
-    ctx.fillStyle = '#cbd5e1';
-    ctx.font = 'bold 18px system-ui, sans-serif';
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = 'bold 36px system-ui, -apple-system, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('🛍️ Foto do Produto', imgBoxX + imgBoxW / 2, imgBoxY + imgBoxH / 2);
   }
 
-  // Top Left Badges on Product Image
-  // 1. Category Badge (Deep Olive)
-  const catName = (product.category || 'Bazar').toUpperCase();
-  ctx.font = 'bold 12px system-ui, sans-serif';
-  const catWidth = ctx.measureText(catName).width + 24;
-  ctx.fillStyle = '#2A3722';
-  ctx.beginPath();
-  ctx.roundRect(imgBoxX + 16, imgBoxY + 16, catWidth, 28, 14);
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
-  ctx.fillText(catName, imgBoxX + 16 + catWidth / 2, imgBoxY + 34);
-
-  // 2. Stock Badge (Sage Green Pill)
-  const stockText = product.quantity > 0 ? `✓ Estoque: ${product.quantity} un.` : '🔴 Esgotado';
-  ctx.font = 'bold 12px system-ui, sans-serif';
-  const stockWidth = ctx.measureText(stockText).width + 24;
-  ctx.fillStyle = product.quantity > 0 ? '#4A5D3B' : '#8B4A42';
-  ctx.beginPath();
-  ctx.roundRect(imgBoxX + 16, imgBoxY + 52, stockWidth, 28, 14);
-  ctx.fill();
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'center';
-  ctx.fillText(stockText, imgBoxX + 16 + stockWidth / 2, imgBoxY + 70);
-
   // Pricing calculations
   const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(product);
 
-  // Bottom Right Badge Overlay on Photo
-  const overlayRight = imgBoxX + imgBoxW - 16;
-  const overlayBottom = imgBoxY + imgBoxH - 16;
+  // 1. TOP-LEFT OVERLAY BADGE: STOCK STATUS (Amber / Orange gradient pill)
+  const isSoldOut = product.quantity === 0;
+  const isLowStock = product.quantity > 0 && product.quantity <= 3;
+  
+  let stockBadgeText = `RESTAM ${product.quantity} UNID.`;
+  let stockBadgeIcon = '⚡ ';
+  let stockBadgeBg = '#F59E0B'; // Amber
+  let stockTextColor = '#0F172A';
 
-  // Price Card Box Overlay
-  const boxW = 220;
-  const boxH = hasDiscount ? 90 : 54;
-  const boxX = overlayRight - boxW;
-  const boxY = overlayBottom - boxH;
+  if (isSoldOut) {
+    stockBadgeText = 'ESGOTADO';
+    stockBadgeIcon = '🔴 ';
+    stockBadgeBg = '#E11D48'; // Rose/Red
+    stockTextColor = '#FFFFFF';
+  } else if (!isLowStock) {
+    stockBadgeText = `ESTOQUE: ${product.quantity} UNID.`;
+    stockBadgeIcon = '✓ ';
+    stockBadgeBg = '#10B981'; // Emerald
+    stockTextColor = '#FFFFFF';
+  }
 
-  // Price Overlay Box (Clean White Background)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
+  ctx.font = '900 20px system-ui, -apple-system, sans-serif';
+  const fullStockText = `${stockBadgeIcon}${stockBadgeText}`;
+  const stockTextWidth = ctx.measureText(fullStockText).width;
+  const stockPillW = stockTextWidth + 34;
+  const stockPillH = 46;
+  const stockPillX = imgBoxX + 20;
+  const stockPillY = imgBoxY + 20;
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+  ctx.shadowBlur = 12;
+  ctx.shadowOffsetY = 4;
+  ctx.fillStyle = stockBadgeBg;
   ctx.beginPath();
-  ctx.roundRect(boxX, boxY, boxW, boxH, 16);
+  ctx.roundRect(stockPillX, stockPillY, stockPillW, stockPillH, 16);
   ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = stockTextColor;
+  ctx.font = '900 20px system-ui, -apple-system, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(fullStockText, stockPillX + 17, stockPillY + 30);
+
+  // 2. TOP-RIGHT OVERLAY CARD: FLOATING WHITE OFFER CARD (Compact & Sleek)
+  const priceCardW = 290;
+  const priceCardH = hasDiscount ? 144 : 88;
+  const priceCardX = imgBoxX + imgBoxW - priceCardW - 20;
+  const priceCardY = imgBoxY + 20;
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.18)';
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 6;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.roundRect(priceCardX, priceCardY, priceCardW, priceCardH, 20);
+  ctx.fill();
+  ctx.restore();
+
+  let cardContentY = priceCardY + 32;
+  ctx.textAlign = 'right';
+
+  if (hasDiscount) {
+    // Line 1: De: R$ 249,00 (with strike-through)
+    const dePrefix = 'De: ';
+    const dePriceStr = formatCurrency(fullPrice);
+    
+    ctx.font = '600 18px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#64748B';
+    const priceDeWidth = ctx.measureText(dePriceStr).width;
+    
+    const deRightX = priceCardX + priceCardW - 20;
+    ctx.fillText(`${dePrefix}${dePriceStr}`, deRightX, cardContentY);
+    
+    // Draw strike-through line over price
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(deRightX - priceDeWidth, cardContentY - 5);
+    ctx.lineTo(deRightX, cardContentY - 5);
+    ctx.stroke();
+
+    cardContentY += 36;
+
+    // Line 2: Por R$ 199,00
+    ctx.font = '900 29px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#059669'; // Emerald green
+    ctx.fillText(`Por ${formatCurrency(bazarPrice)}`, priceCardX + priceCardW - 20, cardContentY);
+
+    cardContentY += 38;
+
+    // Line 3: Discount Pill (Light pink bg, rose text)
+    const discPillText = `${formatPercent(discountPercent)} de desconto`;
+    ctx.font = 'bold 16px system-ui, -apple-system, sans-serif';
+    const discPillTextW = ctx.measureText(discPillText).width;
+    const discPillW = discPillTextW + 24;
+    const discPillH = 30;
+    const discPillX = priceCardX + priceCardW - 20 - discPillW;
+    const discPillY = cardContentY - 22;
+
+    ctx.fillStyle = '#FFF1F2'; // Light Rose
+    ctx.beginPath();
+    ctx.roundRect(discPillX, discPillY, discPillW, discPillH, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#FECDD3';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#BE123C'; // Deep Rose
+    ctx.textAlign = 'center';
+    ctx.fillText(discPillText, discPillX + discPillW / 2, discPillY + 21);
+  } else {
+    // Single price
+    ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.fillText('Valor no Bazar:', priceCardX + priceCardW - 20, cardContentY);
+
+    cardContentY += 36;
+
+    ctx.font = '900 30px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#059669';
+    ctx.fillText(formatCurrency(bazarPrice), priceCardX + priceCardW - 20, cardContentY);
+  }
+
+  // 3. BOTTOM-LEFT OVERLAY BADGE ON PHOTO: CATEGORY PILL (Light pill with dark text)
+  const catText = product.category || 'Bazar de Sucesso';
+  ctx.font = 'bold 19px system-ui, -apple-system, sans-serif';
+  const catTextW = ctx.measureText(catText).width;
+  const catPillW = catTextW + 32;
+  const catPillH = 42;
+  const catPillX = imgBoxX + 20;
+  const catPillY = imgBoxY + imgBoxH - catPillH - 20;
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.roundRect(catPillX, catPillY, catPillW, catPillH, 21);
+  ctx.fill();
+  ctx.strokeStyle = '#CBD5E1';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = '#1E293B';
+  ctx.textAlign = 'center';
+  ctx.fillText(catText, catPillX + catPillW / 2, catPillY + 28);
+
+  // Sold Out Dark Overlay if sold out
+  if (isSoldOut) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH, imgRadius);
+    ctx.clip();
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+    ctx.fillRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH);
+    ctx.restore();
+  }
+
+  // ==========================================
+  // BOTTOM SECTION: CLEAN LIGHT CARD INFORMATION AREA
+  // ==========================================
+  const bottomX = 36;
+  let bottomY = imgBoxY + imgBoxH + 40;
+  const bottomW = width - 72;
+
+  // Product Name (Bold High-Contrast Slate Typography)
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#0F172A';
+  ctx.font = '900 42px system-ui, -apple-system, sans-serif';
+
+  const nameLines = wrapText(ctx, product.name, bottomW - 140);
+  for (const line of nameLines.slice(0, 2)) {
+    ctx.fillText(line, bottomX, bottomY);
+    bottomY += 48;
+  }
+
+  // SKU code on top right of name if exists
+  if (product.sku) {
+    ctx.font = 'bold 20px system-ui, -apple-system, sans-serif';
+    const skuText = `Cód: ${product.sku}`;
+    const skuW = ctx.measureText(skuText).width + 24;
+    ctx.fillStyle = '#FFF1F2';
+    ctx.beginPath();
+    ctx.roundRect(bottomX + bottomW - skuW, imgBoxY + imgBoxH + 30, skuW, 36, 10);
+    ctx.fill();
+    ctx.strokeStyle = '#FECDD3';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = '#E11D48';
+    ctx.textAlign = 'center';
+    ctx.fillText(skuText, bottomX + bottomW - skuW / 2, imgBoxY + imgBoxH + 55);
+  }
+
+  // Size / Attribute / Details (Coral/Rose Icon & Text)
+  bottomY += 4;
+  if (product.sizeColor || product.expirationDate) {
+    const attrItems: string[] = [];
+    if (product.sizeColor) attrItems.push(`📏 ${product.sizeColor}`);
+    if (product.expirationDate) attrItems.push(`📅 Val: ${product.expirationDate}`);
+
+    const attrText = attrItems.join('   •   ');
+    ctx.textAlign = 'left';
+    ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#E11D48'; // Vibrant Rose
+    ctx.fillText(attrText, bottomX, bottomY);
+    bottomY += 38;
+  } else {
+    bottomY += 16;
+  }
+
+  // OFFER CONTAINER BOX (Clean Pure White Box with Subtle Shadow & Border)
+  const offerBoxX = bottomX;
+  const offerBoxY = bottomY;
+  const offerBoxW = bottomW;
+  const offerBoxH = 170;
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(15, 23, 42, 0.08)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 4;
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.roundRect(offerBoxX, offerBoxY, offerBoxW, offerBoxH, 24);
+  ctx.fill();
+  ctx.restore();
+
   ctx.strokeStyle = '#E2E8F0';
   ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(offerBoxX, offerBoxY, offerBoxW, offerBoxH, 24);
   ctx.stroke();
 
-  ctx.textAlign = 'right';
+  // LEFT SIDE OF OFFER BOX: Prices (De / Por)
+  const leftPriceX = offerBoxX + 32;
+  let leftPriceY = offerBoxY + 54;
+
   if (hasDiscount) {
-    ctx.fillStyle = '#64748B';
-    ctx.font = '600 12px system-ui, sans-serif';
-    ctx.fillText(`Preço Cheio: ${formatCurrency(fullPrice)}`, overlayRight - 16, boxY + 24);
+    // "De: R$ 249,00"
+    const dePrefix = 'De: ';
+    const dePriceStr = formatCurrency(fullPrice);
+    ctx.font = '600 24px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#64748B'; // Slate 500
+    ctx.textAlign = 'left';
+    ctx.fillText(`${dePrefix}${dePriceStr}`, leftPriceX, leftPriceY);
 
-    ctx.fillStyle = '#059669';
-    ctx.font = '900 22px system-ui, sans-serif';
-    ctx.fillText(`Por ${formatCurrency(bazarPrice)}`, overlayRight - 16, boxY + 54);
+    const totalDeW = ctx.measureText(`${dePrefix}${dePriceStr}`).width;
+    const priceOnlyW = ctx.measureText(dePriceStr).width;
 
-    ctx.fillStyle = '#E11D48';
-    ctx.font = 'bold 11px system-ui, sans-serif';
-    ctx.fillText(`Desconto: ${formatCurrency(discountAmount)} (${formatPercent(discountPercent)} OFF)`, overlayRight - 16, boxY + 76);
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(leftPriceX + totalDeW - priceOnlyW, leftPriceY - 7);
+    ctx.lineTo(leftPriceX + totalDeW, leftPriceY - 7);
+    ctx.stroke();
+
+    leftPriceY += 58;
+
+    // "Por R$ 199,00"
+    ctx.font = '900 48px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#059669'; // Rich Emerald Green
+    ctx.fillText(`Por ${formatCurrency(bazarPrice)}`, leftPriceX, leftPriceY);
   } else {
+    ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'left';
+    ctx.fillText('Valor no Bazar:', leftPriceX, leftPriceY);
+
+    leftPriceY += 54;
+    ctx.font = '900 50px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = '#059669';
-    ctx.font = '900 20px system-ui, sans-serif';
-    ctx.fillText(`Valor no Bazar: ${formatCurrency(bazarPrice)}`, overlayRight - 16, boxY + 45);
+    ctx.fillText(formatCurrency(bazarPrice), leftPriceX, leftPriceY);
   }
 
-  // Right Section: Product Details & Pricing Info
-  const rightX = cardX + 560;
-  let currentY = cardY + 36;
-
-  // Header Row: Category Badge + Code / Size Tag
-  ctx.textAlign = 'left';
-
-  // Category Tag (Soft Sage)
-  const catTagText = product.category || 'Geral';
-  ctx.font = 'bold 13px system-ui, sans-serif';
-  const tagW = ctx.measureText(catTagText).width + 20;
-  ctx.fillStyle = '#E5EBDE';
-  ctx.beginPath();
-  ctx.roundRect(rightX, currentY, tagW, 28, 10);
-  ctx.fill();
-  ctx.fillStyle = '#3A452F';
-  ctx.fillText(catTagText, rightX + 10, currentY + 19);
-
-  let nextBadgeX = rightX + tagW + 10;
-
-  // Code / SKU Tag
-  if (product.sku) {
-    const skuText = `Cód: ${product.sku}`;
-    ctx.font = 'bold 13px system-ui, sans-serif';
-    const skuW = ctx.measureText(skuText).width + 20;
-    ctx.fillStyle = '#F5F0E6';
-    ctx.beginPath();
-    ctx.roundRect(nextBadgeX, currentY, skuW, 28, 10);
-    ctx.fill();
-    ctx.fillStyle = '#715F46';
-    ctx.fillText(skuText, nextBadgeX + 10, currentY + 19);
-    nextBadgeX += skuW + 10;
-  }
-
-  // Size/Color Tag
-  if (product.sizeColor) {
-    const sizeText = `📏 ${product.sizeColor}`;
-    ctx.font = 'bold 13px system-ui, sans-serif';
-    const sizeW = ctx.measureText(sizeText).width + 20;
-    ctx.fillStyle = '#F5F0E6';
-    ctx.beginPath();
-    ctx.roundRect(nextBadgeX, currentY, sizeW, 28, 10);
-    ctx.fill();
-    ctx.fillStyle = '#2B3323';
-    ctx.fillText(sizeText, nextBadgeX + 10, currentY + 19);
-  }
-
-  currentY += 46;
-
-  // Expiration Date (if present)
-  if (product.expirationDate) {
-    ctx.fillStyle = '#8B4A42';
-    ctx.font = 'bold 13px system-ui, sans-serif';
-    ctx.fillText(`📅 Validade: ${product.expirationDate}`, rightX, currentY);
-    currentY += 28;
-  }
-
-  // Product Title
-  ctx.fillStyle = '#2A3722';
-  ctx.font = '900 32px system-ui, sans-serif';
-  const titleLines = wrapText(ctx, product.name, 560);
-  for (const line of titleLines) {
-    ctx.fillText(line, rightX, currentY);
-    currentY += 38;
-  }
-
-  currentY += 12;
-
-  // Highlight Price Box (Sage Card)
-  const priceBoxW = 560;
-  const priceBoxH = 140;
-  ctx.fillStyle = '#F0F4EB';
-  ctx.beginPath();
-  ctx.roundRect(rightX, currentY, priceBoxW, priceBoxH, 20);
-  ctx.fill();
-  ctx.strokeStyle = '#CAD7BE';
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  // Inside Price Box Content
-  ctx.fillStyle = '#465437';
-  ctx.font = 'bold 12px system-ui, sans-serif';
-  ctx.fillText('VALOR DE BAZAR:', rightX + 24, currentY + 36);
-
-  ctx.fillStyle = '#3A452F';
-  ctx.font = '900 38px system-ui, sans-serif';
-  ctx.fillText(formatCurrency(bazarPrice), rightX + 160, currentY + 42);
+  // RIGHT SIDE OF OFFER BOX: Badges (🔥 % de desconto & Economia. R$ 50,00)
+  const rightBadgeRight = offerBoxX + offerBoxW - 32;
+  let rightBadgeY = offerBoxY + 34;
 
   if (hasDiscount) {
-    ctx.fillStyle = '#715F46';
-    ctx.font = '600 16px system-ui, sans-serif';
-    ctx.fillText(`De ${formatCurrency(fullPrice)}`, rightX + 380, currentY + 40);
+    // Top Right Pill: 🔥 20,1% de desconto (Red/Crimson Pill)
+    const discTagText = `🔥 ${formatPercent(discountPercent)} de desconto`;
+    ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
+    const discTagTextW = ctx.measureText(discTagText).width;
+    const discTagW = discTagTextW + 36;
+    const discTagH = 50;
+    const discTagX = rightBadgeRight - discTagW;
 
-    // Pill 1: % Discount
-    const pill1Text = `🔥 ${formatPercent(discountPercent)} de Desconto`;
-    ctx.font = 'bold 12px system-ui, sans-serif';
-    const p1W = ctx.measureText(pill1Text).width + 20;
-    ctx.fillStyle = '#E5EBDE';
+    ctx.fillStyle = '#E11D48'; // Crimson / Rose
     ctx.beginPath();
-    ctx.roundRect(rightX + 24, currentY + 76, p1W, 32, 12);
+    ctx.roundRect(discTagX, rightBadgeY, discTagW, discTagH, 14);
     ctx.fill();
-    ctx.fillStyle = '#3A452F';
-    ctx.fillText(pill1Text, rightX + 34, currentY + 96);
 
-    // Pill 2: Real Savings
-    const pill2Text = `💰 Economia Real: ${formatCurrency(discountAmount)}`;
-    const p2W = ctx.measureText(pill2Text).width + 20;
-    ctx.fillStyle = '#CCD8BF';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText(discTagText, discTagX + discTagW / 2, rightBadgeY + 34);
+
+    rightBadgeY += 60;
+
+    // Bottom Right Pill: Economia. R$ 50,00 (Mint Light Green Pill with Emerald text)
+    const econTagText = `Economia. ${formatCurrency(discountAmount)}`;
+    ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
+    const econTagTextW = ctx.measureText(econTagText).width;
+    const econTagW = econTagTextW + 36;
+    const econTagH = 50;
+    const econTagX = rightBadgeRight - econTagW;
+
+    ctx.fillStyle = '#ECFDF5'; // Mint/Emerald Light Background
     ctx.beginPath();
-    ctx.roundRect(rightX + 34 + p1W, currentY + 76, p2W, 32, 12);
+    ctx.roundRect(econTagX, rightBadgeY, econTagW, econTagH, 14);
     ctx.fill();
-    ctx.fillStyle = '#2A3722';
-    ctx.fillText(pill2Text, rightX + 44 + p1W, currentY + 96);
+    ctx.strokeStyle = '#A7F3D0';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#065F46'; // Forest/Emerald Green text
+    ctx.textAlign = 'center';
+    ctx.fillText(econTagText, econTagX + econTagW / 2, rightBadgeY + 34);
+  } else {
+    // Single tag for available stock or exclusive piece
+    const singleTagText = '💎 Peça Exclusiva';
+    ctx.font = 'bold 24px system-ui, -apple-system, sans-serif';
+    const singleTagTextW = ctx.measureText(singleTagText).width;
+    const singleTagW = singleTagTextW + 36;
+    const singleTagH = 50;
+    const singleTagX = rightBadgeRight - singleTagW;
+
+    ctx.fillStyle = '#ECFDF5';
+    ctx.beginPath();
+    ctx.roundRect(singleTagX, offerBoxY + (offerBoxH - singleTagH) / 2, singleTagW, singleTagH, 14);
+    ctx.fill();
+    ctx.strokeStyle = '#A7F3D0';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.fillStyle = '#065F46';
+    ctx.textAlign = 'center';
+    ctx.fillText(singleTagText, singleTagX + singleTagW / 2, offerBoxY + (offerBoxH - singleTagH) / 2 + 34);
   }
-
-  currentY += priceBoxH + 24;
-
-  // Description & Details Section
-  ctx.fillStyle = '#715F46';
-  ctx.font = 'bold 12px system-ui, sans-serif';
-  ctx.fillText('DESCRIÇÃO & DETALHES DO PRODUTO:', rightX, currentY);
-  currentY += 22;
-
-  const descText = product.description || 'Produto de altíssima qualidade do Nosso Bazar! Garantia e procedência.';
-  ctx.fillStyle = '#2B3323';
-  ctx.font = '500 15px system-ui, sans-serif';
-  const descLines = wrapText(ctx, descText, 560);
-  for (let i = 0; i < Math.min(descLines.length, 5); i++) {
-    ctx.fillText(descLines[i], rightX, currentY);
-    currentY += 22;
-  }
-
-  // Bottom Call To Action Banner
-  const ctaY = cardY + cardH - 80;
-  ctx.fillStyle = '#4A5D3B';
-  ctx.shadowColor = 'rgba(74, 93, 59, 0.3)';
-  ctx.shadowBlur = 15;
-  ctx.shadowOffsetY = 6;
-  ctx.beginPath();
-  ctx.roundRect(rightX, ctaY, 560, 56, 18);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 18px system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('📲 Peça agora pelo WhatsApp!', rightX + 280, ctaY + 35);
 
   return canvas;
 }

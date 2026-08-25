@@ -215,9 +215,9 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
 
         {/* Product Compact Summary Header */}
         <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-slate-200 dark:bg-slate-700 rounded-xl overflow-hidden relative border border-slate-300 dark:border-slate-600">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden relative border border-slate-200 dark:border-slate-700 flex items-center justify-center">
             {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain p-1" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-slate-400">
                 <Package className="h-7 w-7" />
