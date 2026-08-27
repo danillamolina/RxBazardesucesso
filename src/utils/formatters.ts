@@ -458,7 +458,7 @@ export function generateFullCatalogExportText(products: {
   let globalIndex = 1;
 
   Object.entries(categoriesMap).forEach(([categoryName, subcats]) => {
-    text += `🏷️ *━━━ ${categoryName.toUpperCase()} ━━━*\n\n`;
+    text += `🏷️ *━━━ ${categoryName} ━━━*\n\n`;
 
     Object.entries(subcats).forEach(([subcatName, subProducts]) => {
       if (subcatName !== 'Geral') {
@@ -473,7 +473,7 @@ export function generateFullCatalogExportText(products: {
           discountStr = `De ~${formatCurrency(p.fullPrice)}~ por *${formatCurrency(p.bazarPrice)}* (🔥 *${perc}% OFF*)`;
         }
 
-        text += `  ✨ *${globalIndex}. ${p.name.toUpperCase()}*\n`;
+        text += `  ✨ *${globalIndex}. ${p.name}*\n`;
         if (p.sizeColor) text += `     📏 Detalhes/Tam: *${p.sizeColor}*\n`;
         if (p.description) text += `     📝 ${p.description}\n`;
         text += `     💰 Preço: ${discountStr}\n`;

@@ -381,7 +381,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
         // Category Tag Badge
         const catLabel = prod.subcategory ? `${prod.category} • ${prod.subcategory}` : (prod.category || 'Bazar');
         ctx.font = 'bold 10px system-ui, sans-serif';
-        const catWidth = ctx.measureText(catLabel.toUpperCase()).width + 18;
+        const catWidth = ctx.measureText(catLabel).width + 18;
 
         ctx.fillStyle = '#e11d48';
         ctx.beginPath();
@@ -389,7 +389,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
         ctx.fill();
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'left';
-        ctx.fillText(catLabel.toUpperCase(), x + 28, y + 36);
+        ctx.fillText(catLabel, x + 28, y + 36);
 
         // Calculate price details
         const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(prod);
