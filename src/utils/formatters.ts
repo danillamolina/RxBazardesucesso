@@ -419,7 +419,7 @@ export function createWhatsAppProductShareLink(
   return `https://api.whatsapp.com/send?text=${encodeURIComponent(rawText)}`;
 }
 
-// Generate Full Catalog Text for WhatsApp Export
+// Generate Full Catalog Text for WhatsApp Export organized by Category and Subcategory
 export function generateFullCatalogExportText(products: {
   name: string;
   bazarPrice: number;
@@ -428,40 +428,72 @@ export function generateFullCatalogExportText(products: {
   sizeColor?: string;
   imageUrl?: string;
   category?: string;
+  subcategory?: string;
   quantity?: number;
 }[]): string {
   if (!products || products.length === 0) {
-    return '🛍️ *BAZAR SECRETO*: Nenhum produto disponível no momento.';
+    return '🛍️ *RX DO BAZAR DE SUCESSO*: Nenhum produto selecionado no momento.';
   }
 
-  let text = `🛍️✨ *CATÁLOGO COMPLETO — BAZAR SECRETO* ✨🛍️\n\n`;
-  text += `Confira abaixo todas as peças disponíveis para entrega imediata:\n`;
+  let text = `🛍️✨ *CATÁLOGO DE OFERTAS — RX DO BAZAR DE SUCESSO* ✨🛍️\n`;
+  text += `Confira as peças selecionadas disponíveis para pronta entrega:\n`;
   text += `───────────────────────\n\n`;
 
-  products.forEach((p, idx) => {
-    let discountStr = `*${formatCurrency(p.bazarPrice)}*`;
-    if (p.fullPrice && p.fullPrice > p.bazarPrice) {
-      const diff = p.fullPrice - p.bazarPrice;
-      const perc = Math.round((diff / p.fullPrice) * 100);
-      discountStr = `De ~${formatCurrency(p.fullPrice)}~ por *${formatCurrency(p.bazarPrice)}* (${perc}% OFF 🔥)`;
+  // Group products by category and then subcategory
+  const categoriesMap: Record<string, Record<string, typeof products>> = {};
+
+  products.forEach((p) => {
+    const cat = p.category || 'Outros / Destaques';
+    const sub = p.subcategory || 'Geral';
+
+    if (!categoriesMap[cat]) {
+      categoriesMap[cat] = {};
     }
-
-    text += `📌 *${idx + 1}. ${p.name.toUpperCase()}*\n`;
-    if (p.category) text += `🏷️ Categoria: ${p.category}\n`;
-    if (p.sizeColor) text += `📏 Tamanho/Detalhes: *${p.sizeColor}*\n`;
-    if (p.description) text += `📝 Descrição: ${p.description}\n`;
-    text += `💰 Valor: ${discountStr}\n`;
-
-    if (p.imageUrl && !p.imageUrl.startsWith('data:')) {
-      text += `📸 Foto: ${p.imageUrl}\n`;
+    if (!categoriesMap[cat][sub]) {
+      categoriesMap[cat][sub] = [];
     }
+    categoriesMap[cat][sub].push(p);
+  });
 
-    text += `\n`;
+  let globalIndex = 1;
+
+  Object.entries(categoriesMap).forEach(([categoryName, subcats]) => {
+    text += `🏷️ *━━━ ${categoryName.toUpperCase()} ━━━*\n\n`;
+
+    Object.entries(subcats).forEach(([subcatName, subProducts]) => {
+      if (subcatName !== 'Geral') {
+        text += `  📂 *${subcatName}*\n\n`;
+      }
+
+      subProducts.forEach((p) => {
+        let discountStr = `*${formatCurrency(p.bazarPrice)}*`;
+        if (p.fullPrice && p.fullPrice > p.bazarPrice) {
+          const diff = p.fullPrice - p.bazarPrice;
+          const perc = Math.round((diff / p.fullPrice) * 100);
+          discountStr = `De ~${formatCurrency(p.fullPrice)}~ por *${formatCurrency(p.bazarPrice)}* (🔥 *${perc}% OFF*)`;
+        }
+
+        text += `  ✨ *${globalIndex}. ${p.name.toUpperCase()}*\n`;
+        if (p.sizeColor) text += `     📏 Detalhes/Tam: *${p.sizeColor}*\n`;
+        if (p.description) text += `     📝 ${p.description}\n`;
+        text += `     💰 Preço: ${discountStr}\n`;
+        if (p.quantity && p.quantity > 0) {
+          text += `     📦 Estoque: *${p.quantity} un.*\n`;
+        }
+
+        if (p.imageUrl && !p.imageUrl.startsWith('data:')) {
+          text += `     📸 Foto: ${p.imageUrl}\n`;
+        }
+
+        text += `\n`;
+        globalIndex++;
+      });
+    });
   });
 
   text += `───────────────────────\n`;
-  text += `⚡ *COMO GARANTIR:*\n`;
-  text += `Responda a esta mensagem informando o número ou nome da peça para reservar a sua! Estoque limitado! 🥰💖`;
+  text += `⚡ *COMO RESERVAR A SUA PEÇA:*\n`;
+  text += `Responda a esta mensagem informando o número ou nome da peça para garantir! Estoque com pronta entrega! 🥰💖`;
 
   return text;
 }

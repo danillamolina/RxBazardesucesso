@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Calculator, Package, Sparkles, Image as ImageIcon, Camera, Plus, Tag, Barcode, Calendar, Trash2, Loader2, CheckCircle2, RefreshCw } from 'lucide-react';
-import { Product, ProductCategory } from '../../types';
+import { X, Calculator, Package, Sparkles, Image as ImageIcon, Camera, Plus, Tag, Barcode, Calendar, Trash2, Loader2, CheckCircle2, RefreshCw, Layers } from 'lucide-react';
+import { Product } from '../../types';
 import { formatCurrency, formatPercent, calculateMarginPercent, calculatePriceFromMargin } from '../../utils/formatters';
 import { optimizeProductImage } from '../../utils/imageOptimizer';
+import { useBazar } from '../../context/BazarContext';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -11,27 +12,23 @@ interface ProductModalProps {
   productToEdit?: Product | null;
 }
 
-const DEFAULT_CATEGORIES = [
-  'Roupas',
-  'Calçados',
-  'Bolsas & Acessórios',
-  'Cosméticos & Perfumes',
-  'Semijoias',
-  'Casa & Decoração',
-  'Outros',
-];
-
 export const ProductModal: React.FC<ProductModalProps> = ({
   isOpen,
   onClose,
   onSave,
   productToEdit,
 }) => {
+  const { categories, addCategory, addSubcategory } = useBazar();
+
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
   const [expirationDate, setExpirationDate] = useState('');
-  const [selectedCategoryOption, setSelectedCategoryOption] = useState<string>('Roupas');
+  
+  // Categories & Subcategories
+  const [selectedCategoryOption, setSelectedCategoryOption] = useState<string>('');
   const [customCategory, setCustomCategory] = useState('');
+  const [selectedSubcategoryOption, setSelectedSubcategoryOption] = useState<string>('');
+  const [customSubcategory, setCustomSubcategory] = useState('');
   
   // Pricing
   const [fullPrice, setFullPrice] = useState<number | ''>(''); // Preço Cheio de Loja
@@ -55,18 +52,48 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
+  // Derive active category's subcategories
+  const activeCategoryObject = categories.find((c) => c.name === selectedCategoryOption);
+  const availableSubcategories = activeCategoryObject?.subcategories || [];
+
   useEffect(() => {
     if (productToEdit) {
       setName(productToEdit.name);
       setSku(productToEdit.sku || '');
       setExpirationDate(productToEdit.expirationDate || '');
       
-      if (DEFAULT_CATEGORIES.includes(productToEdit.category)) {
-        setSelectedCategoryOption(productToEdit.category);
+      const foundCat = categories.find((c) => c.name === productToEdit.category);
+      if (foundCat) {
+        setSelectedCategoryOption(foundCat.name);
         setCustomCategory('');
-      } else {
+        
+        if (productToEdit.subcategory) {
+          if (foundCat.subcategories.includes(productToEdit.subcategory)) {
+            setSelectedSubcategoryOption(productToEdit.subcategory);
+            setCustomSubcategory('');
+          } else {
+            setSelectedSubcategoryOption('__nova_sub__');
+            setCustomSubcategory(productToEdit.subcategory);
+          }
+        } else {
+          setSelectedSubcategoryOption('');
+          setCustomSubcategory('');
+        }
+      } else if (productToEdit.category) {
         setSelectedCategoryOption('__nova__');
         setCustomCategory(productToEdit.category);
+        if (productToEdit.subcategory) {
+          setSelectedSubcategoryOption('__nova_sub__');
+          setCustomSubcategory(productToEdit.subcategory);
+        } else {
+          setSelectedSubcategoryOption('');
+          setCustomSubcategory('');
+        }
+      } else {
+        setSelectedCategoryOption(categories[0]?.name || 'Roupas');
+        setCustomCategory('');
+        setSelectedSubcategoryOption('');
+        setCustomSubcategory('');
       }
 
       const editFull = productToEdit.fullPrice || '';
@@ -90,8 +117,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setName('');
       setSku('');
       setExpirationDate('');
-      setSelectedCategoryOption('Roupas');
+      const defaultCat = categories[0]?.name || 'Roupas';
+      setSelectedCategoryOption(defaultCat);
       setCustomCategory('');
+      setSelectedSubcategoryOption('');
+      setCustomSubcategory('');
       setFullPrice('');
       setBazarDiscountValue('');
       setCostPrice(50);
@@ -104,7 +134,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setImageStats(null);
       setImageError(null);
     }
-  }, [productToEdit, isOpen]);
+  }, [productToEdit, isOpen, categories]);
 
   if (!isOpen) return null;
 
@@ -240,6 +270,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       ? (customCategory.trim() || 'Outros')
       : selectedCategoryOption;
 
+    let finalSubcategory: string | undefined = undefined;
+    if (selectedSubcategoryOption === '__nova_sub__') {
+      finalSubcategory = customSubcategory.trim() || undefined;
+    } else if (selectedSubcategoryOption) {
+      finalSubcategory = selectedSubcategoryOption.trim() || undefined;
+    }
+
+    // Auto-persist new category/subcategory in context if entered
+    if (selectedCategoryOption === '__nova__' && customCategory.trim()) {
+      addCategory(customCategory.trim(), finalSubcategory ? [finalSubcategory] : []);
+    } else if (finalCategory && selectedSubcategoryOption === '__nova_sub__' && customSubcategory.trim()) {
+      addSubcategory(finalCategory, customSubcategory.trim());
+    }
+
     if (numCost <= 0) {
       alert('Informe um preço de custo válido.');
       return;
@@ -254,6 +298,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       sku: sku.trim() || undefined,
       expirationDate: expirationDate.trim() || undefined,
       category: finalCategory,
+      subcategory: finalSubcategory,
       fullPrice: numFull > 0 ? numFull : undefined,
       bazarDiscountValue: typeof bazarDiscountValue === 'number' ? bazarDiscountValue : (numFull > numPrice ? numFull - numPrice : undefined),
       bazarDiscountPercent: calculatedDiscountPercent > 0 ? parseFloat(calculatedDiscountPercent.toFixed(1)) : undefined,
@@ -343,19 +388,26 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               </div>
             </div>
 
-            {/* Category, Size/Color & Expiration Date */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+            {/* Category, Subcategory, Size/Color & Expiration Date */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
+              {/* Categoria */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Categoria *
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Tag className="h-3.5 w-3.5 text-rose-500" />
+                    Categoria *
+                  </span>
                 </label>
                 <select
                   value={selectedCategoryOption}
-                  onChange={(e) => setSelectedCategoryOption(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-rose-500 transition shadow-sm"
+                  onChange={(e) => {
+                    setSelectedCategoryOption(e.target.value);
+                    setSelectedSubcategoryOption('');
+                  }}
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-rose-500 transition shadow-sm"
                 >
-                  {DEFAULT_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
                   <option value="__nova__">➕ + Criar Nova Categoria...</option>
                 </select>
@@ -374,6 +426,42 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                 )}
               </div>
 
+              {/* Subcategoria */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1">
+                    <Layers className="h-3.5 w-3.5 text-rose-500" />
+                    Subcategoria
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-normal">Opcional</span>
+                </label>
+                <select
+                  value={selectedSubcategoryOption}
+                  onChange={(e) => setSelectedSubcategoryOption(e.target.value)}
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-rose-500 transition shadow-sm"
+                >
+                  <option value="">-- Nenhuma / Geral --</option>
+                  {availableSubcategories.map((sub) => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                  <option value="__nova_sub__">➕ + Nova Subcategoria...</option>
+                </select>
+
+                {selectedSubcategoryOption === '__nova_sub__' && (
+                  <div className="mt-2">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nome da subcategoria..."
+                      value={customSubcategory}
+                      onChange={(e) => setCustomSubcategory(e.target.value)}
+                      className="w-full bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-700 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none focus:border-rose-500"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Variação / Tamanho */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Tamanho / Cor / Variação
@@ -383,10 +471,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   placeholder="ex: Tam M / Cor Rosa"
                   value={sizeColor}
                   onChange={(e) => setSizeColor(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-semibold focus:outline-none focus:border-rose-500 transition shadow-sm"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-rose-500 transition shadow-sm"
                 />
               </div>
 
+              {/* Validade */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-rose-500" />
@@ -397,7 +486,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   placeholder="ex: 12/2026 ou 31/12/2026"
                   value={expirationDate}
                   onChange={(e) => setExpirationDate(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-3.5 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 focus:outline-none focus:border-rose-500 transition shadow-sm"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-3 py-2.5 text-xs font-bold text-amber-600 dark:text-amber-400 focus:outline-none focus:border-rose-500 transition shadow-sm"
                 />
               </div>
             </div>

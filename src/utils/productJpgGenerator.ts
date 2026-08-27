@@ -334,8 +334,10 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
     ctx.fillText(formatCurrency(bazarPrice), priceCardX + priceCardW - 20, cardContentY);
   }
 
-  // 3. BOTTOM-LEFT OVERLAY BADGE ON PHOTO: CATEGORY PILL (Light pill with dark text)
-  const catText = product.category || 'Bazar de Sucesso';
+  // 3. BOTTOM-LEFT OVERLAY BADGE ON PHOTO: CATEGORY & SUBCATEGORY PILL (Light pill with dark text)
+  const catText = product.subcategory 
+    ? `${product.category || 'Bazar'} • ${product.subcategory}`
+    : (product.category || 'Bazar de Sucesso');
   ctx.font = 'bold 19px system-ui, -apple-system, sans-serif';
   const catTextW = ctx.measureText(catText).width;
   const catPillW = catTextW + 32;
@@ -345,7 +347,7 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
 
   ctx.fillStyle = '#FFFFFF';
   ctx.beginPath();
-  ctx.roundRect(catPillX, catPillY, catPillW, catPillH, 21);
+  ctx.roundRect(catPillX, catPillY, Math.min(imgBoxW - 40, catPillW), catPillH, 21);
   ctx.fill();
   ctx.strokeStyle = '#CBD5E1';
   ctx.lineWidth = 1.5;
@@ -353,7 +355,7 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
 
   ctx.fillStyle = '#1E293B';
   ctx.textAlign = 'center';
-  ctx.fillText(catText, catPillX + catPillW / 2, catPillY + 28);
+  ctx.fillText(catText, catPillX + Math.min(imgBoxW - 40, catPillW) / 2, catPillY + 28);
 
   // Sold Out Dark Overlay if sold out
   if (isSoldOut) {

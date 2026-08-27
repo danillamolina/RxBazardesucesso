@@ -4,12 +4,13 @@ import {
   Sale, 
   BazarEdition, 
   PaymentStatus, 
-  PaymentMethod,
+  PaymentMethod, 
   StockMetrics, 
   FinancialSummary,
-  StoreInfo
+  StoreInfo,
+  CategoryStructure
 } from '../types';
-import { INITIAL_PRODUCTS, INITIAL_SALES, INITIAL_EDITIONS } from '../data/initialData';
+import { INITIAL_PRODUCTS, INITIAL_SALES, INITIAL_EDITIONS, INITIAL_CATEGORIES } from '../data/initialData';
 import { calculateMarginPercent } from '../utils/formatters';
 import { safeSave, safeRemove, idbGet } from '../utils/storage';
 
@@ -27,6 +28,7 @@ interface BazarContextType {
   products: Product[];
   sales: Sale[];
   editions: BazarEdition[];
+  categories: CategoryStructure[];
   activeEditionId: string; // 'all' or specific ID
   storeInfo: StoreInfo;
   
@@ -38,6 +40,13 @@ interface BazarContextType {
   updateProduct: (id: string, product: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   adjustStock: (id: string, amount: number) => void;
+
+  // Category and Subcategory actions
+  addCategory: (name: string, subcategories?: string[]) => void;
+  updateCategory: (id: string, name: string, subcategories: string[]) => void;
+  deleteCategory: (id: string) => void;
+  addSubcategory: (categoryIdOrName: string, subcategoryName: string) => void;
+  deleteSubcategory: (categoryIdOrName: string, subcategoryName: string) => void;
   
   // Sale actions
   addSale: (sale: Omit<Sale, 'id' | 'saleDate' | 'netProfit' | 'amountPaid' | 'remainingBalance'> & { amountPaid?: number; remainingBalance?: number }) => boolean;
@@ -53,7 +62,7 @@ interface BazarContextType {
   // System actions
   resetToInitialData: () => void;
   clearAllData: () => void;
-  importAllData: (data: { products: Product[]; sales: Sale[]; editions: BazarEdition[]; activeEditionId?: string }) => void;
+  importAllData: (data: { products: Product[]; sales: Sale[]; editions: BazarEdition[]; categories?: CategoryStructure[]; activeEditionId?: string }) => void;
   
   // Computed Realtime Metrics
   stockMetrics: StockMetrics;
@@ -66,6 +75,7 @@ const STORAGE_KEYS = {
   EDITIONS: 'bazar_secreto_editions_v1',
   ACTIVE_EDITION: 'bazar_secreto_active_edition_v1',
   STORE_INFO: 'bazar_secreto_store_info_v1',
+  CATEGORIES: 'bazar_secreto_categories_v1',
 };
 
 const BazarContext = createContext<BazarContextType | undefined>(undefined);
@@ -101,6 +111,21 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
     return INITIAL_EDITIONS;
+  });
+
+  const [categories, setCategories] = useState<CategoryStructure[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
+    if (saved) {
+      try { 
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      } catch (e) { 
+        console.error(e); 
+      }
+    }
+    return INITIAL_CATEGORIES;
   });
 
   const [activeEditionId, setActiveEditionId] = useState<string>(() => {
@@ -154,6 +179,11 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           });
         }
 
+        const idbCategories = await idbGet<CategoryStructure[]>(STORAGE_KEYS.CATEGORIES);
+        if (idbCategories && Array.isArray(idbCategories) && idbCategories.length > 0) {
+          setCategories(idbCategories);
+        }
+
         const idbStore = await idbGet<StoreInfo>(STORAGE_KEYS.STORE_INFO);
         if (idbStore) {
           setStoreInfo((current) => ({ ...current, ...idbStore }));
@@ -185,6 +215,10 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     safeSave(STORAGE_KEYS.ACTIVE_EDITION, activeEditionId);
   }, [activeEditionId]);
+
+  useEffect(() => {
+    safeSave(STORAGE_KEYS.CATEGORIES, categories);
+  }, [categories]);
 
   // Product Actions
   const addProduct = (
@@ -228,6 +262,86 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (p.id !== id) return p;
         const newQty = Math.max(0, p.quantity + amount);
         return { ...p, quantity: newQty };
+      })
+    );
+  };
+
+  // Category and Subcategory Actions
+  const addCategory = (name: string, subcategories: string[] = []) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setCategories((prev) => {
+      if (prev.some((c) => c.name.toLowerCase() === trimmed.toLowerCase())) {
+        return prev;
+      }
+      const newCat: CategoryStructure = {
+        id: `cat-${Date.now()}`,
+        name: trimmed,
+        subcategories: Array.from(new Set(subcategories.map((s) => s.trim()).filter(Boolean))),
+      };
+      return [...prev, newCat];
+    });
+  };
+
+  const updateCategory = (id: string, name: string, subcategories: string[]) => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+    setCategories((prev) =>
+      prev.map((c) => {
+        if (c.id !== id) return c;
+        const oldName = c.name;
+        // If name changed, optionally update associated products
+        if (oldName !== trimmedName) {
+          setProducts((currentProducts) =>
+            currentProducts.map((p) => (p.category === oldName ? { ...p, category: trimmedName } : p))
+          );
+        }
+        return {
+          ...c,
+          name: trimmedName,
+          subcategories: Array.from(new Set(subcategories.map((s) => s.trim()).filter(Boolean))),
+        };
+      })
+    );
+  };
+
+  const deleteCategory = (id: string) => {
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const addSubcategory = (categoryIdOrName: string, subcategoryName: string) => {
+    const trimmedSub = subcategoryName.trim();
+    if (!trimmedSub) return;
+
+    setCategories((prev) =>
+      prev.map((c) => {
+        if (c.id === categoryIdOrName || c.name.toLowerCase() === categoryIdOrName.toLowerCase()) {
+          if (c.subcategories.some((s) => s.toLowerCase() === trimmedSub.toLowerCase())) {
+            return c;
+          }
+          return {
+            ...c,
+            subcategories: [...c.subcategories, trimmedSub],
+          };
+        }
+        return c;
+      })
+    );
+  };
+
+  const deleteSubcategory = (categoryIdOrName: string, subcategoryName: string) => {
+    const trimmedSub = subcategoryName.trim();
+    if (!trimmedSub) return;
+
+    setCategories((prev) =>
+      prev.map((c) => {
+        if (c.id === categoryIdOrName || c.name.toLowerCase() === categoryIdOrName.toLowerCase()) {
+          return {
+            ...c,
+            subcategories: c.subcategories.filter((s) => s.toLowerCase() !== trimmedSub.toLowerCase()),
+          };
+        }
+        return c;
       })
     );
   };
@@ -533,10 +647,12 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts(INITIAL_PRODUCTS);
     setSales(INITIAL_SALES);
     setEditions(INITIAL_EDITIONS);
+    setCategories(INITIAL_CATEGORIES);
     setActiveEditionId('ed-1');
     safeRemove(STORAGE_KEYS.PRODUCTS);
     safeRemove(STORAGE_KEYS.SALES);
     safeRemove(STORAGE_KEYS.EDITIONS);
+    safeRemove(STORAGE_KEYS.CATEGORIES);
     safeRemove(STORAGE_KEYS.ACTIVE_EDITION);
   };
 
@@ -544,17 +660,20 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setProducts([]);
     setSales([]);
     setEditions(INITIAL_EDITIONS);
+    setCategories(INITIAL_CATEGORIES);
     setActiveEditionId('all');
     safeSave(STORAGE_KEYS.PRODUCTS, []);
     safeSave(STORAGE_KEYS.SALES, []);
     safeSave(STORAGE_KEYS.EDITIONS, INITIAL_EDITIONS);
+    safeSave(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
     safeSave(STORAGE_KEYS.ACTIVE_EDITION, 'all');
   };
 
-  const importAllData = (data: { products: Product[]; sales: Sale[]; editions: BazarEdition[]; activeEditionId?: string }) => {
+  const importAllData = (data: { products: Product[]; sales: Sale[]; editions: BazarEdition[]; categories?: CategoryStructure[]; activeEditionId?: string }) => {
     if (data.products) setProducts(data.products);
     if (data.sales) setSales(data.sales);
     if (data.editions) setEditions(data.editions);
+    if (data.categories) setCategories(data.categories);
     if (data.activeEditionId) setActiveEditionId(data.activeEditionId);
   };
 
@@ -666,6 +785,7 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         products: filteredProducts,
         sales: filteredSales,
         editions,
+        categories,
         activeEditionId,
         storeInfo,
         updateStoreInfo,
@@ -673,6 +793,11 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateProduct,
         deleteProduct,
         adjustStock,
+        addCategory,
+        updateCategory,
+        deleteCategory,
+        addSubcategory,
+        deleteSubcategory,
         addSale,
         updateSale,
         updateSaleStatus,

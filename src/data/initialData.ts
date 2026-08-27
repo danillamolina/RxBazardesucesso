@@ -1,4 +1,42 @@
-import { Product, Sale, BazarEdition } from '../types';
+import { Product, Sale, BazarEdition, CategoryStructure } from '../types';
+
+export const INITIAL_CATEGORIES: CategoryStructure[] = [
+  {
+    id: 'cat-roupas',
+    name: 'Roupas',
+    subcategories: ['Vestidos', 'Blusas & Camisas', 'Calças & Shorts', 'Conjuntos', 'Feminino', 'Masculino', 'Infantil', 'Moda Praia', 'Plus Size'],
+  },
+  {
+    id: 'cat-calcados',
+    name: 'Calçados',
+    subcategories: ['Sandálias & Rasteiras', 'Tênis', 'Sapatos & Saltos', 'Botas', 'Chinelos & Slides', 'Feminino', 'Masculino'],
+  },
+  {
+    id: 'cat-bolsas',
+    name: 'Bolsas & Acessórios',
+    subcategories: ['Bolsas', 'Mochilas', 'Carteiras', 'Cintos', 'Óculos de Sol', 'Necessaires & Maletas'],
+  },
+  {
+    id: 'cat-cosmeticos',
+    name: 'Cosméticos & Perfumes',
+    subcategories: ['Perfumes & Fragrâncias', 'Cuidados com a Pele', 'Maquiagem', 'Corpo & Banho', 'Cabelos', 'Kits & Presentes'],
+  },
+  {
+    id: 'cat-semijoias',
+    name: 'Semijoias',
+    subcategories: ['Conjuntos', 'Brincos', 'Colares & Gargantilhas', 'Pulseiras & Braceletes', 'Anéis', 'Folheados 18k'],
+  },
+  {
+    id: 'cat-casa',
+    name: 'Casa & Decoração',
+    subcategories: ['Aromas & Velas', 'Decoração', 'Cama, Mesa & Banho', 'Cozinha & Utensílios'],
+  },
+  {
+    id: 'cat-outros',
+    name: 'Outros',
+    subcategories: ['Geral', 'Lançamentos', 'Queima de Estoque'],
+  },
+];
 
 export const INITIAL_EDITIONS: BazarEdition[] = [
   {
@@ -23,6 +61,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Kaiak Masculino 100ml',
     sku: 'PERF-001',
     category: 'Cosméticos & Perfumes',
+    subcategory: 'Perfumes & Fragrâncias',
     fullPrice: 180.00,
     costPrice: 67.00,
     bazarPrice: 83.75,
@@ -41,6 +80,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Vestido Midi Elegante Floral',
     sku: 'VEST-001',
     category: 'Roupas',
+    subcategory: 'Vestidos',
     fullPrice: 199.90,
     costPrice: 65.00,
     bazarPrice: 129.90,
@@ -58,6 +98,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Perfume Importado Eau de Parfum 100ml',
     sku: 'PERF-002',
     category: 'Cosméticos & Perfumes',
+    subcategory: 'Perfumes & Fragrâncias',
     fullPrice: 349.90,
     costPrice: 120.00,
     bazarPrice: 219.00,
@@ -75,6 +116,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Bolsa Crossbody Couro Sintético',
     sku: 'BOLS-003',
     category: 'Bolsas & Acessórios',
+    subcategory: 'Bolsas',
     fullPrice: 149.90,
     costPrice: 45.00,
     bazarPrice: 89.90,
@@ -92,6 +134,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Conjunto Colar e Brinco Folheado a Ouro',
     sku: 'JOIA-004',
     category: 'Semijoias',
+    subcategory: 'Conjuntos',
     fullPrice: 139.00,
     costPrice: 30.00,
     bazarPrice: 75.00,
@@ -109,6 +152,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Sandália Anabela Salto Anabela Comfort',
     sku: 'CALC-005',
     category: 'Calçados',
+    subcategory: 'Sandálias & Rasteiras',
     fullPrice: 189.90,
     costPrice: 55.00,
     bazarPrice: 110.00,
@@ -126,6 +170,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Sérum Facial Rejuvenescedor Vitamina C',
     sku: 'COSM-006',
     category: 'Cosméticos & Perfumes',
+    subcategory: 'Cuidados com a Pele',
     fullPrice: 99.90,
     costPrice: 22.00,
     bazarPrice: 59.90,
@@ -143,6 +188,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     name: 'Vela Aromática Decorativa Baunilha & Lavanda',
     sku: 'CASA-007',
     category: 'Casa & Decoração',
+    subcategory: 'Aromas & Velas',
     fullPrice: 69.90,
     costPrice: 18.00,
     bazarPrice: 42.00,

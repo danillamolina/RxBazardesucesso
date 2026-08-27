@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   X, 
   MessageSquare, 
@@ -13,7 +13,12 @@ import {
   Images,
   FileText,
   Briefcase,
-  Smartphone
+  Smartphone,
+  CheckSquare,
+  Square,
+  Filter,
+  Layers,
+  Tag
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { Product } from '../../types';
@@ -23,30 +28,95 @@ interface ExportCatalogModalProps {
   isOpen: boolean;
   onClose: () => void;
   products?: Product[];
+  initialSelectedProductIds?: string[];
 }
 
 export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   isOpen,
   onClose,
   products: propsProducts,
+  initialSelectedProductIds,
 }) => {
-  const { products: contextProducts } = useBazar();
-  const products = propsProducts || contextProducts || [];
+  const { products: contextProducts, categories } = useBazar();
+  const allProducts = propsProducts || contextProducts || [];
+
+  // Filter only items with available quantity and visible in catalog
+  const availableProducts = useMemo(() => {
+    return allProducts.filter((p) => p.quantity > 0 && p.showInCatalog !== false);
+  }, [allProducts]);
+
+  // Selected products state
+  const [selectedIds, setSelectedIds] = useState<string[]>(() => {
+    if (initialSelectedProductIds && initialSelectedProductIds.length > 0) {
+      return initialSelectedProductIds;
+    }
+    return availableProducts.map((p) => p.id);
+  });
+
+  // Filter inside modal
+  const [modalCategoryFilter, setModalCategoryFilter] = useState<string>('Todas');
+  const [modalSubcategoryFilter, setModalSubcategoryFilter] = useState<string>('Todas');
+
   const [copied, setCopied] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [isGeneratingJPG, setIsGeneratingJPG] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0 });
 
+  // Update selectedIds if initialSelectedProductIds changes or modal reopens
+  React.useEffect(() => {
+    if (initialSelectedProductIds && initialSelectedProductIds.length > 0) {
+      setSelectedIds(initialSelectedProductIds);
+    } else {
+      setSelectedIds(availableProducts.map((p) => p.id));
+    }
+  }, [initialSelectedProductIds, isOpen, availableProducts]);
+
   if (!isOpen) return null;
 
-  const availableProducts = products.filter(p => p.quantity > 0 && p.showInCatalog !== false);
-  const productsWithImages = availableProducts.filter(p => !!p.imageUrl);
+  // Selected products array
+  const selectedProducts = availableProducts.filter((p) => selectedIds.includes(p.id));
+  const productsWithImages = selectedProducts.filter((p) => !!p.imageUrl);
 
-  const catalogText = generateFullCatalogExportText(availableProducts);
-  const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(catalogText)}`;
+  // Available subcategories for current modal filter
+  const currentCategoryObj = categories.find((c) => c.name === modalCategoryFilter);
+  const availableSubcategoriesInModal = currentCategoryObj?.subcategories || [];
 
-  // Convert image URL/base64 to File object safely without crashing on fetch errors
+  // Filtered products shown in selection list
+  const visibleProductsInList = availableProducts.filter((p) => {
+    if (modalCategoryFilter !== 'Todas' && p.category !== modalCategoryFilter) return false;
+    if (modalSubcategoryFilter !== 'Todas' && p.subcategory !== modalSubcategoryFilter) return false;
+    return true;
+  });
+
+  const catalogText = generateFullCatalogExportText(selectedProducts);
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === availableProducts.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(availableProducts.map((p) => p.id));
+    }
+  };
+
+  const toggleSelectVisible = () => {
+    const visibleIds = visibleProductsInList.map((p) => p.id);
+    const allVisibleSelected = visibleIds.every((id) => selectedIds.includes(id));
+
+    if (allVisibleSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
+    }
+  };
+
+  const toggleProductSelection = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  // Convert image URL/base64 to File object safely
   const urlToFile = async (url: string, filename: string): Promise<File | null> => {
     if (!url) return null;
     try {
@@ -72,7 +142,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
         }
       }
 
-      // Fallback: convert via Canvas
+      // Fallback via Canvas
       return await new Promise<File | null>((resolve) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -106,19 +176,16 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
     }
   };
 
-  // Open WhatsApp or WhatsApp Business link safely
+  // Open WhatsApp
   const handleOpenWhatsApp = (appType: 'standard' | 'business') => {
     const encodedText = encodeURIComponent(catalogText);
     
     if (appType === 'business') {
-      // Attempt opening WhatsApp Business deep link scheme first
       const waBusinessUri = `whatsapp-business://send?text=${encodedText}`;
       const fallbackUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
-      
       const start = Date.now();
       try {
         window.location.href = waBusinessUri;
-        // Fallback to web link if protocol isn't handled by system
         setTimeout(() => {
           if (Date.now() - start < 1200) {
             window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
@@ -128,92 +195,98 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
         window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
       }
     } else {
-      // Standard WhatsApp
       const standardUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
       window.open(standardUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
-  // 1. Share native all photos + text via Web Share API
+  // Share native all photos + text via Web Share API
   const handleShareAll = async () => {
     setIsSharing(true);
     try {
-      if (navigator.share && productsWithImages.length > 0) {
-        const filePromises = productsWithImages.map((p, idx) => {
-          const cleanName = p.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-          return urlToFile(p.imageUrl!, `bazar-${idx + 1}-${cleanName}.jpg`);
-        });
+      const filesToShare: File[] = [];
 
-        const files = (await Promise.all(filePromises)).filter((f): f is File => f !== null);
-
-        if (files.length > 0 && navigator.canShare && navigator.canShare({ files })) {
-          await navigator.share({
-            title: 'Catálogo Completo — Rx do Bazar de Sucesso',
-            text: catalogText,
-            files: files,
-          });
-          setIsSharing(false);
-          return;
+      for (let i = 0; i < productsWithImages.length; i++) {
+        const prod = productsWithImages[i];
+        if (prod.imageUrl) {
+          const safeName = prod.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+          const file = await urlToFile(prod.imageUrl, `${i + 1}_${safeName}.jpg`);
+          if (file) {
+            filesToShare.push(file);
+          }
         }
       }
 
-      // Fallback: Open WhatsApp with full text
-      window.open(waLink, '_blank', 'noopener,noreferrer');
+      if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
+        await navigator.share({
+          title: 'Catálogo de Produtos — Rx do Bazar de Sucesso',
+          text: catalogText,
+          files: filesToShare,
+        });
+      } else if (navigator.share) {
+        await navigator.share({
+          title: 'Catálogo de Produtos — Rx do Bazar de Sucesso',
+          text: catalogText,
+        });
+      } else {
+        handleOpenWhatsApp('standard');
+      }
     } catch (err) {
-      console.log('Compartilhamento cancelado ou não suportado:', err);
-      window.open(waLink, '_blank', 'noopener,noreferrer');
+      if ((err as Error).name !== 'AbortError') {
+        console.error('Erro ao compartilhar:', err);
+        handleOpenWhatsApp('standard');
+      }
     } finally {
       setIsSharing(false);
     }
   };
 
-  // 2. Download all images in sequence
-  const handleDownloadAllImages = async () => {
-    if (productsWithImages.length === 0) return;
+  // Download all individual photos
+  const handleDownloadAllPhotos = async () => {
     setIsDownloading(true);
     setDownloadProgress({ current: 0, total: productsWithImages.length });
 
-    for (let i = 0; i < productsWithImages.length; i++) {
-      const p = productsWithImages[i];
-      setDownloadProgress({ current: i + 1, total: productsWithImages.length });
+    try {
+      for (let i = 0; i < productsWithImages.length; i++) {
+        const prod = productsWithImages[i];
+        if (prod.imageUrl) {
+          setDownloadProgress({ current: i + 1, total: productsWithImages.length });
 
-      try {
-        const cleanName = p.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-        const fileName = `bazar-${i + 1}-${cleanName}.jpg`;
+          const safeName = prod.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+          const link = document.createElement('a');
+          link.href = prod.imageUrl;
+          link.download = `bazar_${i + 1}_${safeName}.jpg`;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
 
-        const link = document.createElement('a');
-        link.href = p.imageUrl!;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        // Small delay to prevent browser download throttling
-        await new Promise(r => setTimeout(r, 400));
-      } catch (err) {
-        console.error('Erro ao baixar imagem:', err);
+          await new Promise((r) => setTimeout(r, 400));
+        }
       }
+    } catch (err) {
+      console.error('Erro ao baixar fotos:', err);
+    } finally {
+      setIsDownloading(false);
     }
-
-    setIsDownloading(false);
   };
 
-  // 3. Copy catalog text
+  // Copy catalog text
   const handleCopyCatalogText = () => {
     navigator.clipboard.writeText(catalogText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // 4. Generate Single Poster Image / JPG Collage of the Full Catalog
+  // Generate Single Poster Image / Clean Light JPG Collage of Selected Products
   const handleGenerateCatalogJPG = async () => {
-    const items = availableProducts;
+    const items = selectedProducts;
     if (items.length === 0) return;
     setIsGeneratingJPG(true);
 
     try {
-      const cardWidth = 360;
-      const cardHeight = 440;
+      const cardWidth = 380;
+      const cardHeight = 460;
       const cols = items.length === 1 ? 1 : items.length <= 4 ? 2 : 3;
       const rows = Math.ceil(items.length / cols);
 
@@ -228,26 +301,26 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Dark slate background
-      ctx.fillStyle = '#0f172a';
+      // Clean Light background
+      ctx.fillStyle = '#f8fafc';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Header Banner
+      // Header Banner - Rose Gradient
       const grad = ctx.createLinearGradient(0, 0, canvas.width, headerHeight);
-      grad.addColorStop(0, '#e11d48'); // rose-600
-      grad.addColorStop(1, '#be123c'); // rose-700
+      grad.addColorStop(0, '#e11d48');
+      grad.addColorStop(1, '#be123c');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, headerHeight);
 
       // Header Text
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 32px system-ui, sans-serif';
+      ctx.font = 'bold 30px system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText('🛍️ RX DO BAZAR DE SUCESSO — CATÁLOGO', canvas.width / 2, 60);
 
-      ctx.font = '16px system-ui, sans-serif';
+      ctx.font = '15px system-ui, sans-serif';
       ctx.fillStyle = '#ffe4e6';
-      ctx.fillText(`Peças exclusivas disponíveis para entrega imediata | Total: ${items.length} itens`, canvas.width / 2, 100);
+      ctx.fillText(`Peças selecionadas disponíveis para entrega imediata | Total: ${items.length} itens`, canvas.width / 2, 100);
 
       const loadImage = (url: string): Promise<HTMLImageElement | null> => {
         return new Promise((resolve) => {
@@ -268,18 +341,18 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
         const x = padding + col * (cardWidth + 24);
         const y = headerHeight + padding + row * (cardHeight + 24);
 
-        // Card background
-        ctx.fillStyle = '#1e293b';
+        // Card background (Clean Light White)
+        ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.roundRect(x, y, cardWidth, cardHeight, 20);
         ctx.fill();
 
-        ctx.strokeStyle = '#334155';
+        ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
         // Product Image
-        const imgHeight = 250;
+        const imgHeight = 255;
         let imgLoaded = false;
         if (prod.imageUrl) {
           const img = await loadImage(prod.imageUrl);
@@ -295,7 +368,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
         }
 
         if (!imgLoaded) {
-          ctx.fillStyle = '#334155';
+          ctx.fillStyle = '#f1f5f9';
           ctx.beginPath();
           ctx.roundRect(x + 12, y + 12, cardWidth - 24, imgHeight, 14);
           ctx.fill();
@@ -305,384 +378,411 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
           ctx.fillText('Sem Imagem Cadastrada', x + cardWidth / 2, y + 12 + imgHeight / 2);
         }
 
-        // Category Tag Badge (Top Left of Image)
-        const catText = (prod.category || 'Bazar').toUpperCase();
+        // Category Tag Badge
+        const catLabel = prod.subcategory ? `${prod.category} • ${prod.subcategory}` : (prod.category || 'Bazar');
         ctx.font = 'bold 10px system-ui, sans-serif';
-        const catWidth = ctx.measureText(catText).width + 20;
+        const catWidth = ctx.measureText(catLabel.toUpperCase()).width + 18;
 
         ctx.fillStyle = '#e11d48';
         ctx.beginPath();
-        ctx.roundRect(x + 24, y + 24, catWidth, 24, 12);
+        ctx.roundRect(x + 20, y + 20, Math.min(cardWidth - 130, catWidth), 24, 12);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.fillText(catText, x + 24 + catWidth / 2, y + 40);
+        ctx.textAlign = 'left';
+        ctx.fillText(catLabel.toUpperCase(), x + 28, y + 36);
 
-        // Calculate price breakdown details
+        // Calculate price details
         const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(prod);
 
-        // Price & Discount Overlay Badges (Top Right of Image)
+        // Price & Discount Overlay Badges
         if (hasDiscount) {
-          // OFF Pill
           const offText = `🔥 ${discountPercent}% OFF`;
           ctx.font = 'bold 11px system-ui, sans-serif';
           const offWidth = ctx.measureText(offText).width + 16;
-          const offX = x + cardWidth - 24 - offWidth;
+          const offX = x + cardWidth - 20 - offWidth;
 
           ctx.fillStyle = '#be123c';
           ctx.beginPath();
-          ctx.roundRect(offX, y + 24, offWidth, 22, 10);
+          ctx.roundRect(offX, y + 20, offWidth, 22, 10);
           ctx.fill();
           ctx.fillStyle = '#ffffff';
           ctx.textAlign = 'center';
-          ctx.fillText(offText, offX + offWidth / 2, y + 39);
-
-          // De X por Y Pill
-          const dePorText = `De ${formatCurrency(fullPrice)} por ${formatCurrency(bazarPrice)}`;
-          ctx.font = 'bold 10px system-ui, sans-serif';
-          const dePorWidth = ctx.measureText(dePorText).width + 16;
-          const dePorX = x + cardWidth - 24 - dePorWidth;
-
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-          ctx.beginPath();
-          ctx.roundRect(dePorX, y + 52, dePorWidth, 22, 10);
-          ctx.fill();
-          ctx.fillStyle = '#34d399';
-          ctx.textAlign = 'center';
-          ctx.fillText(dePorText, dePorX + dePorWidth / 2, y + 67);
-        } else {
-          const priceText = formatCurrency(bazarPrice);
-          ctx.font = 'bold 11px system-ui, sans-serif';
-          const priceWidth = ctx.measureText(priceText).width + 18;
-          const priceX = x + cardWidth - 24 - priceWidth;
-
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-          ctx.beginPath();
-          ctx.roundRect(priceX, y + 24, priceWidth, 24, 12);
-          ctx.fill();
-          ctx.fillStyle = '#34d399';
-          ctx.textAlign = 'center';
-          ctx.fillText(priceText, priceX + priceWidth / 2, y + 40);
+          ctx.fillText(offText, offX + offWidth / 2, y + 35);
         }
 
         // Product Name
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 17px system-ui, sans-serif';
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 16px system-ui, sans-serif';
         ctx.textAlign = 'left';
-        const truncatedName = prod.name.length > 27 ? prod.name.substring(0, 26) + '...' : prod.name;
-        ctx.fillText(`${i + 1}. ${truncatedName}`, x + 18, y + imgHeight + 42);
+        const truncatedName = prod.name.length > 28 ? prod.name.substring(0, 27) + '...' : prod.name;
+        ctx.fillText(`${i + 1}. ${truncatedName}`, x + 16, y + imgHeight + 40);
 
         // Size / Color
         if (prod.sizeColor) {
-          ctx.fillStyle = '#cbd5e1';
-          ctx.font = '13px system-ui, sans-serif';
-          const truncatedDetails = prod.sizeColor.length > 32 ? prod.sizeColor.substring(0, 31) + '...' : prod.sizeColor;
-          ctx.fillText(`📏 ${truncatedDetails}`, x + 18, y + imgHeight + 68);
-        }
-
-        // Description snippet
-        if (prod.description) {
-          ctx.fillStyle = '#94a3b8';
+          ctx.fillStyle = '#64748b';
           ctx.font = '12px system-ui, sans-serif';
-          const truncatedDesc = prod.description.length > 38 ? prod.description.substring(0, 37) + '...' : prod.description;
-          ctx.fillText(`📝 ${truncatedDesc}`, x + 18, y + imgHeight + 92);
+          const truncatedDetails = prod.sizeColor.length > 34 ? prod.sizeColor.substring(0, 33) + '...' : prod.sizeColor;
+          ctx.fillText(`📏 ${truncatedDetails}`, x + 16, y + imgHeight + 64);
         }
 
-        // Bottom Price Breakdown
-        ctx.fillStyle = '#10b981';
-        ctx.font = 'bold 20px system-ui, sans-serif';
-        ctx.fillText(`Por ${formatCurrency(bazarPrice)}`, x + 18, y + cardHeight - 18);
+        // Price Breakdown
+        ctx.fillStyle = '#e11d48';
+        ctx.font = 'bold 18px system-ui, sans-serif';
+        ctx.fillText(`Por ${formatCurrency(bazarPrice)}`, x + 16, y + cardHeight - 18);
 
         if (hasDiscount) {
           ctx.fillStyle = '#94a3b8';
           ctx.font = '12px system-ui, sans-serif';
-          ctx.fillText(`De ${formatCurrency(fullPrice)} (Econ. ${formatCurrency(discountAmount)})`, x + 165, y + cardHeight - 18);
+          ctx.fillText(`De ${formatCurrency(fullPrice)} (Econ. ${formatCurrency(discountAmount)})`, x + 155, y + cardHeight - 18);
         }
       }
 
       // Footer
-      const footerY = canvas.height - footerHeight + 25;
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 18px system-ui, sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.font = 'bold 14px system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('💬 Para comprar ou tirar dúvidas, envie uma mensagem no WhatsApp!', canvas.width / 2, footerY + 20);
+      ctx.fillText('Garanta já a sua peça favorita! Estoque limitado.', canvas.width / 2, canvas.height - 40);
 
-      // Trigger Download as JPG
+      // Download collage
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `bazar-catalogo-foto-geral.jpg`;
+      link.download = `catalogo_bazar_${Date.now()}.jpg`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
     } catch (err) {
-      console.error('Erro ao gerar foto do catálogo:', err);
-      alert('Ocorreu um erro ao gerar a foto geral do catálogo.');
+      console.error('Erro ao gerar JPG do catálogo:', err);
     } finally {
       setIsGeneratingJPG(false);
     }
   };
 
-  // 5. Open Printable / PDF Catalog Window
-  const handlePrintCatalog = () => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    const itemsHtml = availableProducts
-      .map(
-        (p, idx) => `
-        <div style="break-inside: avoid; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; gap: 16px; align-items: center; margin-bottom: 16px; background: #ffffff;">
-          <div style="width: 110px; height: 110px; flex-shrink: 0; background: #f1f5f9; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-center: center;">
-            ${
-              p.imageUrl
-                ? `<img src="${p.imageUrl}" style="width: 100%; height: 100%; object-fit: cover;" />`
-                : `<div style="color: #94a3b8; font-size: 11px; text-align: center;">Sem Foto</div>`
-            }
-          </div>
-          <div style="flex: 1;">
-            <div style="font-size: 11px; font-weight: bold; color: #e11d48; text-transform: uppercase;">${p.category || 'Bazar'}</div>
-            <div style="font-size: 16px; font-weight: bold; color: #0f172a; margin: 2px 0;">${idx + 1}. ${p.name}</div>
-            ${p.sizeColor ? `<div style="font-size: 12px; font-weight: 600; color: #475569;">📏 Detalhes/Tamanho: ${p.sizeColor}</div>` : ''}
-            ${p.description ? `<div style="font-size: 12px; color: #334155; margin-top: 4px;">📝 ${p.description}</div>` : ''}
-            <div style="font-size: 15px; font-weight: bold; color: #059669; margin-top: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span>Por ${formatCurrency(p.bazarPrice)}</span>
-              ${
-                p.fullPrice && p.fullPrice > p.bazarPrice
-                  ? `<span style="font-size: 12px; color: #94a3b8; text-decoration: line-through;">De ${formatCurrency(p.fullPrice)}</span>
-                     <span style="font-size: 11px; background: #ffe4e6; color: #be123c; padding: 2px 8px; border-radius: 6px; font-weight: bold;">🔥 ${Math.round(((p.fullPrice - p.bazarPrice) / p.fullPrice) * 100)}% OFF (Economia: ${formatCurrency(p.fullPrice - p.bazarPrice)})</span>`
-                  : ''
-              }
-            </div>
-          </div>
-        </div>
-      `
-      )
-      .join('');
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Catálogo Completo - Rx do Bazar de Sucesso</title>
-          <style>
-            body { font-family: system-ui, -apple-system, sans-serif; padding: 24px; color: #0f172a; background: #f8fafc; }
-            h1 { text-align: center; font-size: 24px; margin-bottom: 4px; color: #0f172a; }
-            p.sub { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 24px; }
-            .grid { max-width: 800px; margin: 0 auto; }
-            @media print {
-              body { background: white; padding: 0; }
-              .grid { max-width: 100%; }
-            }
-          </style>
-        </head>
-        <body>
-          <h1>🛍️ Catálogo Completo — Rx do Bazar de Sucesso</h1>
-          <p class="sub">Total de ${availableProducts.length} peças disponíveis em estoque para entrega imediata</p>
-          <div class="grid">
-            ${itemsHtml}
-          </div>
-          <script>
-            window.onload = function() {
-              setTimeout(function() { window.print(); }, 500);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl relative my-auto max-h-[92vh] flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden my-4 flex flex-col max-h-[92vh]">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 sm:p-2.5 bg-emerald-100 dark:bg-emerald-950/50 rounded-2xl text-emerald-600 dark:text-emerald-400 shrink-0">
-              <Share2 className="h-5 w-5" />
+        <div className="bg-gradient-to-r from-rose-50 via-pink-50 to-purple-50 dark:from-slate-800/80 dark:to-slate-800/40 p-5 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-3 rounded-2xl bg-rose-500 text-white shadow-md shadow-rose-500/20">
+              <MessageSquare className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg">
-                Exportar Catálogo Completo
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                Exportar Catálogo para WhatsApp
               </h3>
-              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
-                Divulgue todas as {availableProducts.length} peças com fotos e detalhes
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Selecione os produtos desejados, ordene e envie com fotos, valores cheios e descontos organizados
               </p>
             </div>
           </div>
-
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0"
+            className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl hover:bg-slate-200/60 dark:hover:bg-slate-800 transition"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="overflow-y-auto pr-1 flex-1 space-y-4 mt-3">
+        {/* Modal Body */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1">
 
-        {/* Catalog Summary Stats Card */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-center">
-            <div className="text-[10px] uppercase font-bold text-slate-400">Produtos no Catálogo</div>
-            <div className="text-xl font-black text-slate-900 dark:text-white mt-0.5">
-              {availableProducts.length}
+          {/* Selection & Category Filtering Header */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-3">
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-700">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  Produtos Selecionados para Envio:
+                </span>
+                <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/60">
+                  {selectedIds.length} de {availableProducts.length} itens
+                </span>
+              </div>
+
+              {/* Selection Quick Buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/60 px-3 py-1.5 rounded-xl shadow-xs transition active:scale-95 flex items-center gap-1.5"
+                >
+                  {selectedIds.length === availableProducts.length ? (
+                    <>
+                      <Square className="h-3.5 w-3.5" />
+                      <span>Desmarcar Todos</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckSquare className="h-3.5 w-3.5" />
+                      <span>Selecionar Todos ({availableProducts.length})</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Category & Subcategory Filter Selectors */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1 flex items-center gap-1">
+                  <Tag className="h-3 w-3 text-rose-500" />
+                  Filtrar Lista por Categoria
+                </label>
+                <select
+                  value={modalCategoryFilter}
+                  onChange={(e) => {
+                    setModalCategoryFilter(e.target.value);
+                    setModalSubcategoryFilter('Todas');
+                  }}
+                  className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
+                >
+                  <option value="Todas">Todas as Categorias ({availableProducts.length})</option>
+                  {categories.map((cat) => {
+                    const count = availableProducts.filter((p) => p.category === cat.name).length;
+                    return (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name} ({count})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1 flex items-center gap-1">
+                  <Layers className="h-3 w-3 text-rose-500" />
+                  Filtrar por Subcategoria
+                </label>
+                <select
+                  value={modalSubcategoryFilter}
+                  disabled={modalCategoryFilter === 'Todas' || availableSubcategoriesInModal.length === 0}
+                  onChange={(e) => setModalSubcategoryFilter(e.target.value)}
+                  className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 disabled:opacity-50"
+                >
+                  <option value="Todas">Todas as Subcategorias</option>
+                  {availableSubcategoriesInModal.map((sub) => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="bg-emerald-50 dark:bg-emerald-950/40 p-3.5 rounded-2xl border border-emerald-200/80 dark:border-emerald-900/50 text-center">
-            <div className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400">Com Fotos Cadastradas</div>
-            <div className="text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
-              {productsWithImages.length}
-            </div>
-          </div>
-
-          <div className="col-span-2 sm:col-span-1 bg-amber-50 dark:bg-amber-950/40 p-3.5 rounded-2xl border border-amber-200/80 dark:border-amber-900/50 text-center">
-            <div className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-300">Formato Pronto</div>
-            <div className="text-xs font-black text-amber-900 dark:text-amber-200 mt-1 flex items-center justify-center gap-1">
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-              <span>Fotos + Detalhes</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Formatted Text Box Preview */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">
-              Prévia do Texto Completo para WhatsApp:
-            </label>
-            <span className="text-[11px] text-slate-400">
-              Inclui preço, tamanho, descrição e links das fotos
-            </span>
-          </div>
-
-          <div className="bg-slate-900 text-emerald-300 p-4 rounded-2xl text-xs font-mono whitespace-pre-wrap max-h-52 overflow-y-auto border border-slate-800 shadow-inner">
-            {catalogText}
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="space-y-3.5 pt-1">
-
-          {/* Main Requested Export Options */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* 1. Print / Export PDF */}
-            <button
-              onClick={handlePrintCatalog}
-              className="w-full bg-purple-600 hover:bg-purple-500 text-white font-black text-xs sm:text-sm py-3.5 px-4 rounded-2xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2.5 transition active:scale-98"
-            >
-              <Printer className="h-5 w-5 shrink-0" />
-              <span>Gerar PDF / Imprimir Catálogo Completo</span>
-            </button>
-
-            {/* 2. Export JPG Poster Image */}
-            <button
-              onClick={handleGenerateCatalogJPG}
-              disabled={isGeneratingJPG || availableProducts.length === 0}
-              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs sm:text-sm py-3.5 px-4 rounded-2xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2.5 transition active:scale-98 disabled:opacity-50"
-            >
-              <FileText className="h-5 w-5 shrink-0" />
-              <span>{isGeneratingJPG ? 'Criando Foto Geral...' : 'Exportar Foto Geral (JPG)'}</span>
-              <Download className="h-4 w-4 opacity-80 shrink-0" />
-            </button>
-          </div>
-
-          {/* Dedicated WhatsApp Options Card */}
-          <div className="bg-emerald-50/70 dark:bg-emerald-950/30 p-3.5 rounded-2xl border border-emerald-200/80 dark:border-emerald-900/60 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-emerald-900 dark:text-emerald-300 uppercase flex items-center gap-1.5">
-                <MessageSquare className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                Opções de Envio via WhatsApp
+          {/* Interactive Products Checklist */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                Marque ou desmarque os itens que farão parte do catálogo:
               </span>
-              <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">
-                Selecione seu aplicativo
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {/* WhatsApp Business Option */}
               <button
-                onClick={() => handleOpenWhatsApp('business')}
-                className="w-full bg-emerald-800 hover:bg-emerald-700 text-white font-bold text-xs py-3 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-emerald-900/20 active:scale-98"
+                type="button"
+                onClick={toggleSelectVisible}
+                className="text-[11px] font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
               >
-                <Briefcase className="h-4 w-4 text-emerald-200 shrink-0" />
-                <span>Enviar no WhatsApp Business</span>
+                Inverter Visíveis ({visibleProductsInList.length})
               </button>
+            </div>
 
-              {/* WhatsApp Standard Option */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto p-1 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900">
+              {visibleProductsInList.length === 0 ? (
+                <div className="col-span-full py-8 text-center text-slate-400 text-xs font-medium">
+                  Nenhum produto disponível nesta categoria/subcategoria.
+                </div>
+              ) : (
+                visibleProductsInList.map((prod) => {
+                  const isSelected = selectedIds.includes(prod.id);
+                  const { bazarPrice, fullPrice, discountPercent, hasDiscount } = getProductPriceDetails(prod);
+
+                  return (
+                    <div
+                      key={prod.id}
+                      onClick={() => toggleProductSelection(prod.id)}
+                      className={`p-2.5 rounded-xl border flex items-center gap-2.5 cursor-pointer transition select-none ${
+                        isSelected
+                          ? 'bg-white dark:bg-slate-800 border-rose-400 dark:border-rose-500 shadow-xs'
+                          : 'bg-white/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300 pointer-events-none"
+                      />
+
+                      {prod.imageUrl ? (
+                        <img
+                          src={prod.imageUrl}
+                          alt={prod.name}
+                          className="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-400 shrink-0">
+                          <Package className="h-4 w-4" />
+                        </div>
+                      )}
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          {prod.name}
+                        </p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="text-[11px] font-extrabold text-rose-600 dark:text-rose-400">
+                            {formatCurrency(bazarPrice)}
+                          </span>
+                          {hasDiscount && (
+                            <span className="text-[10px] font-bold text-rose-700 bg-rose-100 dark:bg-rose-950/60 px-1 py-0.2 rounded">
+                              {discountPercent}% OFF
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Action Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            
+            {/* WhatsApp Standard Action */}
+            <div className="bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl p-4 flex flex-col justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-extrabold text-sm">
+                  <MessageSquare className="h-4 w-4 text-emerald-600" />
+                  <span>WhatsApp Pessoal</span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                  Abre o WhatsApp com o texto organizado por Categoria e Subcategoria.
+                </p>
+              </div>
               <button
+                type="button"
+                disabled={selectedProducts.length === 0}
                 onClick={() => handleOpenWhatsApp('standard')}
-                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-3 px-3 rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-98"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-md shadow-emerald-600/20 transition active:scale-95 disabled:opacity-50"
               >
-                <MessageSquare className="h-4 w-4 shrink-0" />
-                <span>Enviar no WhatsApp Padrão</span>
+                Enviar no WhatsApp ({selectedProducts.length} itens)
               </button>
             </div>
 
-            {/* Native Share with Images */}
-            <button
-              onClick={handleShareAll}
-              disabled={isSharing}
-              className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition flex items-center justify-center gap-2 border border-slate-700 disabled:opacity-50 active:scale-98"
-            >
-              <Smartphone className="h-4 w-4 text-amber-400 shrink-0" />
-              <span>
-                {isSharing
-                  ? 'Enviando com Fotos...'
-                  : 'Compartilhar Fotos + Texto (Menu Nativo do Celular)'}
-              </span>
-            </button>
+            {/* WhatsApp Business Action */}
+            <div className="bg-teal-50/80 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/50 rounded-2xl p-4 flex flex-col justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-teal-800 dark:text-teal-300 font-extrabold text-sm">
+                  <Briefcase className="h-4 w-4 text-teal-600" />
+                  <span>WhatsApp Business</span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                  Envia diretamente pelo aplicativo WhatsApp Business.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={selectedProducts.length === 0}
+                onClick={() => handleOpenWhatsApp('business')}
+                className="w-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-md shadow-teal-600/20 transition active:scale-95 disabled:opacity-50"
+              >
+                Abrir no WhatsApp Business
+              </button>
+            </div>
+
+            {/* Generate Full JPG Collage */}
+            <div className="bg-purple-50/80 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 rounded-2xl p-4 flex flex-col justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-purple-800 dark:text-purple-300 font-extrabold text-sm">
+                  <Images className="h-4 w-4 text-purple-600" />
+                  <span>Banner Geral em JPG</span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                  Gera uma imagem única de alta resolução estilo vitrine com todos os itens selecionados.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={isGeneratingJPG || selectedProducts.length === 0}
+                onClick={handleGenerateCatalogJPG}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-md shadow-purple-600/20 transition active:scale-95 disabled:opacity-50"
+              >
+                {isGeneratingJPG ? 'Gerando Imagem...' : `Baixar Foto Geral (${selectedProducts.length} itens)`}
+              </button>
+            </div>
+
+            {/* Share or Download Photos */}
+            <div className="bg-rose-50/80 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-4 flex flex-col justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-rose-800 dark:text-rose-300 font-extrabold text-sm">
+                  <Smartphone className="h-4 w-4 text-rose-600" />
+                  <span>Compartilhar / Baixar Fotos</span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
+                  {productsWithImages.length} fotos disponíveis entre os produtos selecionados.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  disabled={isSharing || selectedProducts.length === 0}
+                  onClick={handleShareAll}
+                  className="bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold py-2.5 rounded-xl transition active:scale-95 disabled:opacity-50"
+                >
+                  {isSharing ? 'Preparando...' : 'Compartilhar'}
+                </button>
+                <button
+                  type="button"
+                  disabled={isDownloading || productsWithImages.length === 0}
+                  onClick={handleDownloadAllPhotos}
+                  className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2.5 rounded-xl transition active:scale-95 disabled:opacity-50"
+                >
+                  {isDownloading ? `${downloadProgress.current}/${downloadProgress.total}` : 'Baixar Fotos'}
+                </button>
+              </div>
+            </div>
+
           </div>
 
-          {/* Download Images & Copy Text */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-0.5">
-            {/* Download All Individual Photos */}
+          {/* Copy Catalog Text Bar */}
+          <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs text-slate-600 dark:text-slate-300">
+              Copie o texto completo pré-formatado para colar em grupos ou listas de transmissão.
+            </div>
             <button
-              onClick={handleDownloadAllImages}
-              disabled={isDownloading || productsWithImages.length === 0}
-              className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs py-3 px-3 rounded-2xl transition flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 disabled:opacity-50"
-            >
-              <Images className="h-4 w-4 text-emerald-500 shrink-0" />
-              <span>
-                {isDownloading
-                  ? `Baixando (${downloadProgress.current}/${downloadProgress.total})...`
-                  : `Baixar ${productsWithImages.length} Fotos Separadas`}
-              </span>
-            </button>
-
-            {/* Copy Full Text */}
-            <button
+              type="button"
               onClick={handleCopyCatalogText}
-              className={`font-bold text-xs py-3 px-3 rounded-2xl transition flex items-center justify-center gap-2 border ${
-                copied
-                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border-emerald-300'
-                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700'
-              }`}
+              className="w-full sm:w-auto bg-white dark:bg-slate-900 hover:bg-slate-50 text-slate-900 dark:text-white border border-slate-300 dark:border-slate-600 text-xs font-bold px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5"
             >
               {copied ? (
                 <>
-                  <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                  <span>Texto do Catálogo Copiado!</span>
+                  <Check className="h-4 w-4 text-emerald-500" />
+                  <span className="text-emerald-600 font-bold">Copiado com Sucesso!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="h-4 w-4 text-sky-500 shrink-0" />
-                  <span>Copiar Apenas o Texto</span>
+                  <Copy className="h-4 w-4 text-slate-500" />
+                  <span>Copiar Texto Completo</span>
                 </>
               )}
             </button>
           </div>
 
-          <p className="text-[11px] text-slate-400 text-center italic pt-1">
-            💡 Dica: Você pode enviar diretamente para o WhatsApp Business, gerar um PDF do catálogo ou exportar a Foto Geral em JPG!
-          </p>
-
         </div>
 
+        {/* Modal Footer */}
+        <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs sm:text-sm font-extrabold px-6 py-2.5 rounded-xl transition"
+          >
+            Fechar
+          </button>
         </div>
+
       </div>
     </div>
   );

@@ -4,6 +4,12 @@ export type PaymentMethod = 'pix' | 'cartao_credito' | 'cartao_debito' | 'dinhei
 
 export type ProductCategory = string;
 
+export interface CategoryStructure {
+  id: string;
+  name: string;
+  subcategories: string[];
+}
+
 export interface StoreInfo {
   name: string;
   address: string;
@@ -20,6 +26,7 @@ export interface Product {
   sku?: string;
   expirationDate?: string; // Validade do produto (ex: "2026-12-31" ou "12/2026")
   category: ProductCategory;
+  subcategory?: string; // Subcategoria (ex: "Vestidos", "Perfumes & Fragrâncias", "Conjuntos", etc.)
   fullPrice?: number; // Preço Cheio de Tabela / Loja (R$)
   bazarDiscountValue?: number; // Desconto dado no Bazar (R$)
   bazarDiscountPercent?: number; // Desconto dado no Bazar (%)
