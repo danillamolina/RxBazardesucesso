@@ -268,15 +268,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <p className="text-sm font-medium">Estoque saudável! Todos os produtos estão com boas quantidades.</p>
               </div>
             ) : (
-              <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1 notranslate" translate="no">
                 {outOfStockProducts.map((prod) => (
                   <div 
                     key={prod.id} 
-                    className="flex items-center justify-between p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs"
+                    translate="no"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 text-xs notranslate"
                   >
-                    <div className="truncate pr-2">
-                      <p className="font-bold text-rose-900 dark:text-rose-200 truncate">{prod.name}</p>
-                      <p className="text-rose-700 dark:text-rose-400 mt-0.5">Esgotado (0 un) • {formatCurrency(prod.bazarPrice)}</p>
+                    <div className="truncate pr-2 notranslate" translate="no">
+                      <p className="font-bold text-rose-900 dark:text-rose-200 truncate notranslate" translate="no">{prod.name}</p>
+                      <p className="text-rose-700 dark:text-rose-400 mt-0.5 notranslate" translate="no">Esgotado (0 un) • {formatCurrency(prod.bazarPrice)}</p>
                     </div>
                     <button
                       onClick={() => adjustStock(prod.id, 1)}
@@ -292,11 +293,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {lowStockProducts.map((prod) => (
                   <div 
                     key={prod.id} 
-                    className="flex items-center justify-between p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-xs"
+                    translate="no"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/40 text-xs notranslate"
                   >
-                    <div className="truncate pr-2">
-                      <p className="font-bold text-amber-900 dark:text-amber-200 truncate">{prod.name}</p>
-                      <p className="text-amber-700 dark:text-amber-400 mt-0.5">Restam apenas {prod.quantity} un. • {formatCurrency(prod.bazarPrice)}</p>
+                    <div className="truncate pr-2 notranslate" translate="no">
+                      <p className="font-bold text-amber-900 dark:text-amber-200 truncate notranslate" translate="no">{prod.name}</p>
+                      <p className="text-amber-700 dark:text-amber-400 mt-0.5 notranslate" translate="no">Restam apenas {prod.quantity} un. • {formatCurrency(prod.bazarPrice)}</p>
                     </div>
                     <button
                       onClick={() => adjustStock(prod.id, 1)}
@@ -369,8 +371,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-600 dark:text-slate-300">
-                        {sale.quantitySold}x <span className="font-medium text-slate-900 dark:text-slate-100">{sale.productName}</span>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 notranslate" translate="no">
+                        {sale.quantitySold}x <span className="font-medium text-slate-900 dark:text-slate-100 notranslate" translate="no">{sale.productName}</span>
                       </p>
                       <div className="text-[11px] text-slate-400 flex items-center gap-2">
                         <span>{formatDateShort(sale.saleDate)}</span>

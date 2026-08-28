@@ -283,19 +283,19 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
                         </div>
 
                         {sale.items && sale.items.length > 0 ? (
-                          <div className="space-y-1 my-1">
+                          <div className="space-y-1 my-1 notranslate" translate="no">
                             <span className="text-xs text-slate-500 font-semibold block">Produtos no Pedido ({sale.items.length}):</span>
-                            <ul className="text-xs space-y-0.5 pl-2 border-l-2 border-emerald-500/40">
+                            <ul className="text-xs space-y-0.5 pl-2 border-l-2 border-emerald-500/40 notranslate" translate="no">
                               {sale.items.map((item, idx) => (
-                                <li key={idx} className="text-slate-800 dark:text-slate-200">
+                                <li key={idx} className="text-slate-800 dark:text-slate-200 notranslate" translate="no">
                                   <strong className="font-bold">{item.quantitySold}x</strong> {item.productName} ({formatCurrency(item.unitBazarPrice)} un.) = <span className="font-bold">{formatCurrency(item.quantitySold * item.unitBazarPrice)}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         ) : (
-                          <div className="text-sm text-slate-700 dark:text-slate-300 font-medium">
-                            Item: <strong className="text-slate-900 dark:text-white">{sale.quantitySold}x {sale.productName}</strong>
+                          <div className="text-sm text-slate-700 dark:text-slate-300 font-medium notranslate" translate="no">
+                            Item: <strong className="text-slate-900 dark:text-white notranslate" translate="no">{sale.quantitySold}x {sale.productName}</strong>
                           </div>
                         )}
 
@@ -550,15 +550,15 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
                               </div>
 
                               {s.items && s.items.length > 0 ? (
-                                <ul className="text-slate-600 dark:text-slate-300 space-y-0.5">
+                                <ul className="text-slate-600 dark:text-slate-300 space-y-0.5 notranslate" translate="no">
                                   {s.items.map((it, iIdx) => (
-                                    <li key={iIdx}>
+                                    <li key={iIdx} className="notranslate" translate="no">
                                       • {it.quantitySold}x {it.productName} ({formatCurrency(it.unitBazarPrice)})
                                     </li>
                                   ))}
                                 </ul>
                               ) : (
-                                <div className="text-slate-600 dark:text-slate-300">
+                                <div className="text-slate-600 dark:text-slate-300 notranslate" translate="no">
                                   • {s.quantitySold}x {s.productName}
                                 </div>
                               )}

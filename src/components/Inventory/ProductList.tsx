@@ -412,9 +412,9 @@ export const ProductList: React.FC<ProductListProps> = ({
                 {filteredProducts.map((prod) => {
                   const unitProfit = prod.bazarPrice - prod.costPrice;
                   return (
-                    <tr key={prod.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
-                      <td className="p-4 font-bold">
-                        <div className="flex items-center gap-3">
+                    <tr key={prod.id} translate="no" className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition notranslate">
+                      <td className="p-4 font-bold notranslate" translate="no">
+                        <div className="flex items-center gap-3 notranslate" translate="no">
                           {prod.imageUrl ? (
                             <img
                               src={prod.imageUrl}
@@ -426,18 +426,18 @@ export const ProductList: React.FC<ProductListProps> = ({
                               <Package className="h-5 w-5 text-slate-400" />
                             </div>
                           )}
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 dark:text-white line-clamp-1">{prod.name}</span>
+                          <div className="notranslate" translate="no">
+                            <div className="flex items-center gap-2 notranslate" translate="no">
+                              <span className="font-bold text-slate-900 dark:text-white line-clamp-1 notranslate" translate="no">{prod.name}</span>
                               {prod.sku && (
-                                <span className="text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0">
+                                <span className="text-[10px] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 shrink-0 notranslate" translate="no">
                                   Cód: {prod.sku}
                                 </span>
                               )}
                             </div>
-                            {prod.sizeColor && <div className="text-xs text-rose-500">{prod.sizeColor}</div>}
+                            {prod.sizeColor && <div className="text-xs text-rose-500 notranslate" translate="no">{prod.sizeColor}</div>}
                             {prod.expirationDate && (
-                              <div className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                              <div className="text-[11px] text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1 notranslate" translate="no">
                                 <Calendar className="h-3 w-3 shrink-0" />
                                 <span>Val: {prod.expirationDate}</span>
                               </div>
@@ -445,7 +445,7 @@ export const ProductList: React.FC<ProductListProps> = ({
                           </div>
                         </div>
                       </td>
-                      <td className="p-4 text-slate-500 dark:text-slate-400">{prod.category}</td>
+                      <td className="p-4 text-slate-500 dark:text-slate-400 notranslate" translate="no">{prod.category}</td>
                       <td className="p-4">{formatCurrency(prod.costPrice)}</td>
                       <td className="p-4 font-bold text-slate-900 dark:text-white">{formatCurrency(prod.bazarPrice)}</td>
                       <td className="p-4 text-purple-600 dark:text-purple-400 font-bold">+{formatPercent(prod.profitMarginPercent)}</td>

@@ -43,3 +43,8 @@
 .bg-sage-soft { background-color: #f0f4eb; }
 .text-sage-brand { color: #3a462e; }
 .border-sage-subtle { border-color: #cad7be; }
+
+/* Anti-translation rules for mobile browsers */
+.notranslate {
+  font-family: inherit;
+}
