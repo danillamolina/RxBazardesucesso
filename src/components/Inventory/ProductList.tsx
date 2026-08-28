@@ -215,7 +215,8 @@ export const ProductList: React.FC<ProductListProps> = ({
             return (
               <div
                 key={prod.id}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between"
+                translate="no"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col justify-between notranslate"
               >
                 <div>
                   {/* Card Header & Image */}
@@ -251,26 +252,26 @@ export const ProductList: React.FC<ProductListProps> = ({
                     </div>
 
                     {/* Category Tag Overlay */}
-                    <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full">
+                    <div className="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-1 rounded-full notranslate" translate="no">
                       {prod.category}
                     </div>
                   </div>
 
                   {/* Card Body */}
-                  <div className="p-5 space-y-3">
+                  <div className="p-5 space-y-3 notranslate" translate="no">
                     <div>
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug line-clamp-1">
+                        <h3 className="font-bold text-slate-900 dark:text-white text-base leading-snug line-clamp-1 notranslate" translate="no">
                           {prod.name}
                         </h3>
                         {prod.sku && (
-                          <span className="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700 shrink-0">
+                          <span className="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700 shrink-0 notranslate" translate="no">
                             Cód: {prod.sku}
                           </span>
                         )}
                       </div>
                       {prod.sizeColor && (
-                        <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-0.5">
+                        <p className="text-xs text-rose-600 dark:text-rose-400 font-medium mt-0.5 notranslate" translate="no">
                           {prod.sizeColor}
                         </p>
                       )}

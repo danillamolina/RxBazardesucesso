@@ -599,7 +599,8 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
                     <div
                       key={prod.id}
                       onClick={() => toggleProductSelection(prod.id)}
-                      className={`p-2.5 rounded-xl border flex items-center gap-2.5 cursor-pointer transition select-none ${
+                      translate="no"
+                      className={`p-2.5 rounded-xl border flex items-center gap-2.5 cursor-pointer transition select-none notranslate ${
                         isSelected
                           ? 'bg-white dark:bg-slate-800 border-rose-400 dark:border-rose-500 shadow-xs'
                           : 'bg-white/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 opacity-60 hover:opacity-100'
@@ -625,8 +626,8 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
                         </div>
                       )}
 
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                      <div className="flex-1 min-w-0 notranslate" translate="no">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate notranslate" translate="no">
                           {prod.name}
                         </p>
                         <div className="flex items-center gap-1.5 mt-0.5">

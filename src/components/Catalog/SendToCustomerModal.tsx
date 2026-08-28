@@ -214,7 +214,7 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
         <div className="overflow-y-auto pr-1 flex-1 space-y-3.5 mt-3">
 
         {/* Product Compact Summary Header */}
-        <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
+        <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 notranslate" translate="no">
           <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden relative border border-slate-200 dark:border-slate-700 flex items-center justify-center">
             {product.imageUrl ? (
               <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain p-1" />
@@ -225,18 +225,18 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
             )}
           </div>
 
-          <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex-1 min-w-0 space-y-1 notranslate" translate="no">
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-              <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-950/60 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-900">
+              <span className="text-[10px] font-bold text-rose-600 dark:text-rose-400 bg-rose-100 dark:bg-rose-950/60 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-900 notranslate" translate="no">
                 {product.category}
               </span>
               {product.sku && (
-                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded notranslate" translate="no">
                   Cód: {product.sku}
                 </span>
               )}
             </div>
-            <h4 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base leading-snug truncate">
+            <h4 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base leading-snug truncate notranslate" translate="no">
               {product.name}
             </h4>
             <div className="flex items-center gap-2 text-xs font-bold flex-wrap">

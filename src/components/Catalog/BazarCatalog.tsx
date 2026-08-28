@@ -185,7 +185,7 @@ export const BazarCatalog: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-6 pb-16 notranslate" translate="no">
       
       {/* Header Banner - Clean Light Theme */}
       <div className="bg-gradient-to-r from-rose-50 via-pink-50/80 to-purple-50/80 border border-rose-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-slate-900 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
@@ -349,13 +349,14 @@ export const BazarCatalog: React.FC = () => {
                     setSelectedCategory(cat.name);
                     setSelectedSubcategory('Todas');
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition whitespace-nowrap flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition whitespace-nowrap flex items-center gap-1.5 notranslate ${
                     selectedCategory === cat.name
                       ? 'bg-rose-500 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200'
                   }`}
+                  translate="no"
                 >
-                  <span>{cat.name}</span>
+                  <span className="notranslate" translate="no">{cat.name}</span>
                   <span className="text-[10px] opacity-80">({count})</span>
                 </button>
               );
@@ -394,13 +395,14 @@ export const BazarCatalog: React.FC = () => {
                   <button
                     key={sub}
                     onClick={() => setSelectedSubcategory(sub)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap flex items-center gap-1 ${
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition whitespace-nowrap flex items-center gap-1 notranslate ${
                       selectedSubcategory === sub
                         ? 'bg-rose-600 text-white shadow-xs'
                         : 'bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50'
                     }`}
+                    translate="no"
                   >
-                    <span>{sub}</span>
+                    <span className="notranslate" translate="no">{sub}</span>
                     <span className="text-[9.5px] opacity-75">({count})</span>
                   </button>
                 );
@@ -580,7 +582,8 @@ export const BazarCatalog: React.FC = () => {
             return (
               <div
                 key={prod.id}
-                className={`bg-white dark:bg-slate-900 text-slate-900 dark:text-white border ${
+                translate="no"
+                className={`notranslate bg-white dark:bg-slate-900 text-slate-900 dark:text-white border ${
                   isSelected
                     ? 'border-rose-500 dark:border-rose-500 ring-2 ring-rose-500/20 shadow-md'
                     : isSoldOut 
@@ -665,12 +668,12 @@ export const BazarCatalog: React.FC = () => {
                   </div>
 
                   {/* Category & Subcategory Pill Bottom Left */}
-                  <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-1 flex-wrap max-w-[90%]">
-                    <span className="bg-white/95 backdrop-blur-md text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200">
+                  <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-1 flex-wrap max-w-[90%] notranslate" translate="no">
+                    <span className="notranslate bg-white/95 backdrop-blur-md text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200" translate="no">
                       {prod.category}
                     </span>
                     {prod.subcategory && (
-                      <span className="bg-rose-50/95 backdrop-blur-md text-rose-700 text-[8.5px] font-bold px-1.5 py-0.5 rounded-md shadow-xs border border-rose-200">
+                      <span className="notranslate bg-rose-50/95 backdrop-blur-md text-rose-700 text-[8.5px] font-bold px-1.5 py-0.5 rounded-md shadow-xs border border-rose-200" translate="no">
                         {prod.subcategory}
                       </span>
                     )}
@@ -687,15 +690,15 @@ export const BazarCatalog: React.FC = () => {
                 </div>
 
                 {/* Details Section */}
-                <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2 bg-white dark:bg-slate-900">
+                <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2 bg-white dark:bg-slate-900 notranslate" translate="no">
                   <div className="space-y-1.5">
                     {/* Header Row */}
                     <div className="flex items-start justify-between gap-1.5">
-                      <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base leading-snug line-clamp-1">
+                      <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base leading-snug line-clamp-1 notranslate" translate="no">
                         {prod.name}
                       </h3>
                       {prod.sku && (
-                        <span className="text-[9px] font-black bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200 dark:border-slate-700 shrink-0">
+                        <span className="text-[9px] font-black bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200 dark:border-slate-700 shrink-0 notranslate" translate="no">
                           Cód: {prod.sku}
                         </span>
                       )}
@@ -703,13 +706,13 @@ export const BazarCatalog: React.FC = () => {
 
                     {/* Attribute / Size */}
                     {prod.sizeColor && (
-                      <p className="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                      <p className="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 notranslate" translate="no">
                         📏 {prod.sizeColor}
                       </p>
                     )}
 
                     {prod.expirationDate && (
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium notranslate" translate="no">
                         📅 Validade: {prod.expirationDate}
                       </p>
                     )}
@@ -743,7 +746,7 @@ export const BazarCatalog: React.FC = () => {
 
                     {/* Short Description */}
                     {prod.description && (
-                      <p className="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-snug">
+                      <p className="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-snug notranslate" translate="no">
                         {prod.description}
                       </p>
                     )}
@@ -789,7 +792,8 @@ export const BazarCatalog: React.FC = () => {
             return (
               <div
                 key={prod.id}
-                className={`bg-white dark:bg-slate-900 text-slate-900 dark:text-white border ${
+                translate="no"
+                className={`notranslate bg-white dark:bg-slate-900 text-slate-900 dark:text-white border ${
                   isSelected
                     ? 'border-rose-500 dark:border-rose-500 ring-2 ring-rose-500/20 shadow-md'
                     : isSoldOut 
@@ -870,12 +874,12 @@ export const BazarCatalog: React.FC = () => {
                     </div>
 
                     {/* Category pill */}
-                    <div className="absolute bottom-2 left-2 flex items-center gap-1">
-                      <span className="bg-white/95 backdrop-blur-md text-slate-800 text-[8.5px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200">
+                    <div className="absolute bottom-2 left-2 flex items-center gap-1 notranslate" translate="no">
+                      <span className="notranslate bg-white/95 backdrop-blur-md text-slate-800 text-[8.5px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200" translate="no">
                         {prod.category}
                       </span>
                       {prod.subcategory && (
-                        <span className="bg-rose-50/95 backdrop-blur-md text-rose-700 text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-xs border border-rose-200">
+                        <span className="notranslate bg-rose-50/95 backdrop-blur-md text-rose-700 text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-xs border border-rose-200" translate="no">
                           {prod.subcategory}
                         </span>
                       )}
@@ -892,26 +896,26 @@ export const BazarCatalog: React.FC = () => {
                   </div>
 
                   {/* Content */}
-                  <div className="p-3 space-y-1.5">
+                  <div className="p-3 space-y-1.5 notranslate" translate="no">
                     <div className="flex items-start justify-between gap-1">
-                      <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm line-clamp-1">
+                      <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm line-clamp-1 notranslate" translate="no">
                         {prod.name}
                       </h3>
                       {prod.sku && (
-                        <span className="text-[8.5px] font-black bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200 dark:border-slate-700 shrink-0">
+                        <span className="text-[8.5px] font-black bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200 dark:border-slate-700 shrink-0 notranslate" translate="no">
                           Cód: {prod.sku}
                         </span>
                       )}
                     </div>
 
                     {prod.sizeColor && (
-                      <p className="text-[10.5px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                      <p className="text-[10.5px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 notranslate" translate="no">
                         📏 {prod.sizeColor}
                       </p>
                     )}
 
                     {prod.expirationDate && (
-                      <p className="text-[9.5px] font-medium text-amber-600 dark:text-amber-400">
+                      <p className="text-[9.5px] font-medium text-amber-600 dark:text-amber-400 notranslate" translate="no">
                         📅 Val: {prod.expirationDate}
                       </p>
                     )}

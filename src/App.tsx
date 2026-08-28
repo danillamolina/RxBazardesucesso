@@ -53,7 +53,7 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F4EB] dark:bg-[#1A2216] text-[#2B3323] dark:text-[#F7F4EB] font-sans antialiased flex flex-col selection:bg-[#8FA079] selection:text-white transition-colors duration-300">
+    <div className="min-h-screen notranslate bg-[#F7F4EB] dark:bg-[#1A2216] text-[#2B3323] dark:text-[#F7F4EB] font-sans antialiased flex flex-col selection:bg-[#8FA079] selection:text-white transition-colors duration-300" translate="no">
       
       {/* Top Header & Navigation */}
       <Header
@@ -65,7 +65,7 @@ function MainApp() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 notranslate" translate="no">
         {activeTab === 'dashboard' && (
           <Dashboard
             onOpenNewSale={() => handleOpenQuickSale()}
