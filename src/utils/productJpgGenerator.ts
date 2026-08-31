@@ -1,3 +1,4 @@
+import JSZip from 'jszip';
 import { Product } from '../types';
 import { formatCurrency, formatPercent, getProductPriceDetails } from './formatters';
 
@@ -621,13 +622,15 @@ export async function downloadProductJpg(product: Product, preloadedDataUrl?: st
   document.body.removeChild(link);
 }
 
+export type WhatsAppDestination = 'standard' | 'business' | 'web';
+
 /**
- * Builds the direct WhatsApp Web / Mobile URL
+ * Builds the direct WhatsApp Web / Mobile URL with full PC and Mobile support
  */
 export function buildWhatsAppDirectUrl(
   shareText: string,
   targetPhone?: string,
-  forceBusiness: boolean = false,
+  destination: WhatsAppDestination | boolean = 'standard',
   preferWhatsAppWebOnDesktop: boolean = true
 ): string {
   let formattedPhone = targetPhone ? targetPhone.replace(/\D/g, '') : '';
@@ -638,23 +641,54 @@ export function buildWhatsAppDirectUrl(
   const encodedText = encodeURIComponent(shareText);
   const isDesktop = isDesktopDevice();
 
-  if (forceBusiness) {
+  const mode: WhatsAppDestination =
+    typeof destination === 'boolean'
+      ? destination
+        ? 'business'
+        : 'standard'
+      : destination;
+
+  // 1. WhatsApp Business mode
+  if (mode === 'business') {
+    // Uses native protocol whatsapp:// which triggers installed WhatsApp / Business app on mobile and desktop
     return formattedPhone
       ? `whatsapp://send?phone=${formattedPhone}&text=${encodedText}`
       : `whatsapp://send?text=${encodedText}`;
   }
 
-  // On Desktop PC, route directly to WhatsApp Web to prevent the slow intermediate landing page
-  if (isDesktop && preferWhatsAppWebOnDesktop) {
+  // 2. Explicit WhatsApp Web mode (Browser tab on PC)
+  if (mode === 'web') {
     return formattedPhone
       ? `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedText}`
       : `https://web.whatsapp.com/send?text=${encodedText}`;
   }
 
-  // Mobile or standard Web API
+  // 3. Standard WhatsApp mode:
+  // On PC Desktop: if phone number is provided, WhatsApp Web is direct and smooth.
+  // If no phone number is provided, api.whatsapp.com / wa.me works reliably across all browsers without getting stuck.
+  if (isDesktop && preferWhatsAppWebOnDesktop) {
+    if (formattedPhone) {
+      return `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedText}`;
+    }
+    return `https://api.whatsapp.com/send?text=${encodedText}`;
+  }
+
+  // Mobile standard:
   return formattedPhone
     ? `https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodedText}`
     : `https://api.whatsapp.com/send?text=${encodedText}`;
+}
+
+/**
+ * Opens WhatsApp directly in a new window/tab or native app
+ */
+export function openWhatsAppDirect(
+  shareText: string,
+  targetPhone?: string,
+  destination: WhatsAppDestination | boolean = 'standard'
+): void {
+  const url = buildWhatsAppDirectUrl(shareText, targetPhone, destination, true);
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 /**
@@ -662,7 +696,7 @@ export function buildWhatsAppDirectUrl(
  */
 export async function shareProductJpgWhatsApp(
   product: Product,
-  isBusiness: boolean = false,
+  destination: WhatsAppDestination | boolean = 'standard',
   targetPhone?: string,
   customerName?: string
 ): Promise<void> {
@@ -713,10 +747,143 @@ export async function shareProductJpgWhatsApp(
     }
   }
 
-  // PC or Desktop / fallback: Download the pre-generated JPG (instant, no re-render) and open direct WhatsApp Web
+  // PC or Desktop / fallback: Download the pre-generated JPG (instant, no re-render) and open direct WhatsApp
   await downloadProductJpg(product, dataUrl);
 
-  const url = buildWhatsAppDirectUrl(shareText, formattedPhone, isBusiness, true);
-  window.open(url, '_blank', 'noopener,noreferrer');
+  openWhatsAppDirect(shareText, formattedPhone, destination);
 }
+
+/**
+ * Generates edited JPG cards for multiple products and bundles them into a ZIP file
+ */
+export async function downloadMultipleProductsZip(
+  products: Product[],
+  onProgress?: (current: number, total: number, productName: string) => void
+): Promise<void> {
+  if (!products || products.length === 0) return;
+
+  const zip = new JSZip();
+  const total = products.length;
+
+  for (let i = 0; i < total; i++) {
+    const prod = products[i];
+    if (onProgress) {
+      onProgress(i + 1, total, prod.name);
+    }
+
+    try {
+      const blob = await generateProductJpgBlob(prod);
+      const sanitizedName = prod.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .substring(0, 30);
+      const indexStr = String(i + 1).padStart(2, '0');
+      const filename = `${indexStr}_${sanitizedName || 'produto'}.jpg`;
+
+      zip.file(filename, blob);
+    } catch (err) {
+      console.error(`Erro ao gerar card editado para o produto ${prod.name}:`, err);
+    }
+  }
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(zipBlob);
+  link.download = `fotos_vitrine_bazar_editadas_${Date.now()}.zip`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
+
+/**
+ * Downloads multiple edited JPG cards sequentially
+ */
+export async function downloadMultipleProductsIndividualJpgs(
+  products: Product[],
+  onProgress?: (current: number, total: number, productName: string) => void
+): Promise<void> {
+  if (!products || products.length === 0) return;
+
+  const total = products.length;
+  for (let i = 0; i < total; i++) {
+    const prod = products[i];
+    if (onProgress) {
+      onProgress(i + 1, total, prod.name);
+    }
+
+    try {
+      await downloadProductJpg(prod);
+      // Brief pause to prevent browser from blocking multiple automatic downloads
+      await new Promise((r) => setTimeout(r, 450));
+    } catch (err) {
+      console.error(`Erro ao baixar card do produto ${prod.name}:`, err);
+    }
+  }
+}
+
+/**
+ * Shares multiple edited JPG cards along with the catalog text to WhatsApp or Native Share API
+ */
+export async function shareMultipleProductsWithEditedImages(
+  products: Product[],
+  shareText: string,
+  onProgress?: (current: number, total: number) => void
+): Promise<{ sharedNatively: boolean }> {
+  if (!products || products.length === 0) {
+    return { sharedNatively: false };
+  }
+
+  const filesToShare: File[] = [];
+  const total = products.length;
+
+  for (let i = 0; i < total; i++) {
+    const prod = products[i];
+    if (onProgress) {
+      onProgress(i + 1, total);
+    }
+
+    try {
+      const blob = await generateProductJpgBlob(prod);
+      const sanitizedName = prod.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '_')
+        .replace(/_+/g, '_')
+        .substring(0, 30);
+      const indexStr = String(i + 1).padStart(2, '0');
+      const filename = `${indexStr}_${sanitizedName || 'anuncio'}.jpg`;
+
+      const file = new File([blob], filename, { type: 'image/jpeg' });
+      filesToShare.push(file);
+    } catch (err) {
+      console.error(`Erro ao processar imagem para compartilhamento (${prod.name}):`, err);
+    }
+  }
+
+  // Mobile Web Share API support with files
+  if (
+    typeof navigator !== 'undefined' &&
+    navigator.canShare &&
+    filesToShare.length > 0 &&
+    navigator.canShare({ files: filesToShare })
+  ) {
+    try {
+      await navigator.share({
+        title: 'Catálogo — Rx do Bazar de Sucesso',
+        text: shareText,
+        files: filesToShare,
+      });
+      return { sharedNatively: true };
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        return { sharedNatively: true };
+      }
+      console.warn('Native multi-file share failed, falling back to download + WhatsApp link:', err);
+    }
+  }
+
+  return { sharedNatively: false };
+}
+
 

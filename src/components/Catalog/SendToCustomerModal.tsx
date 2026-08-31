@@ -177,7 +177,7 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-fade-in overflow-y-auto notranslate" translate="no">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl relative my-auto max-h-[94vh] flex flex-col">
         
         {/* Header */}
@@ -446,17 +446,17 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {/* Copy Image Button (Ctrl+V) */}
               <button
                 type="button"
                 onClick={handleCopyImageToClipboard}
                 disabled={isGeneratingJpg}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs py-2.5 px-2.5 rounded-xl shadow-md transition active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs py-2.5 px-2 rounded-xl shadow-md transition active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
                 title="Copia o banner para colar direto na conversa com Ctrl+V"
               >
                 {copiedImage ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4" />}
-                <span>{copiedImage ? 'Copiada!' : 'Copiar Imagem (Ctrl+V)'}</span>
+                <span className="truncate">{copiedImage ? 'Copiada!' : 'Copiar (Ctrl+V)'}</span>
               </button>
 
               {/* Download JPG */}
@@ -464,21 +464,35 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
                 type="button"
                 onClick={handleDownloadJpgCard}
                 disabled={isGeneratingJpg}
-                className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-2.5 rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-700 disabled:opacity-50"
+                className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-700 disabled:opacity-50"
+                title="Baixar foto JPG editada"
               >
                 <Download className="h-4 w-4 text-emerald-400" />
-                <span>{isGeneratingJpg ? 'Gerando...' : 'Baixar JPG'}</span>
+                <span className="truncate">{isGeneratingJpg ? 'Gerando...' : 'Salvar JPG'}</span>
               </button>
 
-              {/* Send with JPG Flow */}
+              {/* Send with JPG Flow - WhatsApp Normal */}
               <button
                 type="button"
                 onClick={() => handleSendWhatsAppJpg(false)}
                 disabled={isGeneratingJpg}
-                className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-xs py-2.5 px-2.5 rounded-xl shadow-md transition active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-xs py-2.5 px-2 rounded-xl shadow-md transition active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                title="Enviar foto + texto via WhatsApp Padrão"
               >
-                <MessageSquare className="h-4 w-4" />
-                <span>{isGeneratingJpg ? 'Gerando...' : 'Enviar Foto + Web'}</span>
+                <MessageSquare className="h-4 w-4 shrink-0" />
+                <span className="truncate">{isGeneratingJpg ? 'Gerando...' : 'WhatsApp'}</span>
+              </button>
+
+              {/* Send with JPG Flow - WhatsApp Business */}
+              <button
+                type="button"
+                onClick={() => handleSendWhatsAppJpg(true)}
+                disabled={isGeneratingJpg}
+                className="w-full bg-teal-800 hover:bg-teal-700 text-white font-extrabold text-xs py-2.5 px-2 rounded-xl shadow-md transition active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                title="Enviar foto + texto via WhatsApp Business"
+              >
+                <Building2 className="h-4 w-4 shrink-0 text-teal-300" />
+                <span className="truncate">{isGeneratingJpg ? 'Gerando...' : 'Business'}</span>
               </button>
             </div>
 
