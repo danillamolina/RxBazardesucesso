@@ -92,18 +92,17 @@ export const UserGuide: React.FC<UserGuideProps> = ({
       ]
     },
     {
-      title: '3. Vitrine Virtual & Compartilhamento no WhatsApp',
+      title: '3. Vitrine de Fotos por Categorias & Subcategorias',
       icon: Share2,
       badge: 'Divulgação & Vendas',
-      color: 'from-blue-600 to-blue-700',
-      summary: 'Busca por nome, cartões elegantes e geração de fotos em JPG para redes sociais.',
+      color: 'from-rose-600 to-rose-700',
+      summary: 'Fotos classificadas por categorias e subcategorias, prontas para baixar ou enviar no WhatsApp.',
       steps: [
-        'Busca Rápida: use a barra de busca no topo da vitrine para digitar o nome da peça ou código e achar o produto em 1 segundo.',
-        'Visualização Flexível: alterne entre o modo "Cartão Completo" (com foto em destaque) e "Grade Compacta".',
-        'Sobreposição Limpa: as fotos possuem caixa branca com "Preço Cheio" riscado e valor "Por R$..." em destaque.',
-        'Copiar Texto WhatsApp: clique no botão de copiar para gerar uma mensagem pronta com emojis, descrição e dados de pagamento para colar no WhatsApp.',
-        'Enviar Foto JPG ao Cliente: clique no ícone de compartilhamento do produto para gerar um card visual em JPG de alta definição já com sua chave PIX, telefone e foto da peça.',
-        'Exportar Catálogo Completo: no botão superior da vitrine, baixe o catálogo inteiro em PDF ou imagem contínua para enviar em grupos VIP.'
+        'Organização por Categorias & Subcategorias: suas peças são automaticamente agrupadas em seções visuais limpas (ex: Roupas Femininas > Vestidos), facilitando a navegação.',
+        'Baixar Foto Editada: baixa a imagem individual em alta definição com preços De/Por, porcentagem de desconto e código para a galeria do celular ou PC.',
+        'Enviar para Cliente: seleciona uma cliente e abre a mensagem personalizada no WhatsApp Web ou aplicativo com foto editada.',
+        'Enviar Foto e Texto: gera a foto editada em alta resolução e já prepara o texto completo formatado com detalhes e chave PIX para enviar no WhatsApp em um clique.',
+        'Seleção e Envio em Lote: selecione várias fotos ou todos os itens de uma categoria com um clique e exporte tudo de uma só vez para grupos ou clientes VIP.'
       ]
     },
     {

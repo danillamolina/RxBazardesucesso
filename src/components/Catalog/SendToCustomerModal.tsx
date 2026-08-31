@@ -146,11 +146,11 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
   };
 
   // Send JPG + Open WhatsApp
-  const handleSendWhatsAppJpg = async (isBusiness: boolean = false) => {
+  const handleSendWhatsAppJpg = async (isBusiness: boolean = false, includeText: boolean = true) => {
     if (!product) return;
     setIsGeneratingJpg(true);
     try {
-      await shareProductJpgWhatsApp(product, isBusiness, formattedTargetPhone, activeName);
+      await shareProductJpgWhatsApp(product, isBusiness, formattedTargetPhone, activeName, includeText);
     } catch (err) {
       console.error('Erro ao enviar imagem do anúncio em JPG:', err);
     } finally {
@@ -374,134 +374,157 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
           )}
         </div>
 
-        {/* Message Preview Box */}
-        <div className="space-y-1">
+        {/* Action Options: 3 Simplified Choices Requested */}
+        <div className="space-y-3 pt-1">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
-              2. Texto do Anúncio:
+              2. Escolha como deseja enviar ou salvar:
             </label>
-            <button
-              type="button"
-              onClick={handleCopyText}
-              className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-            >
-              {copiedText ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              {copiedText ? 'Copiado!' : 'Copiar Texto'}
-            </button>
-          </div>
-          <div className="bg-slate-900 text-emerald-300 p-2.5 rounded-xl text-[11px] font-mono whitespace-pre-wrap max-h-24 overflow-y-auto border border-slate-800 shadow-inner">
-            {shareText}
-          </div>
-        </div>
-
-        {/* Action Buttons Section: Super Fast Options */}
-        <div className="space-y-2.5 pt-1">
-          
-          {/* TOP OPTION: Instant 0.1s Direct Send to WhatsApp Web */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-3.5 rounded-2xl text-white shadow-lg shadow-emerald-600/20 space-y-2">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 font-black text-xs sm:text-sm uppercase tracking-wide">
-                <Zap className="h-4 w-4 text-amber-300 fill-amber-300 animate-pulse" />
-                <span>Envio Imediato no WhatsApp (Sem Espera)</span>
-              </div>
-              <span className="text-[10px] bg-white/20 font-bold px-2 py-0.5 rounded-full">
-                ⚡ Super Rápido
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => handleInstantWhatsApp(false)}
-                className="w-full bg-white hover:bg-emerald-50 text-emerald-800 font-extrabold text-xs sm:text-sm py-2.5 px-3 rounded-xl shadow transition active:scale-98 flex items-center justify-center gap-2"
+                onClick={handleCopyText}
+                className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                title="Copiar texto do anúncio"
               >
-                <MessageSquare className="h-4 w-4 text-emerald-600" />
-                <span>{isDesktop ? 'Abrir WhatsApp Web Direto' : 'Enviar no WhatsApp'}</span>
-                <ExternalLink className="h-3.5 w-3.5 text-emerald-600" />
+                {copiedText ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                <span>{copiedText ? 'Texto Copiado!' : 'Copiar Texto'}</span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => handleInstantWhatsApp(true)}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs sm:text-sm py-2.5 px-3 rounded-xl shadow transition active:scale-98 flex items-center justify-center gap-2"
-              >
-                <Building2 className="h-4 w-4 text-emerald-400" />
-                <span>{isDesktop ? 'WhatsApp App / Business' : 'WhatsApp Business'}</span>
-                <ExternalLink className="h-3.5 w-3.5 text-emerald-400" />
-              </button>
-            </div>
-          </div>
-
-          {/* SECOND OPTION: JPG Card Generation & Fast Clipboard Copy */}
-          <div className="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-extrabold text-xs uppercase tracking-wide">
-                <ImageIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Imagem (JPG) de Alta Definição:</span>
-              </div>
-              {copiedImage && (
-                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-md flex items-center gap-1">
-                  <Check className="h-3.5 w-3.5" /> Imagem Copiada! Cole no WhatsApp (Ctrl+V)
-                </span>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {/* Copy Image Button (Ctrl+V) */}
               <button
                 type="button"
                 onClick={handleCopyImageToClipboard}
                 disabled={isGeneratingJpg}
-                className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs py-2.5 px-2 rounded-xl shadow-md transition active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
-                title="Copia o banner para colar direto na conversa com Ctrl+V"
+                className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 disabled:opacity-50"
+                title="Copiar imagem editada para colar com Ctrl+V"
               >
-                {copiedImage ? <Check className="h-4 w-4 text-emerald-300" /> : <Copy className="h-4 w-4" />}
-                <span className="truncate">{copiedImage ? 'Copiada!' : 'Copiar (Ctrl+V)'}</span>
+                {copiedImage ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                <span>{copiedImage ? 'Foto Copiada (Ctrl+V)!' : 'Copiar Foto (Ctrl+V)'}</span>
               </button>
+            </div>
+          </div>
 
-              {/* Download JPG */}
+          <div className="grid grid-cols-1 gap-3">
+            
+            {/* OPÇÃO 1: BAIXAR FOTO EDITADA */}
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 bg-rose-100 dark:bg-rose-950/60 rounded-xl text-rose-600 dark:text-rose-400 shrink-0">
+                  <Download className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
+                    1. Baixar Foto Editada
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Salva a foto editada em alta resolução (JPG) com preços e descontos no seu dispositivo.
+                  </p>
+                </div>
+              </div>
+
               <button
                 type="button"
                 onClick={handleDownloadJpgCard}
                 disabled={isGeneratingJpg}
-                className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-2 rounded-xl transition flex items-center justify-center gap-1.5 border border-slate-700 disabled:opacity-50"
-                title="Baixar foto JPG editada"
+                className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs py-2.5 px-4 rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 shrink-0 disabled:opacity-50"
               >
                 <Download className="h-4 w-4 text-emerald-400" />
-                <span className="truncate">{isGeneratingJpg ? 'Gerando...' : 'Salvar JPG'}</span>
-              </button>
-
-              {/* Send with JPG Flow - WhatsApp Normal */}
-              <button
-                type="button"
-                onClick={() => handleSendWhatsAppJpg(false)}
-                disabled={isGeneratingJpg}
-                className="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-extrabold text-xs py-2.5 px-2 rounded-xl shadow-md transition active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
-                title="Enviar foto + texto via WhatsApp Padrão"
-              >
-                <MessageSquare className="h-4 w-4 shrink-0" />
-                <span className="truncate">{isGeneratingJpg ? 'Gerando...' : 'WhatsApp'}</span>
-              </button>
-
-              {/* Send with JPG Flow - WhatsApp Business */}
-              <button
-                type="button"
-                onClick={() => handleSendWhatsAppJpg(true)}
-                disabled={isGeneratingJpg}
-                className="w-full bg-teal-800 hover:bg-teal-700 text-white font-extrabold text-xs py-2.5 px-2 rounded-xl shadow-md transition active:scale-98 disabled:opacity-50 flex items-center justify-center gap-1.5"
-                title="Enviar foto + texto via WhatsApp Business"
-              >
-                <Building2 className="h-4 w-4 shrink-0 text-teal-300" />
-                <span className="truncate">{isGeneratingJpg ? 'Gerando...' : 'Business'}</span>
+                <span>{isGeneratingJpg ? 'Gerando...' : 'Baixar Foto Editada'}</span>
               </button>
             </div>
 
-            {isDesktop && (
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 bg-amber-50 dark:bg-amber-950/30 p-2 rounded-xl border border-amber-200 dark:border-amber-900/40">
-                💡 <span className="font-bold text-amber-900 dark:text-amber-300">Dica para PC:</span> Clique em <strong>"Copiar Imagem"</strong>, abra o WhatsApp Web e dê <strong>Ctrl+V</strong> para colar a foto instantaneamente junto com o texto!
-              </p>
-            )}
+            {/* OPÇÃO 2: ENVIAR PARA CLIENTE FOTO EDITADA */}
+            <div className="bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-900/60 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/60 rounded-xl text-indigo-600 dark:text-indigo-400 shrink-0">
+                  <UserCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-indigo-950 dark:text-indigo-200">
+                    2. Enviar para Cliente Foto Editada
+                  </h4>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                    Envia a foto editada diretamente para o WhatsApp do cliente {activeName ? `(${activeName})` : ''}.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleSendWhatsAppJpg(false, false)}
+                  disabled={isGeneratingJpg}
+                  className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs py-2.5 px-3.5 rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  title="Enviar foto para o cliente via WhatsApp Padrão"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSendWhatsAppJpg(true, false)}
+                  disabled={isGeneratingJpg}
+                  className="flex-1 sm:flex-none bg-teal-700 hover:bg-teal-600 text-white font-extrabold text-xs py-2.5 px-3 rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  title="Enviar foto para o cliente via WhatsApp Business"
+                >
+                  <Building2 className="h-4 w-4 text-teal-200" />
+                  <span>Business</span>
+                </button>
+              </div>
+            </div>
+
+            {/* OPÇÃO 3: ENVIAR FOTO E TEXTO */}
+            <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900/60 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/60 rounded-xl text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <MessageSquare className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-extrabold text-emerald-950 dark:text-emerald-200">
+                    3. Enviar Foto e Texto
+                  </h4>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                    Envia a foto editada + o texto completo formatado com preço, economia e estoque.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleSendWhatsAppJpg(false, true)}
+                  disabled={isGeneratingJpg}
+                  className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs py-2.5 px-3.5 rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  title="Enviar foto + texto completo via WhatsApp Padrão"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSendWhatsAppJpg(true, true)}
+                  disabled={isGeneratingJpg}
+                  className="flex-1 sm:flex-none bg-teal-700 hover:bg-teal-600 text-white font-extrabold text-xs py-2.5 px-3 rounded-xl shadow transition active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  title="Enviar foto + texto completo via WhatsApp Business"
+                >
+                  <Building2 className="h-4 w-4 text-teal-200" />
+                  <span>Business</span>
+                </button>
+              </div>
+            </div>
+
           </div>
+
+          {/* Quick text preview drawer (collapsible) */}
+          <details className="bg-slate-100 dark:bg-slate-800/50 rounded-xl p-2.5 border border-slate-200 dark:border-slate-700/80 text-xs">
+            <summary className="font-bold text-slate-600 dark:text-slate-300 cursor-pointer select-none">
+              👁️ Visualizar texto do anúncio formatado
+            </summary>
+            <div className="mt-2 bg-slate-900 text-emerald-300 p-2.5 rounded-lg text-[11px] font-mono whitespace-pre-wrap max-h-28 overflow-y-auto border border-slate-800 shadow-inner">
+              {shareText}
+            </div>
+          </details>
 
         </div>
 

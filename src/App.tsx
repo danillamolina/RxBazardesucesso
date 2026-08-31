@@ -148,6 +148,12 @@ function MainApp() {
               Relatórios
             </button>
             <button 
+              onClick={() => setActiveTab('catalog')} 
+              className="hover:text-[#F7F4EB] transition font-semibold text-[#8FA079]"
+            >
+              Vitrine de Fotos
+            </button>
+            <button 
               onClick={() => setActiveTab('store')} 
               className="hover:text-[#F7F4EB] transition"
             >

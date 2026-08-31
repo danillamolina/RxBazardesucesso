@@ -46,23 +46,22 @@ export const BazarCatalog: React.FC = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('Todas');
   const [stockFilter, setStockFilter] = useState<'todos' | 'disponiveis' | 'pouco_estoque' | 'esgotados'>('todos');
   
-  // Sort State: 'categoria_sub' is the default for category/subcategory organization
+  // Sort State
   const [sortBy, setSortBy] = useState<
     'categoria_sub' | 'nome_asc' | 'desconto_desc' | 'desconto_perc' | 'preco_asc' | 'preco_desc' | 'estoque_desc'
   >('categoria_sub');
 
-  // View & UI State
-  const [viewMode, setViewMode] = useState<'horizontal' | 'grid'>('horizontal');
+  // View & UI State: default to classified grid by category & subcategory
+  const [viewMode, setViewMode] = useState<'grid' | 'horizontal'>('grid');
   const [isExportCatalogOpen, setIsExportCatalogOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [sendCustomerProduct, setSendCustomerProduct] = useState<Product | null>(null);
   const [isSendCustomerOpen, setIsSendCustomerOpen] = useState(false);
 
-  // Selected Products for WhatsApp Catalog Export
+  // Selected Products for WhatsApp Vitrine Export
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [isSelectionMode, setIsSelectionMode] = useState<boolean>(false);
 
-  // All catalog eligible products
+  // All vitrine eligible products
   const catalogProducts = useMemo(() => {
     return products.filter((p) => p.showInCatalog !== false);
   }, [products]);
@@ -151,6 +150,59 @@ export const BazarCatalog: React.FC = () => {
     return list;
   }, [catalogProducts, selectedCategory, selectedSubcategory, stockFilter, searchTerm, sortBy]);
 
+  // Group filtered products hierarchically by Category and Subcategory
+  const groupedCategories = useMemo(() => {
+    const map = new Map<string, Map<string, Product[]>>();
+
+    filteredProducts.forEach((prod) => {
+      const cat = prod.category?.trim() || 'Geral / Outros';
+      const sub = prod.subcategory?.trim() || 'Produtos Diversos';
+
+      if (!map.has(cat)) {
+        map.set(cat, new Map<string, Product[]>());
+      }
+      const subMap = map.get(cat)!;
+      if (!subMap.has(sub)) {
+        subMap.set(sub, []);
+      }
+      subMap.get(sub)!.push(prod);
+    });
+
+    const result: Array<{
+      categoryName: string;
+      totalProducts: number;
+      inStockCount: number;
+      subcategories: Array<{
+        subcategoryName: string;
+        products: Product[];
+      }>;
+    }> = [];
+
+    map.forEach((subMap, categoryName) => {
+      const subcategories: Array<{ subcategoryName: string; products: Product[] }> = [];
+      let totalCount = 0;
+      let inStock = 0;
+
+      subMap.forEach((prods, subcategoryName) => {
+        totalCount += prods.length;
+        inStock += prods.filter((p) => p.quantity > 0).length;
+        subcategories.push({
+          subcategoryName,
+          products: prods,
+        });
+      });
+
+      result.push({
+        categoryName,
+        totalProducts: totalCount,
+        inStockCount: inStock,
+        subcategories,
+      });
+    });
+
+    return result;
+  }, [filteredProducts]);
+
   // Selection handlers
   const toggleProductSelection = (id: string) => {
     setSelectedProductIds((prev) =>
@@ -166,6 +218,19 @@ export const BazarCatalog: React.FC = () => {
       setSelectedProductIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
     } else {
       setSelectedProductIds((prev) => Array.from(new Set([...prev, ...visibleIds])));
+    }
+  };
+
+  const handleSelectCategoryProducts = (categoryName: string) => {
+    const catProductIds = filteredProducts
+      .filter((p) => (p.category?.trim() || 'Geral / Outros') === categoryName)
+      .map((p) => p.id);
+    
+    const allSelected = catProductIds.every((id) => selectedProductIds.includes(id));
+    if (allSelected) {
+      setSelectedProductIds((prev) => prev.filter((id) => !catProductIds.includes(id)));
+    } else {
+      setSelectedProductIds((prev) => Array.from(new Set([...prev, ...catProductIds])));
     }
   };
 
@@ -196,7 +261,20 @@ export const BazarCatalog: React.FC = () => {
     try {
       await downloadProductJpg(prod);
     } catch (err) {
-      console.error('Erro ao salvar foto na galeria:', err);
+      console.error('Erro ao salvar foto editada na galeria:', err);
+    }
+  };
+
+  const handleOpenSendCustomerPhoto = (prod: Product) => {
+    setSendCustomerProduct(prod);
+    setIsSendCustomerOpen(true);
+  };
+
+  const handleShareProductPhotoAndText = async (prod: Product) => {
+    try {
+      await shareProductJpgWhatsApp(prod, 'standard', undefined, undefined, true);
+    } catch (err) {
+      console.error('Erro ao compartilhar foto e texto no WhatsApp:', err);
     }
   };
 
@@ -208,13 +286,13 @@ export const BazarCatalog: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 border border-rose-200 text-rose-700 text-[11px] sm:text-xs font-bold mb-1.5 shadow-xs">
             <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            Vitrine do Rx do Bazar de Sucesso
+            Vitrine de Fotos do Bazar
           </div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900">
-            Catálogo Online & Vitrine de Produtos
+            Vitrine de Produtos por Categorias & Subcategorias
           </h2>
           <p className="text-slate-600 text-xs sm:text-sm mt-1 max-w-2xl font-medium">
-            Organize por categorias e subcategorias, selecione os produtos e envie catálogos elegantes diretamente para o WhatsApp!
+            Fotos de alta qualidade organizadas por seções. Baixe a foto editada com preços e descontos ou envie diretamente para seus clientes no WhatsApp.
           </p>
         </div>
 
@@ -229,7 +307,7 @@ export const BazarCatalog: React.FC = () => {
             <span>Gerenciar Categorias</span>
           </button>
 
-          {/* Export Catalog Button */}
+          {/* Export Vitrine to WhatsApp Button */}
           <button
             onClick={() => {
               setIsExportCatalogOpen(true);
@@ -237,7 +315,7 @@ export const BazarCatalog: React.FC = () => {
             className="bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md shadow-rose-600/20 flex items-center gap-1.5 transition active:scale-95"
           >
             <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>Exportar para WhatsApp</span>
+            <span>Exportar Vitrine no WhatsApp</span>
           </button>
         </div>
       </div>
@@ -252,8 +330,8 @@ export const BazarCatalog: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
             </div>
-            <span>Catálogo Sincronizado em Tempo Real</span>
-            <span className="text-[11px] font-normal text-slate-500 hidden sm:inline">(Atualiza automaticamente ao vender peças)</span>
+            <span>Vitrine Classificada em Tempo Real</span>
+            <span className="text-[11px] font-normal text-slate-500 hidden sm:inline">(Sincronizada automaticamente com seu estoque e vendas)</span>
           </div>
 
           <div className="flex items-center gap-2 text-xs font-bold flex-wrap">
@@ -326,18 +404,18 @@ export const BazarCatalog: React.FC = () => {
 
         </div>
 
-        {/* Categories Horizontal Pills Bar */}
+        {/* Categories Horizontal Filter Pills Bar */}
         <div>
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
               <Tag className="h-3 w-3 text-rose-500" />
-              Categorias:
+              Filtrar por Categoria:
             </span>
             <button
               onClick={() => setIsCategoryModalOpen(true)}
               className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1"
             >
-              + Adicionar / Editar Categorias
+              + Gerenciar Categorias
             </button>
           </div>
 
@@ -353,7 +431,7 @@ export const BazarCatalog: React.FC = () => {
                   : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 hover:bg-slate-200'
               }`}
             >
-              Todas ({catalogProducts.length})
+              Todas as Categorias ({catalogProducts.length})
             </button>
 
             {categories.map((cat) => {
@@ -380,7 +458,7 @@ export const BazarCatalog: React.FC = () => {
           </div>
         </div>
 
-        {/* Subcategories Secondary Pills Bar (Shown when a category with subcategories is selected) */}
+        {/* Subcategories Secondary Pills Bar */}
         {selectedCategory !== 'Todas' && availableSubcategories.length > 0 && (
           <div className="bg-rose-50/60 dark:bg-rose-950/20 p-2.5 rounded-xl border border-rose-100 dark:border-rose-900/40">
             <div className="flex items-center gap-1.5 mb-1.5">
@@ -486,6 +564,19 @@ export const BazarCatalog: React.FC = () => {
           {/* View Mode Switcher */}
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shrink-0 self-end lg:self-auto">
             <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
+                viewMode === 'grid'
+                  ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900'
+              }`}
+              title="Grade de Cards por Categoria"
+            >
+              <LayoutGrid className="h-4 w-4" />
+              <span>Grade de Fotos</span>
+            </button>
+
+            <button
               onClick={() => setViewMode('horizontal')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
                 viewMode === 'horizontal'
@@ -496,19 +587,6 @@ export const BazarCatalog: React.FC = () => {
             >
               <LayoutList className="h-4 w-4" />
               <span>Foto Grande</span>
-            </button>
-
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                viewMode === 'grid'
-                  ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900'
-              }`}
-              title="Grade de Cards"
-            >
-              <LayoutGrid className="h-4 w-4" />
-              <span>Grade</span>
             </button>
           </div>
         </div>
@@ -539,11 +617,11 @@ export const BazarCatalog: React.FC = () => {
           <div className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">
             {selectedProductIds.length > 0 ? (
               <span className="text-rose-600 dark:text-rose-400 font-extrabold">
-                {selectedProductIds.length} produto{selectedProductIds.length > 1 ? 's' : ''} selecionado{selectedProductIds.length > 1 ? 's' : ''} para envio
+                {selectedProductIds.length} foto{selectedProductIds.length > 1 ? 's' : ''} selecionada{selectedProductIds.length > 1 ? 's' : ''} para envio
               </span>
             ) : (
               <span className="text-slate-400 font-medium">
-                Clique na caixinha de cada produto para escolher o que enviar no WhatsApp
+                Selecione as fotos para baixar ou enviar no WhatsApp em lote
               </span>
             )}
           </div>
@@ -555,29 +633,29 @@ export const BazarCatalog: React.FC = () => {
               onClick={handleSaveSelectedToGallery}
               disabled={isSavingToGallery}
               className="flex-1 sm:flex-none bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-extrabold text-xs px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs flex items-center justify-center gap-1.5 transition active:scale-95 disabled:opacity-50"
-              title="Salvar todas as fotos editadas dos produtos selecionados diretamente na galeria (JPGs)"
+              title="Baixar fotos editadas dos produtos selecionados na galeria"
             >
-              <Camera className="h-4 w-4 text-rose-500" />
-              <span>{isSavingToGallery ? 'Salvando Fotos...' : `Salvar na Galeria (${selectedProductIds.length})`}</span>
+              <Download className="h-4 w-4 text-rose-500" />
+              <span>{isSavingToGallery ? 'Baixando...' : `Baixar Fotos (${selectedProductIds.length})`}</span>
             </button>
 
             <button
               onClick={handleOpenExportWithSelection}
               className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition active:scale-95"
             >
-              <Send className="h-4 w-4" />
-              <span>Exportar Fotos ({selectedProductIds.length}) no WhatsApp</span>
+              <MessageSquare className="h-4 w-4" />
+              <span>Enviar Fotos e Texto ({selectedProductIds.length})</span>
             </button>
           </div>
         )}
       </div>
 
-      {/* Catalog Display */}
+      {/* CLASSIFIED VITRINE DISPLAY: Grouped by Category and Subcategory */}
       {filteredProducts.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-8 sm:p-12 text-center space-y-3">
           <Package className="h-10 w-10 sm:h-12 sm:w-12 text-slate-300 mx-auto" />
           <h3 className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-300">
-            {searchTerm ? `Nenhum produto encontrado com o termo "${searchTerm}"` : 'Nenhum produto encontrado neste filtro'}
+            {searchTerm ? `Nenhuma foto encontrada com o termo "${searchTerm}"` : 'Nenhum produto cadastrado nesta categoria/filtro'}
           </h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
             {searchTerm 
@@ -598,407 +676,478 @@ export const BazarCatalog: React.FC = () => {
             </button>
           )}
         </div>
-      ) : viewMode === 'horizontal' ? (
-        /* HORIZONTAL LAYOUT: 2 COLUMNS ON DESKTOP */
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
-          {filteredProducts.map((prod) => {
-            const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(prod);
-            const isSoldOut = prod.quantity === 0;
-            const isLowStock = prod.quantity > 0 && prod.quantity <= 3;
-            const isSelected = selectedProductIds.includes(prod.id);
-
-            return (
-              <div
-                key={prod.id}
-                translate="no"
-                className={`notranslate bg-white dark:bg-slate-900 text-slate-900 dark:text-white border ${
-                  isSelected
-                    ? 'border-rose-500 dark:border-rose-500 ring-2 ring-rose-500/20 shadow-md'
-                    : isSoldOut 
-                    ? 'border-slate-200 dark:border-slate-800 opacity-80' 
-                    : 'border-slate-200/90 dark:border-slate-800 hover:border-rose-300 dark:hover:border-slate-700 hover:shadow-md'
-                } rounded-2xl overflow-hidden shadow-xs transition flex flex-col sm:flex-row group relative`}
-              >
-                {/* Photo Section with Selection Checkbox Overlay */}
-                <div className="relative w-full sm:w-5/12 h-48 sm:h-auto min-h-[180px] bg-slate-50 dark:bg-slate-800/80 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 shrink-0 overflow-hidden flex items-center justify-center">
-                  
-                  {/* Selection Checkbox Overlay (Top Left) */}
-                  <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleProductSelection(prod.id);
-                    }}
-                    className="absolute top-2.5 left-2.5 z-30 cursor-pointer p-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 hover:scale-105 transition"
-                    title={isSelected ? 'Desmarcar do catálogo' : 'Incluir no catálogo'}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleProductSelection(prod.id)}
-                      className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300 pointer-events-none"
-                    />
-                  </div>
-
-                  {/* Photo with Perfect Framing */}
-                  {prod.imageUrl ? (
-                    <img
-                      src={prod.imageUrl}
-                      alt={prod.name}
-                      className={`w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ${
-                        isSoldOut ? 'grayscale contrast-75' : ''
-                      }`}
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-4 text-center">
-                      <Package className="h-10 w-10 mb-1 opacity-40" />
-                      <span className="text-[10px] font-semibold">Sem foto cadastrada</span>
-                    </div>
-                  )}
-
-                  {/* Stock Status Badge Overlay */}
-                  <div className="absolute top-2.5 left-10 z-20 flex flex-col gap-1 items-start">
-                    {isSoldOut ? (
-                      <span className="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded-md shadow-md flex items-center gap-1 border border-rose-400">
-                        <XCircle className="h-3 w-3" />
-                        ESGOTADO
-                      </span>
-                    ) : isLowStock ? (
-                      <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-md shadow-md flex items-center gap-1 animate-pulse border border-amber-300">
-                        <AlertTriangle className="h-3 w-3" />
-                        RESTAM {prod.quantity} UNID.
-                      </span>
-                    ) : (
-                      <span className="bg-emerald-600 text-white font-bold text-[9px] px-2 py-0.5 rounded-md shadow-md flex items-center gap-1">
-                        <CheckCircle2 className="h-3 w-3" />
-                        Estoque: {prod.quantity}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Price Overlay on Photo */}
-                  <div className="absolute top-2.5 right-2.5 z-20 flex flex-col items-end gap-0.5 max-w-[75%]">
-                    <div className="bg-white/95 backdrop-blur-md text-slate-900 px-2 py-1 rounded-lg shadow-md border border-slate-200 text-right space-y-0.5">
-                      {hasDiscount && (
-                        <div className="text-[8.5px] text-slate-500 font-bold leading-tight">
-                          De: <span className="line-through text-slate-400 font-medium">{formatCurrency(fullPrice)}</span>
-                        </div>
-                      )}
-                      <div className="text-xs sm:text-sm font-black text-emerald-600 tracking-tight leading-none">
-                        {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
-                      </div>
-                      {hasDiscount && (
-                        <div className="text-[8px] font-bold text-rose-600 bg-rose-50 px-1 py-0.5 rounded border border-rose-200 inline-block mt-0.5">
-                          {formatPercent(discountPercent)} de desconto
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Category & Subcategory Pill Bottom Left */}
-                  <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-1 flex-wrap max-w-[90%] notranslate" translate="no">
-                    <span className="notranslate bg-white/95 backdrop-blur-md text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200" translate="no">
-                      {prod.category}
-                    </span>
-                    {prod.subcategory && (
-                      <span className="notranslate bg-rose-50/95 backdrop-blur-md text-rose-700 text-[8.5px] font-bold px-1.5 py-0.5 rounded-md shadow-xs border border-rose-200" translate="no">
-                        {prod.subcategory}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Sold Out Dark Mask Overlay */}
-                  {isSoldOut && (
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center text-white p-2 text-center">
-                      <div className="bg-rose-600 text-white font-black text-xs px-3 py-1 rounded-lg shadow-xl uppercase border border-rose-400">
-                        🔴 ESGOTADO
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Details Section */}
-                <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2 bg-white dark:bg-slate-900 notranslate" translate="no">
-                  <div className="space-y-1.5">
-                    {/* Header Row */}
-                    <div className="flex items-start justify-between gap-1.5">
-                      <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base leading-snug line-clamp-1 notranslate" translate="no">
-                        {prod.name}
-                      </h3>
-                      {prod.sku && (
-                        <span className="text-[9px] font-black bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200 dark:border-slate-700 shrink-0 notranslate" translate="no">
-                          Cód: {prod.sku}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Attribute / Size */}
-                    {prod.sizeColor && (
-                      <p className="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 notranslate" translate="no">
-                        📏 {prod.sizeColor}
-                      </p>
-                    )}
-
-                    {prod.expirationDate && (
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium notranslate" translate="no">
-                        📅 Validade: {prod.expirationDate}
-                      </p>
-                    )}
-
-                    {/* Offer Box */}
-                    <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-xl p-2.5 space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          {hasDiscount && (
-                            <div className="text-[10px] font-medium text-slate-500">
-                              De: <span className="line-through">{formatCurrency(fullPrice)}</span>
-                            </div>
-                          )}
-                          <div className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 leading-tight">
-                            {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
-                          </div>
-                        </div>
-
-                        {hasDiscount && (
-                          <div className="flex flex-col items-end gap-1">
-                            <span className="text-[9px] font-black text-white bg-rose-600 px-2 py-0.5 rounded shadow-xs">
-                              🔥 {formatPercent(discountPercent)} de desconto
-                            </span>
-                            <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                              Economia: {formatCurrency(discountAmount)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Short Description */}
-                    {prod.description && (
-                      <p className="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-snug notranslate" translate="no">
-                        {prod.description}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Actions Bar */}
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-1.5">
-                    <button
-                      onClick={() => handleDownloadJpg(prod)}
-                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-extrabold text-[11px] py-2 px-2 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 dark:border-slate-700 active:scale-98"
-                      title="Salvar imagem JPG editada na galeria"
-                    >
-                      <Camera className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
-                      <span className="truncate">Salvar na Galeria</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSendCustomerProduct(prod);
-                        setIsSendCustomerOpen(true);
-                      }}
-                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] py-2 px-2 rounded-xl transition flex items-center justify-center gap-1 shadow-xs active:scale-98"
-                      title="Enviar anúncio para cliente"
-                    >
-                      <UserCheck className="h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate">Enviar Cliente</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
       ) : (
-        /* GRID LAYOUT (VERTICAL CARDS): 4 COLUMNS ON DESKTOP */
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5">
-          {filteredProducts.map((prod) => {
-            const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(prod);
-            const isSoldOut = prod.quantity === 0;
-            const isLowStock = prod.quantity > 0 && prod.quantity <= 3;
-            const isSelected = selectedProductIds.includes(prod.id);
+        <div className="space-y-8 sm:space-y-10 pb-20 sm:pb-8">
+          {groupedCategories.map((group) => {
+            const allCatIds = group.subcategories.flatMap((s) => s.products.map((p) => p.id));
+            const isCatAllSelected = allCatIds.length > 0 && allCatIds.every((id) => selectedProductIds.includes(id));
 
             return (
               <div
-                key={prod.id}
-                translate="no"
-                className={`notranslate bg-white dark:bg-slate-900 text-slate-900 dark:text-white border ${
-                  isSelected
-                    ? 'border-rose-500 dark:border-rose-500 ring-2 ring-rose-500/20 shadow-md'
-                    : isSoldOut 
-                    ? 'border-slate-200 dark:border-slate-800 opacity-80' 
-                    : 'border-slate-200/90 dark:border-slate-800 hover:border-rose-300 dark:hover:border-slate-700 hover:shadow-md'
-                } rounded-2xl overflow-hidden shadow-xs transition flex flex-col justify-between group`}
+                key={group.categoryName}
+                className="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 shadow-sm space-y-5 sm:space-y-6"
               >
-                <div>
-                  {/* Photo Container */}
-                  <div className="relative h-44 sm:h-48 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 overflow-hidden flex items-center justify-center">
-                    
-                    {/* Selection Checkbox */}
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleProductSelection(prod.id);
-                      }}
-                      className="absolute top-2 left-2 z-20 cursor-pointer p-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 hover:scale-105 transition"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => toggleProductSelection(prod.id)}
-                        className="w-3.5 h-3.5 rounded text-rose-600 focus:ring-rose-500 border-slate-300 pointer-events-none"
-                      />
+                {/* Category Section Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center shadow-md shadow-rose-500/20 font-black text-base sm:text-lg shrink-0">
+                      <Tag className="h-4 w-4 sm:h-5 sm:w-5" />
                     </div>
-
-                    {/* Photo with Perfect Framing */}
-                    {prod.imageUrl ? (
-                      <img
-                        src={prod.imageUrl}
-                        alt={prod.name}
-                        className={`w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ${
-                          isSoldOut ? 'grayscale contrast-75' : ''
-                        }`}
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-400">
-                        <Package className="h-10 w-10 opacity-40" />
-                      </div>
-                    )}
-
-                    {/* Stock Status Badge */}
-                    <div className="absolute top-2 left-9 z-10 flex flex-col gap-1 items-start">
-                      {isSoldOut ? (
-                        <span className="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded-md shadow-md border border-rose-400">
-                          🔴 ESGOTADO
-                        </span>
-                      ) : isLowStock ? (
-                        <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-md shadow-md animate-pulse">
-                          ⚡ RESTAM {prod.quantity} UNID.
-                        </span>
-                      ) : (
-                        <span className="bg-emerald-600 text-white font-bold text-[9px] px-2 py-0.5 rounded-md shadow-md">
-                          Estoque: {prod.quantity} un.
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Price Overlay */}
-                    <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5 z-10 max-w-[75%]">
-                      <div className="bg-white/95 backdrop-blur-md text-slate-900 px-2 py-1 rounded-lg shadow-md text-right border border-slate-200 space-y-0.5">
-                        {hasDiscount && (
-                          <div className="text-[8px] text-slate-500 font-bold leading-tight">
-                            De: <span className="line-through text-slate-400 font-medium">{formatCurrency(fullPrice)}</span>
-                          </div>
-                        )}
-                        <div className="text-xs font-black text-emerald-600 leading-none">
-                          {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
-                        </div>
-                        {hasDiscount && (
-                          <div className="text-[7.5px] font-bold text-rose-600 bg-rose-50 px-1 py-0.5 rounded border border-rose-200 inline-block mt-0.5">
-                            {formatPercent(discountPercent)} de desconto
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Category pill */}
-                    <div className="absolute bottom-2 left-2 flex items-center gap-1 notranslate" translate="no">
-                      <span className="notranslate bg-white/95 backdrop-blur-md text-slate-800 text-[8.5px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200" translate="no">
-                        {prod.category}
-                      </span>
-                      {prod.subcategory && (
-                        <span className="notranslate bg-rose-50/95 backdrop-blur-md text-rose-700 text-[8px] font-bold px-1.5 py-0.5 rounded-md shadow-xs border border-rose-200" translate="no">
-                          {prod.subcategory}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Sold Out Dark Overlay Mask */}
-                    {isSoldOut && (
-                      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] z-10 flex items-center justify-center p-2 text-center">
-                        <span className="bg-rose-600 text-white font-black text-[11px] px-3 py-1 rounded-lg shadow-xl uppercase border border-rose-400">
-                          🔴 ESGOTADO
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-3 space-y-1.5 notranslate" translate="no">
-                    <div className="flex items-start justify-between gap-1">
-                      <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm line-clamp-1 notranslate" translate="no">
-                        {prod.name}
+                    <div>
+                      <h3 className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2 notranslate" translate="no">
+                        <span>{group.categoryName}</span>
                       </h3>
-                      {prod.sku && (
-                        <span className="text-[8.5px] font-black bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200 dark:border-slate-700 shrink-0 notranslate" translate="no">
-                          Cód: {prod.sku}
-                        </span>
-                      )}
-                    </div>
-
-                    {prod.sizeColor && (
-                      <p className="text-[10.5px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 notranslate" translate="no">
-                        📏 {prod.sizeColor}
+                      <p className="text-[11px] sm:text-xs text-slate-500 font-medium">
+                        {group.totalProducts} item{group.totalProducts > 1 ? 's' : ''} • {group.inStockCount} em estoque
                       </p>
-                    )}
-
-                    {prod.expirationDate && (
-                      <p className="text-[9.5px] font-medium text-amber-600 dark:text-amber-400 notranslate" translate="no">
-                        📅 Val: {prod.expirationDate}
-                      </p>
-                    )}
-
-                    {/* Offer breakdown Box */}
-                    <div className="bg-slate-50 dark:bg-slate-800/70 p-2 rounded-xl border border-slate-200/80 dark:border-slate-700 space-y-1">
-                      <div className="flex items-center justify-between gap-1.5">
-                        <div>
-                          {hasDiscount && (
-                            <div className="text-[9px] text-slate-500 font-medium">
-                              De: <span className="line-through">{formatCurrency(fullPrice)}</span>
-                            </div>
-                          )}
-                          <div className="text-sm font-black text-emerald-600 dark:text-emerald-400 leading-tight">
-                            {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
-                          </div>
-                        </div>
-
-                        {hasDiscount && (
-                          <div className="flex flex-col items-end gap-0.5">
-                            <span className="text-[8px] font-black text-white bg-rose-600 px-1.5 py-0.5 rounded shadow-xs">
-                              🔥 {formatPercent(discountPercent)} OFF
-                            </span>
-                            <span className="text-[8px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
-                              Econ. {formatCurrency(discountAmount)}
-                            </span>
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </div>
+
+                  {/* Category Quick Select Button */}
+                  <button
+                    onClick={() => handleSelectCategoryProducts(group.categoryName)}
+                    className={`inline-flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold px-3 py-2 sm:py-1.5 rounded-xl border transition ${
+                      isCatAllSelected
+                        ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700'
+                    }`}
+                  >
+                    <CheckSquare className={`h-3.5 w-3.5 ${isCatAllSelected ? 'text-rose-600' : 'text-slate-400'}`} />
+                    <span>{isCatAllSelected ? 'Desmarcar Categoria' : `Selecionar ${group.categoryName}`}</span>
+                  </button>
                 </div>
 
-                {/* Actions */}
-                <div className="p-2 bg-slate-50/60 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-1.5">
-                  <button
-                    onClick={() => handleDownloadJpg(prod)}
-                    className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-extrabold text-[10.5px] py-1.5 px-1.5 rounded-lg transition flex items-center justify-center gap-1 border border-slate-200 dark:border-slate-700 active:scale-98"
-                    title="Salvar imagem JPG editada na galeria"
-                  >
-                    <Camera className="h-3 w-3 text-rose-600 dark:text-rose-400 shrink-0" />
-                    <span className="truncate">Salvar na Galeria</span>
-                  </button>
+                {/* Subcategories Blocks */}
+                <div className="space-y-5 sm:space-y-6">
+                  {group.subcategories.map((subGroup) => (
+                    <div key={subGroup.subcategoryName} className="space-y-3">
+                      
+                      {/* Subcategory Label & Divider */}
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-[11px] sm:text-xs font-extrabold border border-slate-200 dark:border-slate-700 notranslate" translate="no">
+                          <Layers className="h-3 w-3 text-rose-500 shrink-0" />
+                          <span>{subGroup.subcategoryName}</span>
+                          <span className="text-[10px] text-slate-400 font-bold ml-0.5">({subGroup.products.length})</span>
+                        </span>
+                        <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                      </div>
 
-                  <button
-                    onClick={() => {
-                      setSendCustomerProduct(prod);
-                      setIsSendCustomerOpen(true);
-                    }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10.5px] py-1.5 px-1.5 rounded-lg transition flex items-center justify-center gap-1 shadow-xs active:scale-98"
-                    title="Enviar anúncio para cliente"
-                  >
-                    <UserCheck className="h-3 w-3 shrink-0" />
-                    <span className="truncate">Enviar Cliente</span>
-                  </button>
+                      {/* Products Grid or Horizontal inside Subcategory */}
+                      {viewMode === 'horizontal' ? (
+                        /* HORIZONTAL LARGE PHOTO CARDS */
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 sm:gap-4">
+                          {subGroup.products.map((prod) => {
+                            const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(prod);
+                            const isSoldOut = prod.quantity === 0;
+                            const isLowStock = prod.quantity > 0 && prod.quantity <= 3;
+                            const isSelected = selectedProductIds.includes(prod.id);
+
+                            return (
+                              <div
+                                key={prod.id}
+                                translate="no"
+                                className={`notranslate bg-white dark:bg-slate-900 text-slate-900 dark:text-white border ${
+                                  isSelected
+                                    ? 'border-rose-500 dark:border-rose-500 ring-2 ring-rose-500/20 shadow-md'
+                                    : isSoldOut 
+                                    ? 'border-slate-200 dark:border-slate-800 opacity-80' 
+                                    : 'border-slate-200/90 dark:border-slate-800 hover:border-rose-300 dark:hover:border-slate-700 hover:shadow-md'
+                                } rounded-2xl overflow-hidden shadow-xs transition flex flex-col sm:flex-row group relative`}
+                              >
+                                {/* Photo Section */}
+                                <div className="relative w-full sm:w-5/12 h-52 sm:h-auto min-h-[190px] bg-slate-50 dark:bg-slate-800/80 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 shrink-0 overflow-hidden flex items-center justify-center">
+                                  
+                                  {/* Selection Checkbox Overlay */}
+                                  <div
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleProductSelection(prod.id);
+                                    }}
+                                    className="absolute top-2.5 left-2.5 z-30 cursor-pointer p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 hover:scale-105 transition"
+                                    title={isSelected ? 'Desmarcar foto' : 'Incluir foto'}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={() => toggleProductSelection(prod.id)}
+                                      className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300 pointer-events-none"
+                                    />
+                                  </div>
+
+                                  {/* Photo with Perfect Framing */}
+                                  {prod.imageUrl ? (
+                                    <img
+                                      src={prod.imageUrl}
+                                      alt={prod.name}
+                                      className={`w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ${
+                                        isSoldOut ? 'grayscale contrast-75' : ''
+                                      }`}
+                                      referrerPolicy="no-referrer"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                                      <Package className="h-10 w-10 mb-1 opacity-40" />
+                                      <span className="text-[10px] font-semibold">Sem foto cadastrada</span>
+                                    </div>
+                                  )}
+
+                                  {/* Stock Status Badge Overlay */}
+                                  <div className="absolute top-2.5 left-11 z-20 flex flex-col gap-1 items-start">
+                                    {isSoldOut ? (
+                                      <span className="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded-md shadow-md flex items-center gap-1 border border-rose-400">
+                                        <XCircle className="h-3 w-3" />
+                                        ESGOTADO
+                                      </span>
+                                    ) : isLowStock ? (
+                                      <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-md shadow-md flex items-center gap-1 animate-pulse border border-amber-300">
+                                        <AlertTriangle className="h-3 w-3" />
+                                        RESTAM {prod.quantity} UNID.
+                                      </span>
+                                    ) : (
+                                      <span className="bg-emerald-600 text-white font-bold text-[9px] px-2 py-0.5 rounded-md shadow-md flex items-center gap-1">
+                                        <CheckCircle2 className="h-3 w-3" />
+                                        Estoque: {prod.quantity}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Price Overlay on Photo */}
+                                  <div className="absolute top-2.5 right-2.5 z-20 flex flex-col items-end gap-0.5 max-w-[75%]">
+                                    <div className="bg-white/95 backdrop-blur-md text-slate-900 px-2 py-1 rounded-lg shadow-md border border-slate-200 text-right space-y-0.5">
+                                      {hasDiscount && (
+                                        <div className="text-[8.5px] text-slate-500 font-bold leading-tight">
+                                          De: <span className="line-through text-slate-400 font-medium">{formatCurrency(fullPrice)}</span>
+                                        </div>
+                                      )}
+                                      <div className="text-xs sm:text-sm font-black text-emerald-600 tracking-tight leading-none">
+                                        {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
+                                      </div>
+                                      {hasDiscount && (
+                                        <div className="text-[8px] font-bold text-rose-600 bg-rose-50 px-1 py-0.5 rounded border border-rose-200 inline-block mt-0.5">
+                                          {formatPercent(discountPercent)} de desconto
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Category & Subcategory Pill */}
+                                  <div className="absolute bottom-2.5 left-2.5 z-20 flex items-center gap-1 flex-wrap max-w-[90%] notranslate" translate="no">
+                                    <span className="notranslate bg-white/95 backdrop-blur-md text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200" translate="no">
+                                      {prod.category}
+                                    </span>
+                                    {prod.subcategory && (
+                                      <span className="notranslate bg-rose-50/95 backdrop-blur-md text-rose-700 text-[8.5px] font-bold px-1.5 py-0.5 rounded-md shadow-xs border border-rose-200" translate="no">
+                                        {prod.subcategory}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Sold Out Dark Mask Overlay */}
+                                  {isSoldOut && (
+                                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center text-white p-2 text-center">
+                                      <div className="bg-rose-600 text-white font-black text-xs px-3 py-1 rounded-lg shadow-xl uppercase border border-rose-400">
+                                        🔴 ESGOTADO
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Details Section */}
+                                <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between space-y-2 bg-white dark:bg-slate-900 notranslate" translate="no">
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-start justify-between gap-1.5">
+                                      <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base leading-snug line-clamp-1 notranslate" translate="no">
+                                        {prod.name}
+                                      </h3>
+                                      {prod.sku && (
+                                        <span className="text-[9px] font-black bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200 dark:border-slate-700 shrink-0 notranslate" translate="no">
+                                          Cód: {prod.sku}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {prod.sizeColor && (
+                                      <p className="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 notranslate" translate="no">
+                                        📏 {prod.sizeColor}
+                                      </p>
+                                    )}
+
+                                    {prod.expirationDate && (
+                                      <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium notranslate" translate="no">
+                                        📅 Validade: {prod.expirationDate}
+                                      </p>
+                                    )}
+
+                                    {/* Offer Box */}
+                                    <div className="bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 rounded-xl p-2.5 space-y-1">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div>
+                                          {hasDiscount && (
+                                            <div className="text-[10px] font-medium text-slate-500">
+                                              De: <span className="line-through">{formatCurrency(fullPrice)}</span>
+                                            </div>
+                                          )}
+                                          <div className="text-base sm:text-lg font-black text-emerald-600 dark:text-emerald-400 leading-tight">
+                                            {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
+                                          </div>
+                                        </div>
+
+                                        {hasDiscount && (
+                                          <div className="flex flex-col items-end gap-1">
+                                            <span className="text-[9px] font-black text-white bg-rose-600 px-2 py-0.5 rounded shadow-xs">
+                                              🔥 {formatPercent(discountPercent)} de desconto
+                                            </span>
+                                            <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                                              Economia: {formatCurrency(discountAmount)}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {prod.description && (
+                                      <p className="text-[10.5px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-snug notranslate" translate="no">
+                                        {prod.description}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  {/* Actions Bar: 3 Clear Direct Options */}
+                                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-1.5">
+                                    <button
+                                      onClick={() => handleDownloadJpg(prod)}
+                                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-extrabold text-[11px] py-2.5 sm:py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 dark:border-slate-700 active:scale-95"
+                                      title="Baixar foto editada (JPG) com preços e desconto"
+                                    >
+                                      <Download className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                                      <span className="truncate">Baixar Foto</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => handleOpenSendCustomerPhoto(prod)}
+                                      className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 dark:text-indigo-300 font-extrabold text-[11px] py-2.5 sm:py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 active:scale-95"
+                                      title="Enviar foto editada para um cliente"
+                                    >
+                                      <UserCheck className="h-3.5 w-3.5 shrink-0" />
+                                      <span className="truncate">Para Cliente</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => handleShareProductPhotoAndText(prod)}
+                                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] py-2.5 sm:py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
+                                      title="Enviar foto editada e texto completo no WhatsApp"
+                                    >
+                                      <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                                      <span className="truncate">Foto e Texto</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        /* GRID CARDS: 1 COL ON MOBILE, 2 ON TABLET, 4 ON DESKTOP */
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-3.5">
+                          {subGroup.products.map((prod) => {
+                            const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(prod);
+                            const isSoldOut = prod.quantity === 0;
+                            const isLowStock = prod.quantity > 0 && prod.quantity <= 3;
+                            const isSelected = selectedProductIds.includes(prod.id);
+
+                            return (
+                              <div
+                                key={prod.id}
+                                translate="no"
+                                className={`notranslate bg-white dark:bg-slate-900 text-slate-900 dark:text-white border ${
+                                  isSelected
+                                    ? 'border-rose-500 dark:border-rose-500 ring-2 ring-rose-500/20 shadow-md'
+                                    : isSoldOut 
+                                    ? 'border-slate-200 dark:border-slate-800 opacity-80' 
+                                    : 'border-slate-200/90 dark:border-slate-800 hover:border-rose-300 dark:hover:border-slate-700 hover:shadow-md'
+                                } rounded-2xl overflow-hidden shadow-xs transition flex flex-col justify-between group`}
+                              >
+                                <div>
+                                  {/* Photo Container */}
+                                  <div className="relative h-48 sm:h-48 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 overflow-hidden flex items-center justify-center">
+                                    
+                                    {/* Selection Checkbox */}
+                                    <div
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleProductSelection(prod.id);
+                                      }}
+                                      className="absolute top-2 left-2 z-20 cursor-pointer p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 hover:scale-105 transition"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isSelected}
+                                        onChange={() => toggleProductSelection(prod.id)}
+                                        className="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 border-slate-300 pointer-events-none"
+                                      />
+                                    </div>
+
+                                    {/* Photo */}
+                                    {prod.imageUrl ? (
+                                      <img
+                                        src={prod.imageUrl}
+                                        alt={prod.name}
+                                        className={`w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ${
+                                          isSoldOut ? 'grayscale contrast-75' : ''
+                                        }`}
+                                        referrerPolicy="no-referrer"
+                                      />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                        <Package className="h-10 w-10 opacity-40" />
+                                      </div>
+                                    )}
+
+                                    {/* Stock Status Badge */}
+                                    <div className="absolute top-2 left-10 z-10 flex flex-col gap-1 items-start">
+                                      {isSoldOut ? (
+                                        <span className="bg-rose-600 text-white font-black text-[9px] px-2 py-0.5 rounded-md shadow-md border border-rose-400">
+                                          🔴 ESGOTADO
+                                        </span>
+                                      ) : isLowStock ? (
+                                        <span className="bg-amber-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-md shadow-md animate-pulse">
+                                          ⚡ RESTAM {prod.quantity} UNID.
+                                        </span>
+                                      ) : (
+                                        <span className="bg-emerald-600 text-white font-bold text-[9px] px-2 py-0.5 rounded-md shadow-md">
+                                          Estoque: {prod.quantity} un.
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Price Overlay */}
+                                    <div className="absolute top-2 right-2 flex flex-col items-end gap-0.5 z-10 max-w-[75%]">
+                                      <div className="bg-white/95 backdrop-blur-md text-slate-900 px-2 py-1 rounded-lg shadow-md text-right border border-slate-200 space-y-0.5">
+                                        {hasDiscount && (
+                                          <div className="text-[8px] text-slate-500 font-bold leading-tight">
+                                            De: <span className="line-through text-slate-400 font-medium">{formatCurrency(fullPrice)}</span>
+                                          </div>
+                                        )}
+                                        <div className="text-xs font-black text-emerald-600 leading-none">
+                                          {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
+                                        </div>
+                                        {hasDiscount && (
+                                          <div className="text-[7.5px] font-bold text-rose-600 bg-rose-50 px-1 py-0.5 rounded border border-rose-200 inline-block mt-0.5">
+                                            {formatPercent(discountPercent)} de desconto
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Subcategory pill */}
+                                    <div className="absolute bottom-2 left-2 flex items-center gap-1 notranslate" translate="no">
+                                      <span className="notranslate bg-white/95 backdrop-blur-md text-slate-800 text-[8.5px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200" translate="no">
+                                        {prod.subcategory || prod.category}
+                                      </span>
+                                    </div>
+
+                                    {/* Sold Out Dark Overlay */}
+                                    {isSoldOut && (
+                                      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] z-10 flex items-center justify-center p-2 text-center">
+                                        <span className="bg-rose-600 text-white font-black text-[11px] px-3 py-1 rounded-lg shadow-xl uppercase border border-rose-400">
+                                          🔴 ESGOTADO
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Content */}
+                                  <div className="p-3 space-y-1.5 notranslate" translate="no">
+                                    <div className="flex items-start justify-between gap-1">
+                                      <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm line-clamp-1 notranslate" translate="no">
+                                        {prod.name}
+                                      </h3>
+                                      {prod.sku && (
+                                        <span className="text-[8.5px] font-black bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 px-1.5 py-0.5 rounded border border-rose-200 dark:border-slate-700 shrink-0 notranslate" translate="no">
+                                          Cód: {prod.sku}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {prod.sizeColor && (
+                                      <p className="text-[10.5px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 notranslate" translate="no">
+                                        📏 {prod.sizeColor}
+                                      </p>
+                                    )}
+
+                                    {prod.expirationDate && (
+                                      <p className="text-[9.5px] font-medium text-amber-600 dark:text-amber-400 notranslate" translate="no">
+                                        📅 Val: {prod.expirationDate}
+                                      </p>
+                                    )}
+
+                                    {/* Offer breakdown Box */}
+                                    <div className="bg-slate-50 dark:bg-slate-800/70 p-2 rounded-xl border border-slate-200/80 dark:border-slate-700 space-y-1">
+                                      <div className="flex items-center justify-between gap-1.5">
+                                        <div>
+                                          {hasDiscount && (
+                                            <div className="text-[9px] text-slate-500 font-medium">
+                                              De: <span className="line-through">{formatCurrency(fullPrice)}</span>
+                                            </div>
+                                          )}
+                                          <div className="text-sm font-black text-emerald-600 dark:text-emerald-400 leading-tight">
+                                            {hasDiscount ? `Por ${formatCurrency(bazarPrice)}` : formatCurrency(bazarPrice)}
+                                          </div>
+                                        </div>
+
+                                        {hasDiscount && (
+                                          <div className="flex flex-col items-end gap-0.5">
+                                            <span className="text-[8px] font-black text-white bg-rose-600 px-1.5 py-0.5 rounded shadow-xs">
+                                              🔥 {formatPercent(discountPercent)} OFF
+                                            </span>
+                                            <span className="text-[8px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                                              Econ. {formatCurrency(discountAmount)}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Actions: 3 Clear Direct Options with Touch Targets */}
+                                <div className="p-2 bg-slate-50/60 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-1">
+                                  <button
+                                    onClick={() => handleDownloadJpg(prod)}
+                                    className="w-full bg-white hover:bg-slate-100 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-extrabold text-[10.5px] py-2 px-1 rounded-lg transition flex items-center justify-center gap-1 border border-slate-200 dark:border-slate-700 active:scale-95"
+                                    title="Baixar foto editada (JPG) com preços e desconto"
+                                  >
+                                    <Download className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                                    <span className="truncate">Baixar</span>
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleOpenSendCustomerPhoto(prod)}
+                                    className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 dark:text-indigo-300 font-extrabold text-[10.5px] py-2 px-1 rounded-lg transition flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 active:scale-95"
+                                    title="Enviar foto editada para um cliente"
+                                  >
+                                    <UserCheck className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="truncate">Cliente</span>
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleShareProductPhotoAndText(prod)}
+                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10.5px] py-2 px-1 rounded-lg transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
+                                    title="Enviar foto editada e texto no WhatsApp"
+                                  >
+                                    <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="truncate">Foto+Txt</span>
+                                  </button>
+                                </div>
+
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                    </div>
+                  ))}
                 </div>
 
               </div>
@@ -1007,7 +1156,48 @@ export const BazarCatalog: React.FC = () => {
         </div>
       )}
 
-      {/* Export Full/Selective Catalog Modal */}
+      {/* MOBILE STICKY FLOATING ACTION BAR WHEN ITEMS ARE SELECTED */}
+      {selectedProductIds.length > 0 && (
+        <div className="fixed bottom-4 left-3 right-3 z-40 sm:hidden bg-slate-950/95 text-white p-3 rounded-2xl shadow-2xl border border-slate-700 backdrop-blur-md flex items-center justify-between gap-2 animate-in fade-in slide-in-from-bottom duration-200">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="bg-rose-600 text-white font-black text-xs px-2 py-1 rounded-lg shrink-0">
+              {selectedProductIds.length}
+            </span>
+            <span className="text-xs font-bold text-slate-200 truncate">
+              selecionada{selectedProductIds.length > 1 ? 's' : ''}
+            </span>
+            <button
+              onClick={handleClearSelection}
+              className="text-[10px] text-slate-400 hover:text-white underline shrink-0 ml-1"
+            >
+              Limpar
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={handleSaveSelectedToGallery}
+              disabled={isSavingToGallery}
+              className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-xl border border-slate-600 flex items-center gap-1 active:scale-95 disabled:opacity-50"
+              title="Baixar Fotos"
+            >
+              <Download className="h-3.5 w-3.5 text-rose-400" />
+              <span>Baixar</span>
+            </button>
+
+            <button
+              onClick={handleOpenExportWithSelection}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black px-3.5 py-2 rounded-xl shadow-md flex items-center gap-1.5 active:scale-95"
+              title="Enviar Fotos e Texto"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>WhatsApp</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Export Full/Selective Vitrine Modal */}
       <ExportCatalogModal
         isOpen={isExportCatalogOpen}
         onClose={() => setIsExportCatalogOpen(false)}

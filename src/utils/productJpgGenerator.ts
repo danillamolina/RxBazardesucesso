@@ -698,11 +698,12 @@ export async function shareProductJpgWhatsApp(
   product: Product,
   destination: WhatsAppDestination | boolean = 'standard',
   targetPhone?: string,
-  customerName?: string
+  customerName?: string,
+  includeText: boolean = true
 ): Promise<void> {
   const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(product);
 
-  const shareText =
+  const fullShareText =
     `🔥 *ACHADO DO RX DO BAZAR DE SUCESSO!* 🔥\n\n` +
     (customerName ? `Olá *${customerName}*! Confira essa oferta exclusiva:\n\n` : '') +
     `✨ *${product.name}*${product.sku ? ` (Cód: ${product.sku})` : ''}\n` +
@@ -714,6 +715,10 @@ export async function shareProductJpgWhatsApp(
       : `\n💰 Preço no Bazar: *${formatCurrency(bazarPrice)}*!\n`) +
     (product.quantity > 0 ? `📦 Estoque Disponível: *${product.quantity} un.*\n` : `🔴 *PRODUTO ESGOTADO*\n`) +
     `\nMe chama no privado para garantir ou tirar dúvidas! 🛍️💖`;
+
+  const shareText = includeText 
+    ? fullShareText 
+    : (customerName ? `Olá *${customerName}*! Segue a foto da peça:` : '');
 
   // Format phone if provided
   let formattedPhone = targetPhone ? targetPhone.replace(/\D/g, '') : '';

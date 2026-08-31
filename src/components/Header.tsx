@@ -66,33 +66,47 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Mobile Edition & New Bazar Buttons */}
+          {/* Mobile Edition & New Bazar Buttons */}
             <div className="md:hidden flex items-center gap-1.5">
               <button
                 onClick={() => setShowEditionModal(true)}
-                className="flex items-center text-xs bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] px-2.5 py-1.5 rounded-lg border border-[#576945] transition"
+                className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] px-2.5 py-1.5 rounded-lg border border-[#576945] transition max-w-[120px]"
                 title="Bazar Atual"
               >
-                <Calendar className="h-3.5 w-3.5 text-[#C2AD8E] mr-1.5" />
-                <span className="truncate max-w-[100px]">{activeEditionName}</span>
+                <Calendar className="h-3 w-3 text-[#C2AD8E] mr-1 shrink-0" />
+                <span className="truncate">{activeEditionName}</span>
               </button>
 
               <button
-                onClick={() => {
-                  setNewEditionName('');
-                  setShowEditionModal(true);
-                }}
-                className="flex items-center text-xs bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-bold px-2 py-1.5 rounded-lg shadow-sm transition"
-                title="Criar Novo Bazar"
+                onClick={onOpenNewSale}
+                className="flex items-center text-[11px] bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-black px-2.5 py-1.5 rounded-lg shadow-sm transition active:scale-95 shrink-0"
+                title="Nova Venda"
               >
                 <Plus className="h-3.5 w-3.5 mr-0.5" />
-                <span>Novo Bazar</span>
+                <span>+ Venda</span>
+              </button>
+
+              <button
+                onClick={onOpenNewProduct}
+                className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] font-bold px-2 py-1.5 rounded-lg border border-[#576945] transition shrink-0"
+                title="Novo Produto"
+              >
+                <Package className="h-3 w-3 mr-0.5 text-[#C2AD8E]" />
+                <span>+ Item</span>
+              </button>
+
+              <button
+                onClick={onOpenSettings}
+                className="p-1.5 text-[#D8C7AC] hover:text-white bg-[#3A452F] rounded-lg border border-[#576945] transition shrink-0"
+                title="Configurações"
+              >
+                <Settings className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
 
           {/* Desktop Edition Switcher & Quick Actions */}
-          <div className="flex items-center space-x-2 w-full md:w-auto justify-end overflow-x-auto pb-1 md:pb-0">
+          <div className="hidden md:flex items-center space-x-2 w-full md:w-auto justify-end">
             {/* Edition Switcher & Create New Bazar Buttons */}
             <div className="hidden md:flex items-center bg-[#3A452F]/90 p-1 rounded-xl border border-[#576945] space-x-1.5">
               <button
@@ -209,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Share2 className="h-4 w-4" />
-            <span>Vitrine & WhatsApp</span>
+            <span>Vitrine de Fotos</span>
           </button>
 
           <button
