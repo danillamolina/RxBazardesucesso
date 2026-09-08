@@ -875,7 +875,7 @@ export async function shareMultipleProductsWithEditedImages(
   ) {
     try {
       await navigator.share({
-        title: 'Catálogo — Rx do Bazar de Sucesso',
+        title: 'Vitrine de Fotos — Rx do Bazar de Sucesso',
         text: shareText,
         files: filesToShare,
       });

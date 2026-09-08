@@ -41,7 +41,7 @@ interface SalesListProps {
 }
 
 export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
-  const { sales, updateSaleStatus, deleteSale, editions, activeEditionId } = useBazar();
+  const { sales, updateSaleStatus, deleteSale, editions, activeEditionId, storeInfo } = useBazar();
 
   const activeEditionName = editions.find(e => e.id === activeEditionId)?.name || 'Geral';
 
@@ -234,7 +234,7 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
             <div className="space-y-4">
               {filteredSales.map((sale) => {
                 const statusBadge = getPaymentStatusLabel(sale.paymentStatus);
-                const waReceiptLink = createWhatsAppReceiptFromSale(sale);
+                const waReceiptLink = createWhatsAppReceiptFromSale(sale, storeInfo);
                 const isPartial = sale.paymentStatus === 'parcial' || (sale.amountPaid !== undefined && sale.amountPaid > 0 && sale.remainingBalance !== undefined && sale.remainingBalance > 0);
 
                 const hasInstallments = sale.installmentsCount && sale.installmentsCount > 1;
@@ -432,7 +432,7 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
             </div>
           ) : (
             customersGrouped.map((c) => {
-              const waSummaryLink = createWhatsAppCustomerSummaryLink(c.customerName, c.phone, c.cSales);
+              const waSummaryLink = createWhatsAppCustomerSummaryLink(c.customerName, c.phone, c.cSales, storeInfo);
 
               return (
                 <div

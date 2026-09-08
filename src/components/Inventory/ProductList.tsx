@@ -105,7 +105,7 @@ export const ProductList: React.FC<ProductListProps> = ({
             title="Exportar todas as fotos e informações de 1 vez"
           >
             <Share2 className="h-4 w-4" />
-            <span>Exportar Catálogo (Fotos + Texto)</span>
+            <span>Exportar Vitrine (Fotos + Texto)</span>
           </button>
 
           <button

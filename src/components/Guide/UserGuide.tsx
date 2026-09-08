@@ -155,7 +155,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({
     },
     {
       question: 'Por que o aplicativo não trava mais ao colocar muitas fotos?',
-      answer: 'Implementamos um otimizador automático de fotos em canvas. Ao tirar foto com a câmera ou carregar da galeria, a imagem é comprimida e redimensionada na medida ideal para a vitrine e catálogo, consumindo pouquíssima memória do seu aparelho e permitindo cadastrar dezenas ou centenas de peças com rapidez.'
+      answer: 'Implementamos um otimizador automático de fotos em canvas. Ao tirar foto com a câmera ou carregar da galeria, a imagem é comprimida e redimensionada na medida ideal para a vitrine virtual, consumindo pouquíssima memória do seu aparelho e permitindo cadastrar dezenas ou centenas de peças com rapidez.'
     },
     {
       question: 'Como calcular o preço de venda sem ter prejuízo no bazar?',
@@ -163,7 +163,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({
     },
     {
       question: 'Como buscar uma peça rapidamente na hora que a cliente perguntar no WhatsApp?',
-      answer: 'Abra a aba "Vitrine & WhatsApp" e digite parte do nome da peça, cor ou código na barra de busca no topo. O catálogo filtra na mesma hora. Você pode clicar no botão "Copiar Texto" ou "Enviar Foto" e mandar direto para a cliente com os valores calculados.'
+      answer: 'Abra a aba "Vitrine de Fotos" e digite parte do nome da peça, cor ou código na barra de busca no topo. A vitrine filtra na mesma hora. Você pode clicar no botão "Copiar Texto" ou "Enviar Foto" e mandar direto para a cliente com os valores calculados.'
     },
     {
       question: 'O que significa a opção "Todas as Edições" no seletor de bazar?',
@@ -363,7 +363,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                   onClick={() => onNavigateTab('catalog')}
                   className="text-xs font-bold text-[#8FA079] hover:underline flex items-center gap-1 pt-2 border-t border-slate-200 dark:border-[#3A4A30]"
                 >
-                  <span>Abrir Catálogo</span>
+                  <span>Abrir Vitrine de Fotos</span>
                   <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
@@ -552,7 +552,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span>Exportar o Catálogo em PDF ou gerar fotos JPG para aquecimento no Instagram/WhatsApp.</span>
+                    <span>Exportar a Vitrine em PDF ou gerar fotos JPG para aquecimento no Instagram/WhatsApp.</span>
                   </li>
                 </ul>
               </div>

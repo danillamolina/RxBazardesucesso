@@ -277,7 +277,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 30px system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('🛍️ RX DO BAZAR DE SUCESSO — CATÁLOGO', canvas.width / 2, 60);
+      ctx.fillText('🛍️ RX DO BAZAR DE SUCESSO — VITRINE DE FOTOS', canvas.width / 2, 60);
 
       ctx.font = '15px system-ui, sans-serif';
       ctx.fillStyle = '#ffe4e6';
@@ -408,7 +408,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `catalogo_geral_bazar_${Date.now()}.jpg`;
+      link.download = `vitrine_fotos_bazar_${Date.now()}.jpg`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -641,7 +641,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                Produtos no Catálogo (salve na galeria ou envie individualmente):
+                Fotos na Vitrine (salve na galeria ou envie individualmente):
               </span>
               <button
                 type="button"

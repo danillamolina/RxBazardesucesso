@@ -70,11 +70,25 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="md:hidden flex items-center gap-1.5">
               <button
                 onClick={() => setShowEditionModal(true)}
-                className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] px-2.5 py-1.5 rounded-lg border border-[#576945] transition max-w-[120px]"
+                className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] px-2.5 py-1.5 rounded-lg border border-[#576945] transition max-w-[105px]"
                 title="Bazar Atual"
               >
                 <Calendar className="h-3 w-3 text-[#C2AD8E] mr-1 shrink-0" />
                 <span className="truncate">{activeEditionName}</span>
+              </button>
+
+              {/* Quick Vitrine Button for Mobile */}
+              <button
+                onClick={() => setActiveTab('catalog')}
+                className={`flex items-center text-[11px] ${
+                  activeTab === 'catalog'
+                    ? 'bg-rose-600 text-white font-black shadow-sm ring-1 ring-rose-400'
+                    : 'bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] font-bold'
+                } px-2.5 py-1.5 rounded-lg border border-[#576945] transition shrink-0`}
+                title="Vitrine de Fotos"
+              >
+                <Share2 className="h-3.5 w-3.5 mr-0.5 text-emerald-300" />
+                <span>Vitrine</span>
               </button>
 
               <button
@@ -178,6 +192,19 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Dashboard</span>
           </button>
 
+          {/* Vitrine de Fotos in prime position */}
+          <button
+            onClick={() => setActiveTab('catalog')}
+            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+              activeTab === 'catalog'
+                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/40 font-bold'
+                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+            }`}
+          >
+            <Share2 className="h-4 w-4 text-emerald-400" />
+            <span>Vitrine de Fotos</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('inventory')}
             className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
@@ -212,18 +239,6 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <TrendingUp className="h-4 w-4" />
             <span>Relatório de Lucro</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('catalog')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
-              activeTab === 'catalog'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
-            }`}
-          >
-            <Share2 className="h-4 w-4" />
-            <span>Vitrine de Fotos</span>
           </button>
 
           <button

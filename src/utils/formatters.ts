@@ -1,4 +1,4 @@
-import { PaymentStatus, PaymentMethod } from '../types';
+import { PaymentStatus, PaymentMethod, StoreInfo } from '../types';
 
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
@@ -142,24 +142,44 @@ export function cleanPhoneNumber(phone?: string): string {
   return cleaned;
 }
 
-// Generate Full WhatsApp Receipt Link from a Sale
-export function createWhatsAppReceiptFromSale(sale: {
-  customerPhone?: string;
-  customerName: string;
-  productName: string;
-  quantitySold: number;
-  totalAmount: number;
-  discount?: number;
-  paymentStatus: PaymentStatus;
-  paymentMethod: PaymentMethod;
-  installmentsCount?: number;
-  installmentValue?: number;
-  amountPaid?: number;
-  remainingBalance?: number;
-  items?: { productName: string; quantitySold: number; unitBazarPrice: number; sizeColor?: string }[];
-}): string {
-  const cleanPhone = cleanPhoneNumber(sale.customerPhone);
-  if (!cleanPhone) return '#';
+// Helper to retrieve store info from parameter or localStorage fallback
+function getEffectiveStoreInfo(storeInfo?: StoreInfo): StoreInfo | undefined {
+  if (storeInfo) return storeInfo;
+  try {
+    const saved = localStorage.getItem('bazar_secreto_store_info_v1');
+    if (saved) return JSON.parse(saved);
+  } catch (e) {
+    // ignore
+  }
+  return undefined;
+}
+
+// Generate Full Plain-Text Receipt/Order Summary for Customer (Includes Chave PIX and Store Address)
+export function generateOrderReceiptText(
+  sale: {
+    customerPhone?: string;
+    customerName: string;
+    productName: string;
+    quantitySold: number;
+    totalAmount: number;
+    discount?: number;
+    paymentStatus: PaymentStatus;
+    paymentMethod: PaymentMethod;
+    installmentsCount?: number;
+    installmentValue?: number;
+    amountPaid?: number;
+    remainingBalance?: number;
+    deliveryMethod?: string;
+    customerAddress?: string;
+    customerNotes?: string;
+    items?: { productName: string; quantitySold: number; unitBazarPrice: number; sizeColor?: string }[];
+  },
+  storeInfo?: StoreInfo
+): string {
+  const store = getEffectiveStoreInfo(storeInfo);
+  const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
+  const storeAddress = store?.address?.trim();
+  const storePixKey = store?.pixKey?.trim();
 
   let statusText = '⏳ Aguardando Pagamento';
   if (sale.paymentStatus === 'pago') statusText = '✅ Pagamento Confirmado';
@@ -196,9 +216,9 @@ export function createWhatsAppReceiptFromSale(sale: {
 
   let paymentDetails = '';
   if (sale.paymentStatus === 'parcial') {
-    paymentDetails = `\n💳 *Detalhamento Financeiro:*\n• Entrada / Pago: *${formatCurrency(sale.amountPaid || 0)}*\n• Saldo Devedor: *${formatCurrency(sale.remainingBalance || 0)}*\n`;
+    paymentDetails = `• Entrada / Pago: *${formatCurrency(sale.amountPaid || 0)}*\n• Saldo Devedor: *${formatCurrency(sale.remainingBalance || 0)}*\n`;
   } else if (sale.remainingBalance && sale.remainingBalance > 0 && sale.paymentStatus !== 'pago') {
-    paymentDetails = `\n💳 *Saldo a Receber:* *${formatCurrency(sale.remainingBalance)}*\n`;
+    paymentDetails = `• Saldo a Receber: *${formatCurrency(sale.remainingBalance)}*\n`;
   }
 
   let installmentInfo = '';
@@ -207,9 +227,52 @@ export function createWhatsAppReceiptFromSale(sale: {
     installmentInfo = `• Parcelamento: *${sale.installmentsCount}x de ${formatCurrency(instVal)}*\n`;
   }
 
-  const text = encodeURIComponent(
+  // Delivery Section
+  let deliverySection = '';
+  if (sale.deliveryMethod || sale.customerAddress) {
+    deliverySection = `\n🚚 *FORMA DE ENTREGA:*\n`;
+    if (sale.deliveryMethod) {
+      deliverySection += `• Método: *${sale.deliveryMethod}*\n`;
+    }
+    if (sale.customerAddress) {
+      deliverySection += `• Endereço de Destino: *${sale.customerAddress}*\n`;
+    }
+  }
+
+  // PIX Key Section
+  let pixSection = '';
+  if (storePixKey) {
+    pixSection = `\n🔑 *DADOS PARA PAGAMENTO (CHAVE PIX):*\n` +
+      `• Chave PIX: *${storePixKey}*\n` +
+      `• Favorecido: *${storeName}*\n`;
+  }
+
+  // Store Address Section
+  let addressSection = '';
+  if (storeAddress) {
+    addressSection = `\n📍 *ENDEREÇO DA LOJA / RETIRADA:*\n` +
+      `${storeAddress}\n` +
+      (store?.notes ? `_${store.notes}_\n` : '');
+  }
+
+  // Store Contact Section
+  let contactSection = '';
+  if (store?.whatsapp || store?.instagram) {
+    contactSection = `\n📱 *CONTATO DA LOJA:*\n` +
+      (store.whatsapp ? `• WhatsApp: ${store.whatsapp}\n` : '') +
+      (store.instagram ? `• Instagram: ${store.instagram}\n` : '');
+  }
+
+  const closingMsg =
+    sale.paymentStatus === 'pago'
+      ? `Seu pedido está totalmente pago e garantido! Muito obrigada pela preferência e carinho! 🥰💖`
+      : sale.paymentStatus === 'parcial'
+      ? `Anotamos o seu pagamento parcial! Segue a chave PIX acima para quitação do restante. Muito obrigada! 🥰`
+      : `Por favor, envie o comprovante do PIX por aqui assim que realizar o pagamento para garantirmos suas peças! Qualquer dúvida estou à disposição! 😘`;
+
+  return (
     `Olá ${sale.customerName}! ✨\n\n` +
-    `Aqui está o *Comprovante / Resumo do seu Pedido* no *Bazar de Sucesso*! 🛍️💖\n\n` +
+    `Aqui está o *Comprovante / Resumo do seu Pedido* no *${storeName}*! 🛍️💖\n\n` +
     `📋 *ITENS DO PEDIDO:*\n` +
     `${itemsText}\n\n` +
     `💰 *RESUMO FINANCEIRO:*\n` +
@@ -218,15 +281,42 @@ export function createWhatsAppReceiptFromSale(sale: {
     `• Forma de Pagamento: *${methodText}*\n` +
     `${installmentInfo}` +
     `• Status do Pagamento: ${statusText}\n` +
-    `${paymentDetails}\n` +
-    (sale.paymentStatus === 'pago'
-      ? `Seu pedido está totalmente pago e reservado! Muito obrigada pela preferência! 🥰💖`
-      : sale.paymentStatus === 'parcial'
-      ? `Anotamos o seu pagamento parcial! Segue o saldo restante para quitação. Muito obrigada! 🥰`
-      : `Por favor, me confirme assim que realizar o pagamento ou para combinarmos a entrega/retirada. Qualquer dúvida estou à disposição! 😘`)
+    `${paymentDetails}` +
+    `${deliverySection}` +
+    `${pixSection}` +
+    `${addressSection}` +
+    `${contactSection}\n` +
+    `${closingMsg}`
   );
+}
 
-  return `https://wa.me/${cleanPhone}?text=${text}`;
+// Generate Full WhatsApp Receipt Link from a Sale
+export function createWhatsAppReceiptFromSale(
+  sale: {
+    customerPhone?: string;
+    customerName: string;
+    productName: string;
+    quantitySold: number;
+    totalAmount: number;
+    discount?: number;
+    paymentStatus: PaymentStatus;
+    paymentMethod: PaymentMethod;
+    installmentsCount?: number;
+    installmentValue?: number;
+    amountPaid?: number;
+    remainingBalance?: number;
+    deliveryMethod?: string;
+    customerAddress?: string;
+    customerNotes?: string;
+    items?: { productName: string; quantitySold: number; unitBazarPrice: number; sizeColor?: string }[];
+  },
+  storeInfo?: StoreInfo
+): string {
+  const cleanPhone = cleanPhoneNumber(sale.customerPhone);
+  if (!cleanPhone) return '#';
+
+  const text = generateOrderReceiptText(sale, storeInfo);
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
 }
 
 // Generate WhatsApp Sale Link (Legacy signature fallback)
@@ -238,19 +328,23 @@ export function createWhatsAppSaleMessageLink(
   totalAmount: number,
   paymentStatus: PaymentStatus,
   amountPaid?: number,
-  remainingBalance?: number
+  remainingBalance?: number,
+  storeInfo?: StoreInfo
 ): string {
-  return createWhatsAppReceiptFromSale({
-    customerPhone: phone,
-    customerName,
-    productName,
-    quantitySold: quantity,
-    totalAmount,
-    paymentStatus,
-    paymentMethod: 'pix',
-    amountPaid,
-    remainingBalance,
-  });
+  return createWhatsAppReceiptFromSale(
+    {
+      customerPhone: phone,
+      customerName,
+      productName,
+      quantitySold: quantity,
+      totalAmount,
+      paymentStatus,
+      paymentMethod: 'pix',
+      amountPaid,
+      remainingBalance,
+    },
+    storeInfo
+  );
 }
 
 // Generate Full WhatsApp Customer Summary Link (All orders for a customer)
@@ -271,10 +365,16 @@ export function createWhatsAppCustomerSummaryLink(
     amountPaid?: number;
     remainingBalance?: number;
     items?: { productName: string; quantitySold: number; unitBazarPrice: number; sizeColor?: string }[];
-  }[]
+  }[],
+  storeInfo?: StoreInfo
 ): string {
   const cleanPhone = cleanPhoneNumber(customerPhone);
   if (!cleanPhone) return '#';
+
+  const store = getEffectiveStoreInfo(storeInfo);
+  const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
+  const storeAddress = store?.address?.trim();
+  const storePixKey = store?.pixKey?.trim();
 
   const totalSpent = customerSales.reduce((acc, s) => acc + s.totalAmount, 0);
   const totalPaid = customerSales.reduce((acc, s) => {
@@ -316,18 +416,35 @@ export function createWhatsAppCustomerSummaryLink(
     })
     .join('\n\n');
 
+  let pixSection = '';
+  if (storePixKey) {
+    pixSection = `\n🔑 *DADOS PARA PAGAMENTO (CHAVE PIX):*\n` +
+      `• Chave PIX: *${storePixKey}*\n` +
+      `• Favorecido: *${storeName}*\n`;
+  }
+
+  let addressSection = '';
+  if (storeAddress) {
+    addressSection = `\n📍 *ENDEREÇO DA LOJA / RETIRADA:*\n` +
+      `${storeAddress}\n` +
+      (store?.notes ? `_${store.notes}_\n` : '');
+  }
+
   const text = encodeURIComponent(
     `Olá ${customerName}! ✨\n\n` +
-    `Aqui está o *Resumo Geral de Todos os seus Pedidos* no *Bazar de Sucesso*! 🛍️💖\n\n` +
+    `Aqui está o *Resumo Geral de Todos os seus Pedidos* no *${storeName}*! 🛍️💖\n\n` +
     `${ordersListText}\n\n` +
     `📊 *EXTRATO GERAL DA CLIENTE:*\n` +
     `• Total dos Pedidos: *${formatCurrency(totalSpent)}*\n` +
     `• Total Já Quitado: *${formatCurrency(totalPaid)}*\n` +
     (totalRemaining > 0
-      ? `• Saldo Devedor Pendente: *${formatCurrency(totalRemaining)}*\n\n` +
-        `Ficamos à disposição para qualquer dúvida ou para envio do PIX! Muito obrigada pelo carinho! 🥰`
-      : `• Situação: *✅ Totalmente Quitado!*\n\n` +
-        `Todos os seus produtos já estão confirmados e quitados. Muito obrigada pela confiança! 🥰💖`)
+      ? `• Saldo Devedor Pendente: *${formatCurrency(totalRemaining)}*\n`
+      : `• Situação: *✅ Totalmente Quitado!*\n`) +
+    `${pixSection}` +
+    `${addressSection}\n` +
+    (totalRemaining > 0
+      ? `Ficamos à disposição para qualquer dúvida ou para confirmação do pagamento via PIX! Muito obrigada pelo carinho! 🥰`
+      : `Todos os seus produtos já estão confirmados e quitados. Muito obrigada pela confiança e preferência! 🥰💖`)
   );
 
   return `https://wa.me/${cleanPhone}?text=${text}`;
@@ -435,7 +552,7 @@ export function generateFullCatalogExportText(products: {
     return '🛍️ *RX DO BAZAR DE SUCESSO*: Nenhum produto selecionado no momento.';
   }
 
-  let text = `🛍️✨ *CATÁLOGO DE OFERTAS — RX DO BAZAR DE SUCESSO* ✨🛍️\n`;
+  let text = `🛍️✨ *VITRINE DE FOTOS & OFERTAS — RX DO BAZAR DE SUCESSO* ✨🛍️\n`;
   text += `Confira as peças selecionadas disponíveis para pronta entrega:\n`;
   text += `───────────────────────\n\n`;
 

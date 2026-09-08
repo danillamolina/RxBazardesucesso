@@ -851,7 +851,7 @@ export function generateUserGuidePdf(editionName?: string) {
             </li>
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
-              <span>Exportar Catálogo em PDF / JPG para aquecimento nas redes sociais.</span>
+              <span>Exportar Vitrine de Fotos em PDF / JPG para aquecimento nas redes sociais.</span>
             </li>
           </ul>
         </div>

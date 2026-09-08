@@ -86,7 +86,7 @@ export const CategoryManagementModal: React.FC<CategoryManagementModalProps> = (
             </div>
             <div>
               <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                Categorias & Subcategorias do Catálogo
+                Categorias & Subcategorias da Vitrine
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                 Organize e classifique as peças do seu bazar para facilitar a navegação e envio
@@ -350,7 +350,7 @@ export const CategoryManagementModal: React.FC<CategoryManagementModalProps> = (
             onClick={onClose}
             className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs sm:text-sm font-extrabold px-6 py-2.5 rounded-xl transition"
           >
-            Concluir & Voltar ao Catálogo
+            Concluir & Voltar à Vitrine
           </button>
         </div>
 

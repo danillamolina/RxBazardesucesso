@@ -113,7 +113,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   // Handle Clear All Data
   const handleClearAllData = () => {
-    if (confirm('ATENÇÃO: Deseja REALMENTE limpar todos os dados do sistema (zerar catálogo de produtos e histórico de vendas)? Essa ação é irreversível.')) {
+    if (confirm('ATENÇÃO: Deseja REALMENTE limpar todos os dados do sistema (zerar estoque de produtos e histórico de vendas)? Essa ação é irreversível.')) {
       clearAllData();
       setNotification({
         type: 'success',
@@ -212,7 +212,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     PDF do Estoque
                   </h4>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3 leading-relaxed">
-                    Catálogo com {products.length} itens, custos, preço no bazar e margens.
+                    Lista completa com {products.length} itens, custos, preço no bazar e margens.
                   </p>
                 </div>
                 <button
@@ -314,7 +314,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     </h4>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                    Gere um arquivo de segurança no formato <code className="bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded font-mono text-[11px]">.json</code> contendo todo o seu catálogo, estoque, histórico de vendas e edições.
+                    Gere um arquivo de segurança no formato <code className="bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded font-mono text-[11px]">.json</code> contendo todos os seus produtos, vitrine, estoque, histórico de vendas e edições.
                   </p>
                 </div>
                 <button

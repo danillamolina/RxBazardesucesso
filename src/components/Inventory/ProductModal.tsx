@@ -704,7 +704,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               {isProcessingImage && (
                 <div className="bg-rose-50/80 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-2xl p-4 flex items-center justify-center gap-3 text-rose-700 dark:text-rose-300 text-xs font-semibold animate-pulse mb-3">
                   <Loader2 className="h-5 w-5 animate-spin text-rose-500" />
-                  <span>Processando e otimizando foto para o catálogo...</span>
+                  <span>Processando e otimizando foto para a vitrine...</span>
                 </div>
               )}
 
@@ -728,7 +728,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   <div className="flex-1 text-center sm:text-left space-y-2 w-full">
                     <div>
                       <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                        Foto pronta para o Catálogo e WhatsApp
+                        Foto pronta para a Vitrine e WhatsApp
                       </p>
                       {imageStats && (
                         <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
@@ -814,10 +814,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <div className="space-y-0.5">
                 <label className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5 cursor-pointer" onClick={() => setShowInCatalog(!showInCatalog)}>
                   <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  <span>Exibir na Vitrine / Catálogo do Bazar</span>
+                  <span>Exibir na Vitrine de Fotos do Bazar</span>
                 </label>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Quando ativado, este produto ficará visível no catálogo online e será incluído na exportação de fotos do WhatsApp.
+                  Quando ativado, este produto ficará visível na vitrine de fotos e será incluído na exportação de fotos do WhatsApp.
                 </p>
               </div>
 
