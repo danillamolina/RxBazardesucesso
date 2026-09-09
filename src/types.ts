@@ -38,7 +38,8 @@ export interface Product {
   imageUrl?: string;
   description?: string;
   sizeColor?: string; // ex: "Tam M / Rosa"
-  bazarEditionId?: string; // Edição do bazar
+  bazarEditionId?: string; // Edição do bazar principal (compatibilidade retroativa)
+  bazarEditionIds?: string[]; // IDs das edições em que o produto está ativo/vinculado
   showInCatalog?: boolean; // Se o produto deve ser exibido na Vitrine/Catálogo (padrão true)
   createdAt: string;
 }

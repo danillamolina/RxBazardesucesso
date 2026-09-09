@@ -1,8 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { X, Edit3, ShoppingCart, User, Plus, Trash2, Save, DollarSign, Package, MapPin, Truck, Search } from 'lucide-react';
-import { Sale, SaleItem, PaymentStatus, PaymentMethod } from '../../types';
+import { 
+  X, 
+  Edit3, 
+  ShoppingCart, 
+  User, 
+  Plus, 
+  Trash2, 
+  Save, 
+  DollarSign, 
+  Package, 
+  MapPin, 
+  Truck, 
+  Search,
+  Filter,
+  Copy,
+  Check,
+  MessageSquare
+} from 'lucide-react';
+import { Sale, SaleItem, PaymentStatus, PaymentMethod, Product } from '../../types';
 import { useBazar } from '../../context/BazarContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, createWhatsAppReceiptFromSale, generateOrderReceiptText } from '../../utils/formatters';
 
 interface EditSaleModalProps {
   sale: Sale | null;
@@ -11,9 +28,12 @@ interface EditSaleModalProps {
 }
 
 interface ItemRow {
+  id: string;
   productId: string;
   quantitySold: number;
   unitBazarPrice: number;
+  filterText?: string;
+  categoryFilter?: string;
 }
 
 export const EditSaleModal: React.FC<EditSaleModalProps> = ({
@@ -21,11 +41,11 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { products, sales, updateSale } = useBazar();
+  const { products, sales, updateSale, storeInfo } = useBazar();
 
   const [items, setItems] = useState<ItemRow[]>([]);
   const [discount, setDiscount] = useState<number>(0);
-  const [productFilter, setProductFilter] = useState('');
+  const [copiedReceipt, setCopiedReceipt] = useState(false);
   
   // Customer Info
   const [customerName, setCustomerName] = useState('');
@@ -40,22 +60,37 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
   const [installmentsCount, setInstallmentsCount] = useState<number>(1);
   const [amountPaid, setAmountPaid] = useState<number>(0);
 
+  // Available unique categories from inventory
+  const availableCategories = React.useMemo(() => {
+    const cats = new Set<string>();
+    products.forEach((p) => {
+      if (p.category) cats.add(p.category);
+    });
+    return Array.from(cats).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [products]);
+
   useEffect(() => {
     if (sale) {
       if (sale.items && sale.items.length > 0) {
         setItems(
-          sale.items.map((i) => ({
+          sale.items.map((i, idx) => ({
+            id: `item-${sale.id}-${idx}-${Date.now()}`,
             productId: i.productId,
             quantitySold: i.quantitySold,
             unitBazarPrice: i.unitBazarPrice,
+            filterText: '',
+            categoryFilter: '',
           }))
         );
       } else {
         setItems([
           {
+            id: `item-${sale.id}-0-${Date.now()}`,
             productId: sale.productId,
             quantitySold: sale.quantitySold,
             unitBazarPrice: sale.unitBazarPrice,
+            filterText: '',
+            categoryFilter: '',
           },
         ]);
       }
@@ -72,31 +107,19 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
     }
   }, [sale, isOpen]);
 
-  // Alphabetically sorted & filtered products by code or name
-  const sortedAndFilteredProducts = React.useMemo(() => {
-    const sorted = [...products].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-    if (!productFilter.trim()) return sorted;
-    const query = productFilter.toLowerCase().trim();
-    return sorted.filter(
-      (p) =>
-        p.name.toLowerCase().includes(query) ||
-        (p.sku && p.sku.toLowerCase().includes(query)) ||
-        (p.sizeColor && p.sizeColor.toLowerCase().includes(query))
-    );
-  }, [products, productFilter]);
-
   if (!isOpen || !sale) return null;
 
-  // Handle adding an item line
+  // Handle adding an item line - PLACED AT THE TOP (parte de cima)
   const handleAddItem = () => {
-    setItems((prev) => [
-      ...prev,
-      {
-        productId: '',
-        quantitySold: 1,
-        unitBazarPrice: 0,
-      },
-    ]);
+    const newItem: ItemRow = {
+      id: `edit-item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      productId: '',
+      quantitySold: 1,
+      unitBazarPrice: 0,
+      filterText: '',
+      categoryFilter: '',
+    };
+    setItems((prev) => [newItem, ...prev]);
   };
 
   // Handle removing an item line
@@ -126,27 +149,38 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
     );
   };
 
+  // Filter products specifically for each individual product row
+  const getItemFilteredProducts = (item: ItemRow) => {
+    const query = (item.filterText || '').toLowerCase().trim();
+    const cat = item.categoryFilter || '';
+
+    return products
+      .filter((p) => {
+        if (cat && p.category !== cat) {
+          if (p.id === item.productId) return true;
+          return false;
+        }
+        if (query) {
+          const matchesName = p.name.toLowerCase().includes(query);
+          const matchesSku = p.sku ? p.sku.toLowerCase().includes(query) : false;
+          const matchesSizeColor = p.sizeColor ? p.sizeColor.toLowerCase().includes(query) : false;
+          const matchesSub = p.subcategory ? p.subcategory.toLowerCase().includes(query) : false;
+          if (!matchesName && !matchesSku && !matchesSizeColor && !matchesSub) {
+            if (p.id === item.productId) return true;
+            return false;
+          }
+        }
+        return true;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  };
+
   // Calculate totals
   const subtotal = items.reduce((acc, i) => acc + i.quantitySold * i.unitBazarPrice, 0);
   const totalAmount = Math.max(0, subtotal - discount);
   const remainingBalance = Math.max(0, totalAmount - amountPaid);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customerName.trim()) {
-      alert('Por favor, informe o nome do cliente.');
-      return;
-    }
-    if (items.length === 0) {
-      alert('Adicione pelo menos um produto ao pedido.');
-      return;
-    }
-    if (items.some((i) => !i.productId)) {
-      alert('Por favor, escolha o produto para todos os itens do pedido.');
-      return;
-    }
-
-    // Build structured SaleItems array
+  const buildSalePayload = () => {
     const structuredItems: SaleItem[] = items.map((i) => {
       const prod = products.find((p) => p.id === i.productId);
       return {
@@ -161,8 +195,7 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
 
     const primaryProduct = products.find((p) => p.id === items[0].productId);
 
-    // Primary Summary
-    let productNameSummary = structuredItems[0].productName;
+    let productNameSummary = structuredItems[0]?.productName || 'Produto';
     if (structuredItems.length > 1) {
       productNameSummary = `${structuredItems[0].productName} (+ ${structuredItems.length - 1} item(ns))`;
     }
@@ -171,12 +204,12 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
     const primaryCostPrice = primaryProduct ? primaryProduct.costPrice : 0;
     const calcInstallmentValue = installmentsCount > 0 ? Math.round((totalAmount / installmentsCount) * 100) / 100 : totalAmount;
 
-    const success = updateSale(sale.id, {
-      productId: items[0].productId,
+    return {
+      productId: items[0]?.productId || '',
       productName: productNameSummary,
       quantitySold: totalQuantity,
       unitCostPrice: primaryCostPrice,
-      unitBazarPrice: items[0].unitBazarPrice,
+      unitBazarPrice: items[0]?.unitBazarPrice || 0,
       items: structuredItems,
       totalAmount,
       discount,
@@ -191,9 +224,46 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
       installmentValue: calcInstallmentValue,
       amountPaid: paymentStatus === 'pago' ? totalAmount : amountPaid,
       remainingBalance: paymentStatus === 'pago' ? 0 : Math.max(0, totalAmount - amountPaid),
-    });
+    };
+  };
+
+  const handleCopyOrderText = () => {
+    if (!customerName.trim()) {
+      alert('Preencha o nome da cliente primeiro.');
+      return;
+    }
+    const payload = buildSalePayload();
+    const receiptText = generateOrderReceiptText(payload as any, storeInfo);
+    navigator.clipboard.writeText(receiptText);
+    setCopiedReceipt(true);
+    setTimeout(() => setCopiedReceipt(false), 3000);
+  };
+
+  const handleSubmit = (e: React.FormEvent, sendWhatsApp = false) => {
+    e.preventDefault();
+    if (!customerName.trim()) {
+      alert('Por favor, informe o nome do cliente.');
+      return;
+    }
+    if (items.length === 0) {
+      alert('Adicione pelo menos um produto ao pedido.');
+      return;
+    }
+    if (items.some((i) => !i.productId)) {
+      alert('Por favor, escolha o produto para todos os itens do pedido.');
+      return;
+    }
+
+    const payload = buildSalePayload();
+    const success = updateSale(sale.id, payload);
 
     if (success) {
+      if (sendWhatsApp && payload.customerPhone) {
+        const link = createWhatsAppReceiptFromSale(payload as any, storeInfo);
+        if (link && link !== '#') {
+          window.open(link, '_blank');
+        }
+      }
       onClose();
     }
   };
@@ -312,129 +382,205 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
             </div>
           </div>
 
-          {/* Products List (Multi-item order) */}
+          {/* Products List (Multi-item order with individual filter per product) */}
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Package className="h-4 w-4 text-emerald-500" />
-                Produtos do Pedido ({items.length})
-              </h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Package className="h-4 w-4 text-sky-500" />
+                  Produtos do Pedido ({items.length})
+                </h4>
+                <span className="text-[10px] bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded-md font-semibold hidden sm:inline">
+                  Novos itens entram no topo
+                </span>
+              </div>
 
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 transition self-start sm:self-auto"
+                className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 flex items-center gap-1.5 bg-sky-50 dark:bg-sky-950/40 px-3.5 py-1.5 rounded-xl border border-sky-300 dark:border-sky-800 transition active:scale-95 shadow-sm self-start sm:self-auto"
               >
-                <Plus className="h-3.5 w-3.5" />
-                <span>+ Adicionar Produto</span>
+                <Plus className="h-4 w-4" />
+                <span>+ Adicionar Produto ao Topo</span>
               </button>
             </div>
 
-            {/* Quick Filter by Code or Name */}
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                <Search className="h-3.5 w-3.5" />
-              </div>
-              <input
-                type="text"
-                placeholder="Filtrar produtos por nome ou código (SKU)..."
-                value={productFilter}
-                onChange={(e) => setProductFilter(e.target.value)}
-                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-8 py-2 text-xs font-medium focus:outline-none focus:border-sky-500 transition"
-              />
-              {productFilter && (
-                <button
-                  type="button"
-                  onClick={() => setProductFilter('')}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-
-            <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+            <div className="space-y-3.5 max-h-72 overflow-y-auto pr-1">
               {items.map((item, index) => {
                 const lineTotal = item.quantitySold * item.unitBazarPrice;
+                const itemFilteredProducts = getItemFilteredProducts(item);
+                const selectedProd = products.find((p) => p.id === item.productId);
+                const isTopItem = index === 0;
 
                 return (
                   <div
-                    key={index}
-                    className="p-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-3"
+                    key={item.id || index}
+                    className={`p-3.5 rounded-2xl border transition shadow-sm ${
+                      isTopItem
+                        ? 'bg-sky-50/50 dark:bg-sky-950/20 border-sky-300 dark:border-sky-700/80 ring-1 ring-sky-400/30'
+                        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
+                    }`}
                   >
-                    {/* Product Select */}
-                    <div className="flex-1 w-full">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
-                        Item #{index + 1}
-                      </label>
-                      <select
-                        value={item.productId}
-                        onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
-                        className={`w-full bg-white dark:bg-slate-900 border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-sky-500 transition ${
-                          !item.productId
-                            ? 'border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-400 font-bold bg-amber-50/50 dark:bg-amber-950/20'
-                            : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white'
-                        }`}
-                      >
-                        <option value="">-- Selecione o Produto (Ordem Alfabética) --</option>
-                        {sortedAndFilteredProducts.map((p) => (
-                          <option key={p.id} value={p.id}>
-                            {p.sku ? `[Cód: ${p.sku}] ` : ''}{p.name} {p.sizeColor ? `(${p.sizeColor})` : ''} — {p.quantity} em estoque - {formatCurrency(p.bazarPrice)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Quantity */}
-                    <div className="w-24">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
-                        Qtd
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        required
-                        value={item.quantitySold}
-                        onChange={(e) => handleItemChange(index, 'quantitySold', parseInt(e.target.value, 10) || 1)}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-center focus:outline-none focus:border-sky-500"
-                      />
-                    </div>
-
-                    {/* Unit Price */}
-                    <div className="w-28">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">
-                        Preço Un. (R$)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        required
-                        value={item.unitBazarPrice}
-                        onChange={(e) => handleItemChange(index, 'unitBazarPrice', parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-center focus:outline-none focus:border-sky-500"
-                      />
-                    </div>
-
-                    {/* Line Total & Remove Button */}
-                    <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-slate-200 dark:border-slate-700">
-                      <div className="text-right">
-                        <span className="block text-[10px] font-bold text-slate-400 uppercase">Total Line</span>
-                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                          {formatCurrency(lineTotal)}
+                    {/* Item Top Bar */}
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/80 dark:border-slate-700/70 flex-wrap gap-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100">
+                          Item #{index + 1}
                         </span>
+                        {isTopItem && (
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-sky-600 text-white uppercase tracking-wider">
+                            Novo / Topo
+                          </span>
+                        )}
+                        {selectedProd && (
+                          <span className="text-xs font-bold text-sky-600 dark:text-sky-400 truncate max-w-[200px] sm:max-w-xs">
+                            ✓ {selectedProd.name} {selectedProd.sizeColor ? `(${selectedProd.sizeColor})` : ''}
+                          </span>
+                        )}
                       </div>
 
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(index)}
                         disabled={items.length === 1}
-                        className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition disabled:opacity-30 disabled:hover:bg-transparent"
+                        className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition disabled:opacity-30 disabled:hover:bg-transparent flex items-center gap-1 text-xs font-semibold"
                         title="Remover produto do pedido"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline text-[11px]">Remover</span>
                       </button>
                     </div>
+
+                    {/* Dedicated Filter FOR THIS PRODUCT */}
+                    <div className="mb-2.5 bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                          <Filter className="h-3 w-3 text-sky-500" />
+                          Filtro deste Produto:
+                        </span>
+                        {(item.filterText || item.categoryFilter) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleItemChange(index, 'filterText', '');
+                              handleItemChange(index, 'categoryFilter', '');
+                            }}
+                            className="text-[10px] font-bold text-rose-500 hover:underline"
+                          >
+                            Limpar Filtro
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                        <div className="sm:col-span-7 relative">
+                          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                            <Search className="h-3 w-3" />
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Buscar p/ nome, código (SKU) ou tamanho..."
+                            value={item.filterText || ''}
+                            onChange={(e) => handleItemChange(index, 'filterText', e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-7 pr-2.5 py-1 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-5">
+                          <select
+                            value={item.categoryFilter || ''}
+                            onChange={(e) => handleItemChange(index, 'categoryFilter', e.target.value)}
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-700 dark:text-slate-300 focus:outline-none focus:border-sky-500"
+                          >
+                            <option value="">Todas Categorias</option>
+                            {availableCategories.map((cat) => (
+                              <option key={cat} value={cat}>
+                                {cat}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Product Selection Inputs */}
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+                      {/* Product Select */}
+                      <div className="sm:col-span-6">
+                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-0.5 flex items-center justify-between">
+                          <span>Selecione o Produto *</span>
+                          <span className="text-slate-400 font-normal">
+                            ({itemFilteredProducts.length} opção{itemFilteredProducts.length !== 1 ? 'ões' : ''})
+                          </span>
+                        </label>
+                        <select
+                          value={item.productId}
+                          onChange={(e) => handleItemChange(index, 'productId', e.target.value)}
+                          className={`w-full bg-white dark:bg-slate-900 border rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-sky-500 transition ${
+                            !item.productId
+                              ? 'border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-400 font-bold bg-amber-50/50 dark:bg-amber-950/20'
+                              : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white'
+                          }`}
+                        >
+                          <option value="">
+                            {itemFilteredProducts.length === 0
+                              ? '-- Nenhum produto com este filtro --'
+                              : '-- Selecione o Produto --'}
+                          </option>
+                          {itemFilteredProducts.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.sku ? `[Cód: ${p.sku}] ` : ''}{p.name} {p.sizeColor ? `(${p.sizeColor})` : ''} — {p.quantity === 0 ? 'SEM ESTOQUE' : `${p.quantity} un.`} - {formatCurrency(p.bazarPrice)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Quantity */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-0.5">
+                          Qtd
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          required
+                          value={item.quantitySold}
+                          onChange={(e) => handleItemChange(index, 'quantitySold', parseInt(e.target.value, 10) || 1)}
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-center focus:outline-none focus:border-sky-500 text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      {/* Unit Price */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-0.5">
+                          Preço Un. (R$)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          value={item.unitBazarPrice}
+                          onChange={(e) => handleItemChange(index, 'unitBazarPrice', parseFloat(e.target.value) || 0)}
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-center focus:outline-none focus:border-sky-500 text-slate-900 dark:text-white"
+                        />
+                      </div>
+
+                      {/* Line Subtotal */}
+                      <div className="sm:col-span-2 text-right sm:pb-1">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase">Subtotal</span>
+                        <span className="text-xs sm:text-sm font-black text-sky-600 dark:text-sky-400">
+                          {formatCurrency(lineTotal)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {selectedProd && (
+                      <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between flex-wrap gap-2 pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
+                        <span>Estoque: <strong className={selectedProd.quantity <= 2 ? 'text-amber-500 font-bold' : 'text-slate-700 dark:text-slate-300 font-bold'}>{selectedProd.quantity} un.</strong></span>
+                        {selectedProd.category && <span>Categoria: <strong className="text-slate-700 dark:text-slate-300">{selectedProd.category}</strong></span>}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -459,7 +605,7 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
                 />
               </div>
 
-              <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700 font-black text-sm text-emerald-600 dark:text-emerald-400">
+              <div className="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-slate-700 font-black text-sm text-sky-600 dark:text-sky-400">
                 <span>VALOR TOTAL DO PEDIDO:</span>
                 <span className="text-base">{formatCurrency(totalAmount)}</span>
               </div>
@@ -563,21 +709,56 @@ export const EditSaleModal: React.FC<EditSaleModalProps> = ({
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+            {/* Quick Copy Receipt text button */}
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-2xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              onClick={handleCopyOrderText}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition"
+              title="Copia o resumo completo do pedido já com a Chave PIX e Endereço da loja para a área de transferência"
             >
-              Cancelar
+              {copiedReceipt ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="text-emerald-600 dark:text-emerald-400">Pedido Copiado c/ PIX!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3.5 w-3.5 text-slate-500" />
+                  <span>Copiar Pedido c/ PIX</span>
+                </>
+              )}
             </button>
-            <button
-              type="submit"
-              className="px-5 py-2.5 rounded-2xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-lg shadow-sky-500/20 transition active:scale-95 flex items-center gap-1.5"
-            >
-              <Save className="h-4 w-4" />
-              <span>Salvar Alterações no Pedido</span>
-            </button>
+
+            <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white transition active:scale-95 flex items-center gap-1.5"
+                title="Apenas salva as alterações e atualiza o estoque"
+              >
+                <Save className="h-3.5 w-3.5" />
+                <span>Apenas Salvar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => handleSubmit(e, true)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition active:scale-95 flex items-center gap-1.5"
+                title="Salva as alterações e abre o WhatsApp com o comprovante contendo a Chave PIX e o Endereço da loja"
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                <span>Salvar e Enviar no WhatsApp</span>
+              </button>
+            </div>
           </div>
 
         </form>

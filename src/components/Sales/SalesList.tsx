@@ -20,7 +20,8 @@ import {
   CreditCard,
   MapPin,
   Truck,
-  Download
+  Download,
+  Copy
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { Sale, PaymentStatus, PaymentMethod } from '../../types';
@@ -30,14 +31,15 @@ import {
   getPaymentStatusLabel, 
   getPaymentMethodLabel,
   createWhatsAppReceiptFromSale,
-  createWhatsAppCustomerSummaryLink
+  createWhatsAppCustomerSummaryLink,
+  generateCustomerSummaryText
 } from '../../utils/formatters';
 import { PartialPaymentModal } from './PartialPaymentModal';
 import { EditSaleModal } from './EditSaleModal';
 import { generateSalesPdf } from '../../utils/pdfGenerator';
 
 interface SalesListProps {
-  onOpenNewSale: () => void;
+  onOpenNewSale: (cust?: { name: string; phone?: string; address?: string; deliveryMethod?: string; notes?: string }) => void;
 }
 
 export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
@@ -48,6 +50,7 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
   const [viewMode, setViewMode] = useState<'vendas' | 'clientes'>('vendas');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<PaymentStatus | 'todos'>('todos');
+  const [copiedClientId, setCopiedClientId] = useState<string | null>(null);
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | 'todos'>('todos');
 
   // Modals state
@@ -475,23 +478,60 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
                       </p>
                     </div>
 
-                    {/* WhatsApp Button for Total Customer Statement */}
-                    {c.phone ? (
-                      <a
-                        href={waSummaryLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition active:scale-95"
+                    {/* Actions for this Customer */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenNewSale({
+                            name: c.customerName,
+                            phone: c.phone,
+                            address: c.address,
+                            deliveryMethod: c.deliveryMethod,
+                            notes: c.notes,
+                          })
+                        }
+                        className="bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs px-3.5 py-2.5 rounded-2xl shadow-sm flex items-center justify-center gap-1.5 transition active:scale-95"
+                        title="Adicionar um novo pedido para esta cliente"
                       >
-                        <Send className="h-4 w-4" />
-                        <span>Enviar Pedido Total pelo WhatsApp</span>
-                        <ExternalLink className="h-3.5 w-3.5 opacity-80" />
-                      </a>
-                    ) : (
-                      <span className="text-xs text-amber-600 dark:text-amber-400 font-medium italic">
-                        Sem telefone cadastrado para WhatsApp
-                      </span>
-                    )}
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>+ Novo Pedido</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const text = generateCustomerSummaryText(c.customerName, c.sales, storeInfo);
+                          navigator.clipboard.writeText(text);
+                          setCopiedClientId(c.customerName);
+                          setTimeout(() => setCopiedClientId(null), 3000);
+                        }}
+                        className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs px-3.5 py-2.5 rounded-2xl transition flex items-center gap-1.5"
+                        title="Copia o extrato completo da cliente com Chave PIX e Endereço da loja"
+                      >
+                        <Copy className="h-3.5 w-3.5 text-slate-500" />
+                        <span>{copiedClientId === c.customerName ? 'Extrato Copiado!' : 'Copiar c/ PIX'}</span>
+                      </button>
+
+                      {/* WhatsApp Button for Total Customer Statement */}
+                      {c.phone ? (
+                        <a
+                          href={waSummaryLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3.5 py-2.5 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-1.5 transition active:scale-95"
+                          title="Enviar resumo completo pelo WhatsApp com Chave PIX e Endereço"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                          <span>Enviar WhatsApp</span>
+                          <ExternalLink className="h-3 w-3 opacity-80" />
+                        </a>
+                      ) : (
+                        <span className="text-xs text-amber-600 dark:text-amber-400 font-medium italic">
+                          Sem telefone
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Customer Financial Overview Badges */}

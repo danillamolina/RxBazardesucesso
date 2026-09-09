@@ -26,7 +26,9 @@ const DEFAULT_STORE_INFO: StoreInfo = {
 
 interface BazarContextType {
   products: Product[];
+  allProducts: Product[];
   sales: Sale[];
+  allSales: Sale[];
   editions: BazarEdition[];
   categories: CategoryStructure[];
   activeEditionId: string; // 'all' or specific ID
@@ -56,8 +58,13 @@ interface BazarContextType {
   deleteSale: (saleId: string) => void;
   
   // Edition actions
-  addEdition: (name: string, notes?: string) => void;
+  addEdition: (name: string, notes?: string, initialProductIds?: string[]) => string;
+  updateEdition: (id: string, data: Partial<BazarEdition>) => void;
+  deleteEdition: (editionId: string, deleteSales?: boolean) => void;
   setActiveEditionId: (id: string) => void;
+  assignProductsToEdition: (productIds: string[], editionId: string) => void;
+  removeProductsFromEdition: (productIds: string[], editionId: string) => void;
+  setEditionProducts: (editionId: string, productIds: string[]) => void;
   
   // System actions
   resetToInitialData: () => void;
@@ -225,12 +232,18 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     data: Omit<Product, 'id' | 'createdAt' | 'profitMarginPercent' | 'initialQuantity'>
   ) => {
     const margin = calculateMarginPercent(data.costPrice, data.bazarPrice);
+    const targetEditionId = activeEditionId === 'all' ? (editions[0]?.id || 'ed-1') : activeEditionId;
+    const initialEditionIds = data.bazarEditionIds && data.bazarEditionIds.length > 0
+      ? data.bazarEditionIds
+      : (activeEditionId !== 'all' ? [activeEditionId] : [targetEditionId]);
+
     const newProd: Product = {
       ...data,
       id: `prod-${Date.now()}`,
       profitMarginPercent: margin,
       initialQuantity: data.quantity,
-      bazarEditionId: activeEditionId === 'all' ? (editions[0]?.id || 'ed-1') : activeEditionId,
+      bazarEditionId: targetEditionId,
+      bazarEditionIds: initialEditionIds,
       createdAt: new Date().toISOString(),
     };
     setProducts((prev) => [newProd, ...prev]);
@@ -631,16 +644,140 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSales((prev) => prev.filter((s) => s.id !== saleId));
   };
 
-  const addEdition = (name: string, notes?: string) => {
+  const addEdition = (name: string, notes?: string, initialProductIds?: string[]): string => {
+    const newEditionId = `ed-${Date.now()}`;
     const newEdition: BazarEdition = {
-      id: `ed-${Date.now()}`,
+      id: newEditionId,
       name,
       startDate: new Date().toISOString(),
       active: true,
       notes,
     };
+
+    // If products were selected, link them immediately to this new edition!
+    if (initialProductIds && initialProductIds.length > 0) {
+      const selectedSet = new Set(initialProductIds);
+      setProducts((prev) =>
+        prev.map((p) => {
+          if (selectedSet.has(p.id)) {
+            const currentIds = p.bazarEditionIds || (p.bazarEditionId ? [p.bazarEditionId] : []);
+            const updatedIds = currentIds.includes(newEditionId) ? currentIds : [...currentIds, newEditionId];
+            return {
+              ...p,
+              bazarEditionId: newEditionId,
+              bazarEditionIds: updatedIds,
+            };
+          }
+          return p;
+        })
+      );
+    }
+
     setEditions((prev) => [newEdition, ...prev]);
-    setActiveEditionId(newEdition.id);
+    setActiveEditionId(newEditionId);
+    return newEditionId;
+  };
+
+  const updateEdition = (id: string, data: Partial<BazarEdition>) => {
+    setEditions((prev) => prev.map((e) => (e.id === id ? { ...e, ...data } : e)));
+  };
+
+  const deleteEdition = (editionId: string, deleteSales: boolean = false) => {
+    // 1. Remove edition from list
+    setEditions((prev) => prev.filter((e) => e.id !== editionId));
+
+    // 2. CRITICAL: DO NOT DELETE PRODUCTS FROM INVENTORY!
+    // Products remain safely in the master stock. Only remove this edition ID from their associations.
+    setProducts((prev) =>
+      prev.map((p) => {
+        const currentIds = p.bazarEditionIds || (p.bazarEditionId ? [p.bazarEditionId] : []);
+        const updatedIds = currentIds.filter((id) => id !== editionId);
+        const updatedPrimaryId = p.bazarEditionId === editionId
+          ? (updatedIds[0] || undefined)
+          : p.bazarEditionId;
+
+        return {
+          ...p,
+          bazarEditionId: updatedPrimaryId,
+          bazarEditionIds: updatedIds,
+        };
+      })
+    );
+
+    // 3. Handle sales if requested
+    if (deleteSales) {
+      setSales((prev) => prev.filter((s) => s.bazarEditionId !== editionId));
+    }
+
+    // 4. Update activeEditionId if the active one was deleted
+    setActiveEditionId((prev) => {
+      if (prev === editionId) {
+        const remaining = editions.filter((e) => e.id !== editionId);
+        return remaining[0]?.id || 'all';
+      }
+      return prev;
+    });
+  };
+
+  const assignProductsToEdition = (productIds: string[], editionId: string) => {
+    const idSet = new Set(productIds);
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (!idSet.has(p.id)) return p;
+        const currentIds = p.bazarEditionIds || (p.bazarEditionId ? [p.bazarEditionId] : []);
+        if (currentIds.includes(editionId)) return p;
+        return {
+          ...p,
+          bazarEditionId: editionId,
+          bazarEditionIds: [...currentIds, editionId],
+        };
+      })
+    );
+  };
+
+  const removeProductsFromEdition = (productIds: string[], editionId: string) => {
+    const idSet = new Set(productIds);
+    setProducts((prev) =>
+      prev.map((p) => {
+        if (!idSet.has(p.id)) return p;
+        const currentIds = p.bazarEditionIds || (p.bazarEditionId ? [p.bazarEditionId] : []);
+        const updatedIds = currentIds.filter((id) => id !== editionId);
+        const updatedPrimaryId = p.bazarEditionId === editionId ? (updatedIds[0] || undefined) : p.bazarEditionId;
+        return {
+          ...p,
+          bazarEditionId: updatedPrimaryId,
+          bazarEditionIds: updatedIds,
+        };
+      })
+    );
+  };
+
+  const setEditionProducts = (editionId: string, selectedProductIds: string[]) => {
+    const selectedSet = new Set(selectedProductIds);
+    setProducts((prev) =>
+      prev.map((p) => {
+        const currentIds = p.bazarEditionIds || (p.bazarEditionId ? [p.bazarEditionId] : []);
+        const isSelected = selectedSet.has(p.id);
+        const wasInEdition = currentIds.includes(editionId) || p.bazarEditionId === editionId;
+
+        if (isSelected && !wasInEdition) {
+          return {
+            ...p,
+            bazarEditionId: editionId,
+            bazarEditionIds: [...currentIds, editionId],
+          };
+        } else if (!isSelected && wasInEdition) {
+          const updatedIds = currentIds.filter((id) => id !== editionId);
+          const updatedPrimaryId = p.bazarEditionId === editionId ? (updatedIds[0] || undefined) : p.bazarEditionId;
+          return {
+            ...p,
+            bazarEditionId: updatedPrimaryId,
+            bazarEditionIds: updatedIds,
+          };
+        }
+        return p;
+      })
+    );
   };
 
   const resetToInitialData = () => {
@@ -677,10 +814,22 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (data.activeEditionId) setActiveEditionId(data.activeEditionId);
   };
 
+  // Helper to check if a product is in a specific edition
+  const isProductInEdition = (p: Product, editionId: string): boolean => {
+    if (editionId === 'all') return true;
+    if (p.bazarEditionIds && p.bazarEditionIds.length > 0) {
+      return p.bazarEditionIds.includes(editionId);
+    }
+    if (p.bazarEditionId) {
+      return p.bazarEditionId === editionId;
+    }
+    return false;
+  };
+
   // Computed Realtime Metrics based on active edition filter
   const filteredProducts = useMemo(() => {
     if (activeEditionId === 'all') return products;
-    return products.filter((p) => !p.bazarEditionId || p.bazarEditionId === activeEditionId);
+    return products.filter((p) => isProductInEdition(p, activeEditionId));
   }, [products, activeEditionId]);
 
   const filteredSales = useMemo(() => {
@@ -783,7 +932,9 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <BazarContext.Provider
       value={{
         products: filteredProducts,
+        allProducts: products,
         sales: filteredSales,
+        allSales: sales,
         editions,
         categories,
         activeEditionId,
@@ -804,7 +955,12 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addPartialPayment,
         deleteSale,
         addEdition,
+        updateEdition,
+        deleteEdition,
         setActiveEditionId,
+        assignProductsToEdition,
+        removeProductsFromEdition,
+        setEditionProducts,
         resetToInitialData,
         clearAllData,
         importAllData,

@@ -347,10 +347,9 @@ export function createWhatsAppSaleMessageLink(
   );
 }
 
-// Generate Full WhatsApp Customer Summary Link (All orders for a customer)
-export function createWhatsAppCustomerSummaryLink(
+// Generate Text Summary for all orders of a customer (includes PIX and Address)
+export function generateCustomerSummaryText(
   customerName: string,
-  customerPhone: string | undefined,
   customerSales: {
     id: string;
     saleDate: string;
@@ -368,9 +367,6 @@ export function createWhatsAppCustomerSummaryLink(
   }[],
   storeInfo?: StoreInfo
 ): string {
-  const cleanPhone = cleanPhoneNumber(customerPhone);
-  if (!cleanPhone) return '#';
-
   const store = getEffectiveStoreInfo(storeInfo);
   const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
   const storeAddress = store?.address?.trim();
@@ -430,7 +426,7 @@ export function createWhatsAppCustomerSummaryLink(
       (store?.notes ? `_${store.notes}_\n` : '');
   }
 
-  const text = encodeURIComponent(
+  return (
     `Olá ${customerName}! ✨\n\n` +
     `Aqui está o *Resumo Geral de Todos os seus Pedidos* no *${storeName}*! 🛍️💖\n\n` +
     `${ordersListText}\n\n` +
@@ -446,8 +442,34 @@ export function createWhatsAppCustomerSummaryLink(
       ? `Ficamos à disposição para qualquer dúvida ou para confirmação do pagamento via PIX! Muito obrigada pelo carinho! 🥰`
       : `Todos os seus produtos já estão confirmados e quitados. Muito obrigada pela confiança e preferência! 🥰💖`)
   );
+}
 
-  return `https://wa.me/${cleanPhone}?text=${text}`;
+// Generate Full WhatsApp Customer Summary Link (All orders for a customer)
+export function createWhatsAppCustomerSummaryLink(
+  customerName: string,
+  customerPhone: string | undefined,
+  customerSales: {
+    id: string;
+    saleDate: string;
+    productName: string;
+    quantitySold: number;
+    totalAmount: number;
+    discount?: number;
+    paymentStatus: PaymentStatus;
+    paymentMethod: PaymentMethod;
+    installmentsCount?: number;
+    installmentValue?: number;
+    amountPaid?: number;
+    remainingBalance?: number;
+    items?: { productName: string; quantitySold: number; unitBazarPrice: number; sizeColor?: string }[];
+  }[],
+  storeInfo?: StoreInfo
+): string {
+  const cleanPhone = cleanPhoneNumber(customerPhone);
+  if (!cleanPhone) return '#';
+
+  const text = generateCustomerSummaryText(customerName, customerSales, storeInfo);
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
 }
 
 // Generate WhatsApp Broadcast Card for Product

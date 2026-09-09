@@ -14,7 +14,10 @@ import {
   AlertTriangle,
   TrendingUp,
   Tag,
-  Calendar
+  Calendar,
+  Layers,
+  CheckSquare,
+  Download
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { Product, ProductCategory } from '../../types';
@@ -22,7 +25,7 @@ import { formatCurrency, formatPercent, createWhatsAppProductShareLink } from '.
 import { ShareProductModal } from '../Catalog/ShareProductModal';
 import { ExportCatalogModal } from '../Catalog/ExportCatalogModal';
 import { generateStockPdf } from '../../utils/pdfGenerator';
-import { Download } from 'lucide-react';
+import { EditionManagementModal } from '../Editions/EditionManagementModal';
 
 interface ProductListProps {
   onOpenNewProduct: (productToEdit?: Product) => void;
@@ -44,7 +47,16 @@ export const ProductList: React.FC<ProductListProps> = ({
   onOpenNewProduct,
   onOpenQuickSale,
 }) => {
-  const { products, adjustStock, deleteProduct, stockMetrics, editions, activeEditionId } = useBazar();
+  const {
+    products,
+    allProducts,
+    adjustStock,
+    deleteProduct,
+    stockMetrics,
+    editions,
+    activeEditionId,
+    setActiveEditionId,
+  } = useBazar();
 
   const activeEditionName = editions.find(e => e.id === activeEditionId)?.name || 'Geral';
 
@@ -54,6 +66,8 @@ export const ProductList: React.FC<ProductListProps> = ({
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [productToShare, setProductToShare] = useState<Product | null>(null);
   const [isExportCatalogOpen, setIsExportCatalogOpen] = useState(false);
+  const [isEditionModalOpen, setIsEditionModalOpen] = useState(false);
+  const [editionModalMode, setEditionModalMode] = useState<'list' | 'create' | 'manage_products'>('manage_products');
 
   // Filter products
   const filteredProducts = products.filter((p) => {
@@ -115,6 +129,88 @@ export const ProductList: React.FC<ProductListProps> = ({
             <Plus className="h-4 w-4" />
             <span>Cadastrar Novo Produto</span>
           </button>
+        </div>
+      </div>
+
+      {/* Edition Linking & Global Stock Management Bar */}
+      <div className="bg-gradient-to-r from-[#242F1E] to-[#1C2616] border border-[#3A4A30] rounded-3xl p-4 sm:p-5 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3">
+          <div className="p-3 bg-[#8FA079]/20 text-[#8FA079] rounded-2xl shrink-0">
+            <Layers className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-[#D8C7AC] uppercase tracking-wider">
+                Exibição:
+              </span>
+              <span className="text-xs bg-[#8FA079] text-[#1F2919] font-extrabold px-2.5 py-0.5 rounded-full">
+                {activeEditionId === 'all' ? 'Estoque Geral (Todos os Produtos)' : `Bazar Atual: ${activeEditionName}`}
+              </span>
+              <span className="text-xs text-[#CAD7BE]/80">
+                ({filteredProducts.length} de {allProducts.length} itens no estoque)
+              </span>
+            </div>
+            <p className="text-xs text-[#CAD7BE]/80 mt-1">
+              {activeEditionId === 'all'
+                ? 'Você está visualizando o Estoque Geral. Crie todos os produtos aqui e selecione quais vão para cada bazar sem precisar recadastrar!'
+                : 'Você pode selecionar quais peças do seu estoque participam desta edição ou criar novos bazares reaproveitando os itens já cadastrados.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {activeEditionId !== 'all' ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditionModalMode('manage_products');
+                  setIsEditionModalOpen(true);
+                }}
+                className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition active:scale-95 flex items-center gap-1.5"
+                title="Selecionar quais produtos do estoque participam desta edição"
+              >
+                <CheckSquare className="h-4 w-4" />
+                <span>Selecionar Peças para este Bazar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveEditionId('all')}
+                className="bg-[#2F3E26] hover:bg-[#3D4F2F] text-[#CAD7BE] hover:text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl border border-[#3A4A30] transition"
+                title="Ver todos os produtos do estoque geral"
+              >
+                Ver Estoque Geral
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditionModalMode('create');
+                  setIsEditionModalOpen(true);
+                }}
+                className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm transition active:scale-95 flex items-center gap-1.5"
+                title="Criar nova edição selecionando peças já cadastradas"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Criar Novo Bazar com Peças do Estoque</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEditionModalMode('list');
+                  setIsEditionModalOpen(true);
+                }}
+                className="bg-[#2F3E26] hover:bg-[#3D4F2F] text-[#CAD7BE] hover:text-white font-semibold text-xs px-3.5 py-2.5 rounded-xl border border-[#3A4A30] transition"
+                title="Gerenciar e excluir edições anteriores"
+              >
+                Gerenciar / Excluir Edições ({editions.length})
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -281,6 +377,29 @@ export const ProductList: React.FC<ProductListProps> = ({
                           <span>Validade: {prod.expirationDate}</span>
                         </div>
                       )}
+
+                      {/* Bazar editions badges */}
+                      <div className="flex items-center gap-1 flex-wrap pt-1">
+                        {prod.bazarEditionIds && prod.bazarEditionIds.length > 0 ? (
+                          prod.bazarEditionIds.map((edId) => {
+                            const ed = editions.find((e) => e.id === edId);
+                            if (!ed) return null;
+                            return (
+                              <span
+                                key={edId}
+                                className="text-[10px] bg-[#8FA079]/15 text-[#2A3722] dark:text-[#CAD7BE] px-2 py-0.5 rounded-md font-medium border border-[#8FA079]/30 flex items-center gap-1"
+                              >
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#8FA079]" />
+                                {ed.name}
+                              </span>
+                            );
+                          })
+                        ) : (
+                          <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-md">
+                            Estoque Geral
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Cost vs Bazaar Price Box */}
@@ -442,6 +561,21 @@ export const ProductList: React.FC<ProductListProps> = ({
                                 <span>Val: {prod.expirationDate}</span>
                               </div>
                             )}
+                            <div className="flex items-center gap-1 flex-wrap mt-1">
+                              {prod.bazarEditionIds && prod.bazarEditionIds.length > 0 ? (
+                                prod.bazarEditionIds.map((edId) => {
+                                  const ed = editions.find((e) => e.id === edId);
+                                  if (!ed) return null;
+                                  return (
+                                    <span key={edId} className="text-[9px] bg-[#8FA079]/15 text-[#2A3722] dark:text-[#CAD7BE] px-1.5 py-0.5 rounded font-medium border border-[#8FA079]/30">
+                                      {ed.name}
+                                    </span>
+                                  );
+                                })
+                              ) : (
+                                <span className="text-[9px] text-slate-400">Estoque Geral</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -524,6 +658,14 @@ export const ProductList: React.FC<ProductListProps> = ({
         isOpen={isExportCatalogOpen}
         onClose={() => setIsExportCatalogOpen(false)}
         products={products}
+      />
+
+      {/* Edition Management Modal */}
+      <EditionManagementModal
+        isOpen={isEditionModalOpen}
+        onClose={() => setIsEditionModalOpen(false)}
+        initialMode={editionModalMode}
+        targetEditionId={activeEditionId !== 'all' ? activeEditionId : undefined}
       />
 
     </div>

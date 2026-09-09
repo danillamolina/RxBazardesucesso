@@ -14,6 +14,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
+import { EditionManagementModal } from './Editions/EditionManagementModal';
 
 interface HeaderProps {
   activeTab: string;
@@ -30,21 +31,13 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNewProduct,
   onOpenSettings,
 }) => {
-  const { editions, activeEditionId, setActiveEditionId, addEdition, resetToInitialData } = useBazar();
+  const { editions, activeEditionId } = useBazar();
   const [showEditionModal, setShowEditionModal] = useState(false);
-  const [newEditionName, setNewEditionName] = useState('');
+  const [editionModalMode, setEditionModalMode] = useState<'list' | 'create' | 'manage_products'>('list');
 
   const activeEditionName = activeEditionId === 'all' 
     ? 'Todas as Edições' 
     : editions.find(e => e.id === activeEditionId)?.name || 'Edição Atual';
-
-  const handleCreateEdition = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEditionName.trim()) return;
-    addEdition(newEditionName.trim());
-    setNewEditionName('');
-    setShowEditionModal(false);
-  };
 
   return (
     <header className="bg-[#2A3722] text-white shadow-lg border-b border-[#3A4A30] sticky top-0 z-30">
@@ -69,9 +62,12 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Mobile Edition & New Bazar Buttons */}
             <div className="md:hidden flex items-center gap-1.5">
               <button
-                onClick={() => setShowEditionModal(true)}
+                onClick={() => {
+                  setEditionModalMode('list');
+                  setShowEditionModal(true);
+                }}
                 className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] px-2.5 py-1.5 rounded-lg border border-[#576945] transition max-w-[105px]"
-                title="Bazar Atual"
+                title="Bazar Atual & Edições"
               >
                 <Calendar className="h-3 w-3 text-[#C2AD8E] mr-1 shrink-0" />
                 <span className="truncate">{activeEditionName}</span>
@@ -124,7 +120,10 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Edition Switcher & Create New Bazar Buttons */}
             <div className="hidden md:flex items-center bg-[#3A452F]/90 p-1 rounded-xl border border-[#576945] space-x-1.5">
               <button
-                onClick={() => setShowEditionModal(true)}
+                onClick={() => {
+                  setEditionModalMode('list');
+                  setShowEditionModal(true);
+                }}
                 className="flex items-center text-xs text-[#F5F0E6] hover:bg-[#465437] px-2.5 py-1.5 rounded-lg transition"
                 title="Bazar em Aberto / Trocar Edição"
               >
@@ -134,11 +133,11 @@ export const Header: React.FC<HeaderProps> = ({
 
               <button
                 onClick={() => {
-                  setNewEditionName('');
+                  setEditionModalMode('create');
                   setShowEditionModal(true);
                 }}
                 className="flex items-center text-xs bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold px-2.5 py-1.5 rounded-lg transition shadow-sm"
-                title="Criar Novo Bazar"
+                title="Criar Novo Bazar com produtos já cadastrados no estoque"
               >
                 <Plus className="h-3.5 w-3.5 mr-1" />
                 <span>Criar Novo Bazar</span>
@@ -281,115 +280,12 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Edition Switcher & Create New Bazar Modal */}
-      {showEditionModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#242F1E] border border-[#3A4A30] rounded-3xl max-w-md w-full p-6 text-white shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-[#3A4A30]">
-              <h3 className="text-lg font-bold flex items-center gap-2 text-white">
-                <Calendar className="h-5 w-5 text-[#CAD7BE]" />
-                Edições do Bazar
-              </h3>
-              <span className="text-xs bg-[#3A452F] text-[#CAD7BE] px-2.5 py-1 rounded-full font-medium border border-[#576945]">
-                {editions.length} cadastrada(s)
-              </span>
-            </div>
-
-            {/* List of existing bazares */}
-            <div>
-              <label className="block text-xs font-semibold text-[#D8C7AC] mb-2 uppercase tracking-wider">
-                Selecione o Bazar em Aberto:
-              </label>
-              <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                {editions.map((ed) => (
-                  <button
-                    key={ed.id}
-                    onClick={() => {
-                      setActiveEditionId(ed.id);
-                      setShowEditionModal(false);
-                    }}
-                    className={`w-full text-left px-4 py-3 rounded-2xl border transition flex items-center justify-between ${
-                      activeEditionId === ed.id
-                        ? 'bg-[#4A5D3B] border-[#8FA079] text-white shadow-md'
-                        : 'bg-[#1F2919] border-[#3A4A30] text-[#D8C7AC] hover:bg-[#2F3E26] hover:text-white'
-                    }`}
-                  >
-                    <div>
-                      <div className="font-bold flex items-center gap-2">
-                        <span>{ed.name}</span>
-                        {ed.id === editions[0]?.id && (
-                          <span className="text-[10px] bg-[#8FA079]/30 text-[#CAD7BE] px-2 py-0.5 rounded-full border border-[#8FA079]/40 font-normal">
-                            Mais Recente
-                          </span>
-                        )}
-                      </div>
-                      {ed.notes && <div className="text-xs text-[#CAD7BE]/70 mt-0.5">{ed.notes}</div>}
-                    </div>
-                    {activeEditionId === ed.id && (
-                      <span className="text-xs bg-[#8FA079] text-[#1F2919] font-extrabold px-2.5 py-1 rounded-full">
-                        ✓ Em Aberto
-                      </span>
-                    )}
-                  </button>
-                ))}
-
-                <button
-                  onClick={() => {
-                    setActiveEditionId('all');
-                    setShowEditionModal(false);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 rounded-2xl border transition flex items-center justify-between ${
-                    activeEditionId === 'all'
-                      ? 'bg-[#4A5D3B] border-[#8FA079] text-white shadow-md'
-                      : 'bg-[#1F2919] border-[#3A4A30] text-[#D8C7AC] hover:bg-[#2F3E26] hover:text-white'
-                  }`}
-                >
-                  <span className="font-medium text-xs">Visão Geral (Todas as Edições Juntas)</span>
-                  {activeEditionId === 'all' && (
-                    <span className="text-xs bg-[#8FA079] text-[#1F2919] font-extrabold px-2 py-0.5 rounded-full">
-                      ✓ Ativo
-                    </span>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* Create New Edition Form */}
-            <form onSubmit={handleCreateEdition} className="pt-4 border-t border-[#3A4A30] space-y-2">
-              <label className="block text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                <Plus className="h-3.5 w-3.5 text-[#CAD7BE]" />
-                Criar Novo Bazar:
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="ex: Bazar de Natal VIP, Edição Especial..."
-                  value={newEditionName}
-                  onChange={(e) => setNewEditionName(e.target.value)}
-                  className="flex-1 bg-[#1F2919] border border-[#3A4A30] rounded-xl px-3 py-2 text-sm text-white placeholder-[#8FA079]/60 focus:outline-none focus:border-[#8FA079]"
-                />
-                <button
-                  type="submit"
-                  disabled={!newEditionName.trim()}
-                  className="bg-[#8FA079] hover:bg-[#A3B48D] disabled:opacity-50 text-[#1F2919] font-extrabold px-4 py-2 rounded-xl text-sm transition shadow-sm whitespace-nowrap"
-                >
-                  + Criar & Abrir
-                </button>
-              </div>
-            </form>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowEditionModal(false)}
-                className="text-xs text-[#D8C7AC] hover:text-white px-4 py-2 rounded-xl bg-[#1F2919] border border-[#3A4A30] transition"
-              >
-                Fechar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Edition Management Modal */}
+      <EditionManagementModal
+        isOpen={showEditionModal}
+        onClose={() => setShowEditionModal(false)}
+        initialMode={editionModalMode}
+      />
     </header>
   );
 };

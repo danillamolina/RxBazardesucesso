@@ -27,6 +27,13 @@ interface NewSaleModalProps {
   isOpen: boolean;
   onClose: () => void;
   preselectedProduct?: Product | null;
+  preselectedCustomer?: {
+    name: string;
+    phone?: string;
+    address?: string;
+    deliveryMethod?: string;
+    notes?: string;
+  } | null;
 }
 
 interface ItemRow {
@@ -42,6 +49,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
   isOpen,
   onClose,
   preselectedProduct,
+  preselectedCustomer,
 }) => {
   const { products, sales, addSale, storeInfo } = useBazar();
 
@@ -75,8 +83,15 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setItems([createNewItem(preselectedProduct)]);
+      if (preselectedCustomer) {
+        setCustomerName(preselectedCustomer.name || '');
+        setCustomerPhone(preselectedCustomer.phone || '');
+        setCustomerAddress(preselectedCustomer.address || '');
+        setDeliveryMethod(preselectedCustomer.deliveryMethod || 'Retirada no Local');
+        setCustomerNotes(preselectedCustomer.notes || '');
+      }
     }
-  }, [preselectedProduct, isOpen]);
+  }, [preselectedProduct, preselectedCustomer, isOpen]);
 
   // Extract unique previous customers for search/autofill
   useEffect(() => {

@@ -1005,3 +1005,391 @@ export function generateUserGuidePdf(editionName?: string) {
   });
 }
 
+/**
+ * 7. PDF do Relatório de Clientes e Compras Realizadas no Bazar
+ */
+export function generateCustomerPurchasesPdf(sales: Sale[], editionName?: string) {
+  // Group sales by customer
+  const customerMap: Record<string, {
+    customerName: string;
+    phone?: string;
+    address?: string;
+    deliveryMethod?: string;
+    notes?: string;
+    sales: Sale[];
+    totalSpent: number;
+    totalPaid: number;
+    totalPending: number;
+    totalPieces: number;
+  }> = {};
+
+  sales.forEach((s) => {
+    const key = (s.customerName || 'Cliente').trim();
+    if (!customerMap[key]) {
+      customerMap[key] = {
+        customerName: key,
+        phone: s.customerPhone,
+        address: s.customerAddress,
+        deliveryMethod: s.deliveryMethod,
+        notes: s.customerNotes,
+        sales: [],
+        totalSpent: 0,
+        totalPaid: 0,
+        totalPending: 0,
+        totalPieces: 0,
+      };
+    }
+
+    customerMap[key].sales.push(s);
+    customerMap[key].totalSpent += s.totalAmount;
+    customerMap[key].totalPieces += s.quantitySold;
+
+    if (s.paymentStatus === 'pago') {
+      customerMap[key].totalPaid += s.totalAmount;
+    } else if (s.paymentStatus === 'parcial') {
+      customerMap[key].totalPaid += s.amountPaid || 0;
+      customerMap[key].totalPending += s.remainingBalance || 0;
+    } else if (s.paymentStatus === 'pendente' || s.paymentStatus === 'fiado') {
+      customerMap[key].totalPending += s.totalAmount;
+    }
+
+    if (!customerMap[key].phone && s.customerPhone) customerMap[key].phone = s.customerPhone;
+    if (!customerMap[key].address && s.customerAddress) customerMap[key].address = s.customerAddress;
+    if (!customerMap[key].deliveryMethod && s.deliveryMethod) customerMap[key].deliveryMethod = s.deliveryMethod;
+  });
+
+  const customerList = Object.values(customerMap).sort((a, b) => b.totalSpent - a.totalSpent);
+
+  const totalClients = customerList.length;
+  const totalSalesCount = sales.length;
+  const grandTotalSpent = customerList.reduce((acc, c) => acc + c.totalSpent, 0);
+  const grandTotalPaid = customerList.reduce((acc, c) => acc + c.totalPaid, 0);
+  const grandTotalPending = customerList.reduce((acc, c) => acc + c.totalPending, 0);
+  const grandTotalPieces = customerList.reduce((acc, c) => acc + c.totalPieces, 0);
+
+  let customersHtml = '';
+
+  customerList.forEach((c, idx) => {
+    let salesRows = '';
+
+    c.sales.forEach((s) => {
+      const statusObj = getPaymentStatusLabel(s.paymentStatus);
+      const methodStr = getPaymentMethodLabel(s.paymentMethod);
+      const installmentsStr = s.installmentsCount && s.installmentsCount > 1 ? ` (${s.installmentsCount}x)` : '';
+      const paidVal = s.paymentStatus === 'pago' ? s.totalAmount : (s.amountPaid || 0);
+      const pendVal = s.paymentStatus === 'pago' ? 0 : (s.remainingBalance || (s.totalAmount - paidVal));
+
+      let itemsDetails = '';
+      if (s.items && s.items.length > 0) {
+        itemsDetails = s.items
+          .map((i) => `<div>• <strong>${i.quantitySold}x</strong> ${i.productName} ${i.sizeColor ? `<span style="color:#64748b;">(${i.sizeColor})</span>` : ''} - <span style="font-family:monospace;">${formatCurrency(i.unitBazarPrice)}</span></div>`)
+          .join('');
+      } else {
+        itemsDetails = `<div>• <strong>${s.quantitySold}x</strong> ${s.productName} - <span style="font-family:monospace;">${formatCurrency(s.unitBazarPrice)}</span></div>`;
+      }
+
+      salesRows += `
+        <tr>
+          <td style="white-space: nowrap; font-size: 8pt; color: #64748b;">${formatDate(s.saleDate)}</td>
+          <td style="font-size: 8.5pt;">${itemsDetails}</td>
+          <td style="font-size: 8.5pt;">${methodStr}${installmentsStr}</td>
+          <td class="text-center">
+            <span class="badge ${
+              s.paymentStatus === 'pago'
+                ? 'badge-emerald'
+                : s.paymentStatus === 'parcial'
+                ? 'badge-amber'
+                : s.paymentStatus === 'fiado'
+                ? 'badge-purple'
+                : 'badge-slate'
+            }">
+              ${statusObj.label}
+            </span>
+          </td>
+          <td class="text-right font-mono font-bold">${formatCurrency(s.totalAmount)}</td>
+          <td class="text-right font-mono" style="color: #059669;">${formatCurrency(paidVal)}</td>
+          <td class="text-right font-mono" style="color: #d97706;">${formatCurrency(pendVal)}</td>
+        </tr>
+      `;
+    });
+
+    const isFullyPaid = c.totalPending <= 0;
+
+    customersHtml += `
+      <div style="margin-bottom: 22px; border: 1.5px solid #cbd5e1; border-radius: 8px; overflow: hidden; page-break-inside: avoid;">
+        <div style="background-color: #f1f5f9; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <span style="font-weight: 800; font-size: 11pt; color: #0f172a;">#${idx + 1} - ${c.customerName}</span>
+            ${c.phone ? `<span style="font-size: 9pt; color: #475569; margin-left: 10px;">📞 ${c.phone}</span>` : '<span style="font-size: 9pt; color: #94a3b8; margin-left: 10px;">(Sem telefone)</span>'}
+            ${c.address ? `<div style="font-size: 8pt; color: #64748b; margin-top: 2px;">📍 ${c.address} ${c.deliveryMethod ? `(${c.deliveryMethod})` : ''}</div>` : ''}
+          </div>
+          <div style="text-align: right; display: flex; align-items: center; gap: 12px;">
+            <div>
+              <span style="font-size: 8pt; color: #64748b; display: block;">Total Gasto (${c.sales.length} compras / ${c.totalPieces} peças)</span>
+              <span style="font-weight: 800; font-size: 11pt; color: #0f172a;">${formatCurrency(c.totalSpent)}</span>
+            </div>
+            <div>
+              <span style="font-size: 8pt; color: #059669; display: block;">Pago: ${formatCurrency(c.totalPaid)}</span>
+              <span style="font-size: 8pt; font-weight: 700; color: ${isFullyPaid ? '#059669' : '#d97706'}; display: block;">
+                ${isFullyPaid ? '✓ Quitado' : `Saldo Pendente: ${formatCurrency(c.totalPending)}`}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <table style="margin: 0; font-size: 8.5pt;">
+          <thead>
+            <tr>
+              <th style="width: 15%;">Data</th>
+              <th style="width: 40%;">Produtos Comprados</th>
+              <th style="width: 15%;">Pagamento</th>
+              <th class="text-center" style="width: 10%;">Status</th>
+              <th class="text-right" style="width: 10%;">Total</th>
+              <th class="text-right" style="width: 10%;">Pago</th>
+              <th class="text-right" style="width: 10%;">A Receber</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${salesRows}
+          </tbody>
+        </table>
+      </div>
+    `;
+  });
+
+  const bodyHtml = `
+    <div class="grid-metrics">
+      <div class="metric-card">
+        <div class="metric-label">Total de Clientes</div>
+        <div class="metric-value">${totalClients} clientes</div>
+        <div class="metric-sub">${totalSalesCount} pedidos no bazar</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Peças Compradas</div>
+        <div class="metric-value">${grandTotalPieces} un</div>
+        <div class="metric-sub">Média ${(grandTotalPieces / (totalClients || 1)).toFixed(1)} peças/cliente</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Gasto (Faturamento)</div>
+        <div class="metric-value" style="color: #0f172a;">${formatCurrency(grandTotalSpent)}</div>
+        <div class="metric-sub">Ticket Médio: ${formatCurrency(grandTotalSpent / (totalClients || 1))}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total Recebido vs Fiado</div>
+        <div class="metric-value" style="color: #059669;">${formatCurrency(grandTotalPaid)}</div>
+        <div class="metric-sub" style="color: #d97706; font-weight: 700;">A receber: ${formatCurrency(grandTotalPending)}</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 10px;">
+      <h3 style="font-size: 11pt; font-weight: 800; color: #1e293b; text-transform: uppercase; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">
+        Detalhamento Individual por Cliente e Compras no Bazar
+      </h3>
+      ${customersHtml || '<div style="text-align: center; padding: 30px; color: #64748b;">Nenhuma compra registrada neste bazar.</div>'}
+    </div>
+  `;
+
+  openPrintWindow({
+    title: 'Relatório de Clientes e Compras Realizadas no Bazar',
+    subtitle: `${totalClients} Clientes • ${totalSalesCount} Pedidos`,
+    editionName,
+    bodyHtml,
+  });
+}
+
+/**
+ * 8. PDF do Relatório de Produtos Mais Vendidos e Mais Lucrativos
+ */
+export function generateTopProductsReportPdf(products: Product[], sales: Sale[], editionName?: string) {
+  // Aggregate sales data per product
+  const productStatsMap: Record<string, {
+    id: string;
+    name: string;
+    sku?: string;
+    category: string;
+    sizeColor?: string;
+    soldQty: number;
+    totalRevenue: number;
+    totalCost: number;
+    netProfit: number;
+    currentStock: number;
+    initialStock: number;
+  }> = {};
+
+  // Initialize with catalog products
+  products.forEach((p) => {
+    productStatsMap[p.id] = {
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      category: p.category || 'Outros',
+      sizeColor: p.sizeColor,
+      soldQty: 0,
+      totalRevenue: 0,
+      totalCost: 0,
+      netProfit: 0,
+      currentStock: p.quantity,
+      initialStock: p.initialQuantity || p.quantity,
+    };
+  });
+
+  // Accumulate from sales
+  sales.forEach((s) => {
+    if (s.paymentStatus === 'cancelado') return;
+
+    if (s.items && s.items.length > 0) {
+      s.items.forEach((item) => {
+        const prodId = item.productId || item.productName;
+        if (!productStatsMap[prodId]) {
+          productStatsMap[prodId] = {
+            id: prodId,
+            name: item.productName,
+            category: 'Outros',
+            sizeColor: item.sizeColor,
+            soldQty: 0,
+            totalRevenue: 0,
+            totalCost: 0,
+            netProfit: 0,
+            currentStock: 0,
+            initialStock: 0,
+          };
+        }
+        const revenue = item.quantitySold * item.unitBazarPrice;
+        const cost = item.quantitySold * item.unitCostPrice;
+        productStatsMap[prodId].soldQty += item.quantitySold;
+        productStatsMap[prodId].totalRevenue += revenue;
+        productStatsMap[prodId].totalCost += cost;
+        productStatsMap[prodId].netProfit += (revenue - cost);
+      });
+    } else {
+      const prodId = s.productId || s.productName;
+      if (!productStatsMap[prodId]) {
+        productStatsMap[prodId] = {
+          id: prodId,
+          name: s.productName,
+          category: 'Outros',
+          soldQty: 0,
+          totalRevenue: 0,
+          totalCost: 0,
+          netProfit: 0,
+          currentStock: 0,
+          initialStock: 0,
+        };
+      }
+      const revenue = s.totalAmount;
+      const cost = s.quantitySold * s.unitCostPrice;
+      productStatsMap[prodId].soldQty += s.quantitySold;
+      productStatsMap[prodId].totalRevenue += revenue;
+      productStatsMap[prodId].totalCost += cost;
+      productStatsMap[prodId].netProfit += (revenue - cost);
+    }
+  });
+
+  const allStats = Object.values(productStatsMap).filter((p) => p.soldQty > 0 || p.currentStock > 0);
+
+  // Ranked by quantity sold
+  const rankedByQty = [...allStats].sort((a, b) => b.soldQty - a.soldQty);
+  // Ranked by profit
+  const rankedByProfit = [...allStats].sort((a, b) => b.netProfit - a.netProfit);
+
+  const topSeller = rankedByQty[0];
+  const mostProfitable = rankedByProfit[0];
+
+  const totalPiecesSold = allStats.reduce((acc, p) => acc + p.soldQty, 0);
+  const totalNetProfit = allStats.reduce((acc, p) => acc + p.netProfit, 0);
+  const totalRevenue = allStats.reduce((acc, p) => acc + p.totalRevenue, 0);
+  const avgMargin = totalRevenue > 0 ? ((totalNetProfit / totalRevenue) * 100) : 0;
+
+  // Build Table sorted by profit / sales
+  let tableRows = '';
+  rankedByProfit.filter(p => p.soldQty > 0).forEach((p, index) => {
+    const margin = p.totalRevenue > 0 ? ((p.netProfit / p.totalRevenue) * 100) : 0;
+    const isTop3 = index < 3;
+
+    tableRows += `
+      <tr style="${isTop3 ? 'background-color: #fff1f2;' : ''}">
+        <td class="text-center font-bold" style="width: 6%;">
+          <span class="badge ${index === 0 ? 'badge-amber' : index === 1 ? 'badge-slate' : index === 2 ? 'badge-rose' : 'badge-slate'}">
+            #${index + 1}
+          </span>
+        </td>
+        <td>
+          <div class="font-bold" style="color: #0f172a;">${p.name}</div>
+          <div style="font-size: 8pt; color: #64748b;">
+            ${p.sku ? `Cód: ${p.sku} • ` : ''}${p.sizeColor ? `Tam/Cor: ${p.sizeColor} • ` : ''}Cat: ${p.category}
+          </div>
+        </td>
+        <td class="text-center font-bold" style="font-size: 10pt; color: #0f172a;">${p.soldQty} un</td>
+        <td class="text-center font-mono" style="color: #64748b;">${p.currentStock} un</td>
+        <td class="text-right font-mono">${formatCurrency(p.totalRevenue)}</td>
+        <td class="text-right font-mono" style="color: #64748b;">${formatCurrency(p.totalCost)}</td>
+        <td class="text-right font-mono font-bold" style="color: #059669; font-size: 9.5pt;">${formatCurrency(p.netProfit)}</td>
+        <td class="text-right font-mono font-bold" style="color: #e11d48;">${margin.toFixed(1)}%</td>
+      </tr>
+    `;
+  });
+
+  const bodyHtml = `
+    <div class="grid-metrics">
+      <div class="metric-card">
+        <div class="metric-label">🏆 Mais Vendido (Volume)</div>
+        <div class="metric-value" style="font-size: 11pt; color: #e11d48; line-height: 1.2;">
+          ${topSeller ? topSeller.name : 'Nenhum'}
+        </div>
+        <div class="metric-sub">${topSeller ? `${topSeller.soldQty} un vendidas` : ''}</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">💎 Mais Lucrativo (R$)</div>
+        <div class="metric-value" style="font-size: 11pt; color: #059669; line-height: 1.2;">
+          ${mostProfitable ? mostProfitable.name : 'Nenhum'}
+        </div>
+        <div class="metric-sub">${mostProfitable ? `Lucro: ${formatCurrency(mostProfitable.netProfit)}` : ''}</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Total Peças Vendidas</div>
+        <div class="metric-value">${totalPiecesSold} un</div>
+        <div class="metric-sub">Faturamento: ${formatCurrency(totalRevenue)}</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Lucro Líquido Realizado</div>
+        <div class="metric-value" style="color: #059669;">${formatCurrency(totalNetProfit)}</div>
+        <div class="metric-sub">Margem média: ${avgMargin.toFixed(1)}%</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 15px;">
+      <h3 style="font-size: 11pt; font-weight: 800; color: #1e293b; text-transform: uppercase; margin-bottom: 8px; border-bottom: 2px solid #e2e8f0; padding-bottom: 4px;">
+        Ranking Geral dos Produtos Mais Vendidos & Mais Lucrativos
+      </h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th class="text-center">Rank</th>
+            <th>Produto & Detalhes</th>
+            <th class="text-center">Qtd Vendida</th>
+            <th class="text-center">Estoque Restante</th>
+            <th class="text-right">Faturamento</th>
+            <th class="text-right">Custo Total</th>
+            <th class="text-right">Lucro Líquido</th>
+            <th class="text-right">Margem %</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows || '<tr><td colspan="8" class="text-center" style="padding: 24px; color: #64748b;">Nenhuma venda registrada até o momento.</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  openPrintWindow({
+    title: 'Relatório de Produtos Mais Vendidos e Mais Lucrativos',
+    subtitle: `${totalPiecesSold} Peças Vendidas • Lucro: ${formatCurrency(totalNetProfit)}`,
+    editionName,
+    bodyHtml,
+  });
+}
+

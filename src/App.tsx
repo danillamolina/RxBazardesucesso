@@ -45,6 +45,13 @@ function MainApp() {
   
   const [isSaleModalOpen, setIsSaleModalOpen] = useState(false);
   const [preselectedProductForSale, setPreselectedProductForSale] = useState<Product | null>(null);
+  const [preselectedCustomerForSale, setPreselectedCustomerForSale] = useState<{
+    name: string;
+    phone?: string;
+    address?: string;
+    deliveryMethod?: string;
+    notes?: string;
+  } | null>(null);
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
@@ -63,8 +70,9 @@ function MainApp() {
     }
   };
 
-  const handleOpenQuickSale = (prod?: Product) => {
+  const handleOpenQuickSale = (prod?: Product, cust?: any) => {
     setPreselectedProductForSale(prod || null);
+    setPreselectedCustomerForSale(cust || null);
     setIsSaleModalOpen(true);
   };
 
@@ -99,7 +107,7 @@ function MainApp() {
 
         {activeTab === 'sales' && (
           <SalesList
-            onOpenNewSale={() => handleOpenQuickSale()}
+            onOpenNewSale={(cust) => handleOpenQuickSale(undefined, cust)}
           />
         )}
 
@@ -276,6 +284,7 @@ function MainApp() {
         isOpen={isSaleModalOpen}
         onClose={() => setIsSaleModalOpen(false)}
         preselectedProduct={preselectedProductForSale}
+        preselectedCustomer={preselectedCustomerForSale}
       />
 
       {/* Settings, Backup & PDF Reports Modal */}

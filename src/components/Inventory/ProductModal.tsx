@@ -18,11 +18,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   onSave,
   productToEdit,
 }) => {
-  const { categories, addCategory, addSubcategory } = useBazar();
+  const { categories, addCategory, addSubcategory, editions, activeEditionId } = useBazar();
 
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
   const [expirationDate, setExpirationDate] = useState('');
+  const [selectedEditionIds, setSelectedEditionIds] = useState<string[]>([]);
   
   // Categories & Subcategories
   const [selectedCategoryOption, setSelectedCategoryOption] = useState<string>('');
@@ -113,6 +114,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setShowInCatalog(productToEdit.showInCatalog !== false);
       setImageStats(productToEdit.imageUrl ? 'Foto atual carregada' : null);
       setImageError(null);
+
+      const existingEditionIds = productToEdit.bazarEditionIds && productToEdit.bazarEditionIds.length > 0
+        ? productToEdit.bazarEditionIds
+        : (productToEdit.bazarEditionId ? [productToEdit.bazarEditionId] : []);
+      setSelectedEditionIds(existingEditionIds);
     } else {
       setName('');
       setSku('');
@@ -133,8 +139,17 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       setShowInCatalog(true);
       setImageStats(null);
       setImageError(null);
+
+      // Default to active edition or all editions
+      if (activeEditionId !== 'all') {
+        setSelectedEditionIds([activeEditionId]);
+      } else if (editions.length > 0) {
+        setSelectedEditionIds([editions[0].id]);
+      } else {
+        setSelectedEditionIds([]);
+      }
     }
-  }, [productToEdit, isOpen, categories]);
+  }, [productToEdit, isOpen, categories, editions, activeEditionId]);
 
   if (!isOpen) return null;
 
@@ -309,6 +324,10 @@ export const ProductModal: React.FC<ProductModalProps> = ({
       description: description.trim() || undefined,
       imageUrl: imageUrl.trim() || undefined,
       showInCatalog: showInCatalog,
+      bazarEditionIds: selectedEditionIds.length > 0
+        ? selectedEditionIds
+        : (activeEditionId !== 'all' ? [activeEditionId] : (editions[0] ? [editions[0].id] : [])),
+      bazarEditionId: selectedEditionIds[0] || (activeEditionId !== 'all' ? activeEditionId : (editions[0]?.id || 'ed-1')),
     });
 
     onClose();
@@ -834,6 +853,46 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   }`}
                 />
               </button>
+            </div>
+
+            {/* Editions Association */}
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wider">
+                  <Calendar className="h-4 w-4 text-rose-500" />
+                  Vincular às Edições de Bazar:
+                </label>
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                  Estoque Geral
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                Você pode criar seus produtos no estoque geral e depois usá-los nas edições de bazar que quiser:
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {editions.map((ed) => {
+                  const isChecked = selectedEditionIds.includes(ed.id);
+                  return (
+                    <button
+                      type="button"
+                      key={ed.id}
+                      onClick={() => {
+                        setSelectedEditionIds((prev) =>
+                          isChecked ? prev.filter((id) => id !== ed.id) : [...prev, ed.id]
+                        );
+                      }}
+                      className={`text-xs px-3 py-1.5 rounded-xl border transition flex items-center gap-1.5 font-semibold ${
+                        isChecked
+                          ? 'bg-rose-500 text-white border-rose-500 shadow-sm'
+                          : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-300 dark:border-slate-600 hover:border-slate-400'
+                      }`}
+                    >
+                      {isChecked && <CheckCircle2 className="h-3.5 w-3.5" />}
+                      <span>{ed.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
