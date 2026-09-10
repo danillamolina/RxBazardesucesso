@@ -238,25 +238,25 @@ function MainApp() {
               onClick={() => setActiveTab('inventory')} 
               className="hover:text-[#F7F4EB] transition"
             >
-              Estoque
+              Estoque e Margens
             </button>
             <button 
               onClick={() => setActiveTab('sales')} 
               className="hover:text-[#F7F4EB] transition"
             >
-              Vendas
+              Vendas e Clientes
+            </button>
+            <button 
+              onClick={() => setActiveTab('catalog')} 
+              className="hover:text-[#F7F4EB] transition font-semibold text-[#8FA079]"
+            >
+              Vitrine
             </button>
             <button 
               onClick={() => setActiveTab('reports')} 
               className="hover:text-[#F7F4EB] transition"
             >
               Relatórios
-            </button>
-            <button 
-              onClick={() => setActiveTab('catalog')} 
-              className="hover:text-[#F7F4EB] transition font-semibold text-[#8FA079]"
-            >
-              Vitrine de Fotos
             </button>
             <button 
               onClick={() => setActiveTab('store')} 

@@ -785,32 +785,49 @@ export function generateUserGuidePdf(editionName?: string) {
       </div>
     </div>
 
+    <!-- Dica de Ouro Box: Cadastre Primeiro, Abra o Bazar Depois -->
+    <div style="background: #fffbeb; border: 1.5px solid #fcd34d; border-left: 5px solid #d97706; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px;">
+      <div style="font-size: 8pt; font-weight: 800; text-transform: uppercase; color: #92400e; letter-spacing: 0.5px;">
+        ⭐ Dica de Ouro da Danilla &bull; Facilita Todo o Processo
+      </div>
+      <div style="font-size: 10.5pt; font-weight: 800; color: #78350f; margin-top: 2px;">
+        Cadastre os Produtos Primeiro no Estoque, Depois Abra o Bazar!
+      </div>
+      <div style="font-size: 8.5pt; color: #92400e; margin-top: 3px; line-height: 1.4;">
+        Cadastrar primeiro as peças no <strong>Estoque</strong> (com foto, preço de custo e valor promocional) deixa todo o seu catálogo pronto. Quando você for abrir o bazar (ou criar uma nova edição), basta selecionar os itens que vão participar com 1 clique, evitando correria e erros durante as vendas!
+      </div>
+    </div>
+
     <!-- Section 1: 4-Step Flow -->
     <div style="margin-bottom: 24px;">
       <h3 style="font-size: 11pt; font-weight: 800; color: #1e293b; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 4px;">
-        1. Fluxo do Bazar em 4 Passos Rápidos
+        1. Fluxo Recomendado em 4 Passos Rápidos
       </h3>
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-          <div style="font-size: 9pt; font-weight: 800; color: #d97706; margin-bottom: 4px;">1. Abrir o Bazar</div>
+        <div style="background: #f8fafc; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #059669; margin-bottom: 2px;">⭐ Comece Aqui</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #065f46; margin-bottom: 4px;">1. Cadastrar no Estoque</div>
           <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
-            Crie a edição do evento (ex: "Bazar de Inverno") ou use a edição ativa que abre direto.
+            Tire fotos nítidas e defina Custo e Preço do Bazar. Fazer isso primeiro facilita todo o evento.
           </div>
         </div>
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-          <div style="font-size: 9pt; font-weight: 800; color: #059669; margin-bottom: 4px;">2. Cadastrar com Fotos</div>
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #d97706; margin-bottom: 2px;">Passo 2</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #b45309; margin-bottom: 4px;">2. Abrir o Bazar</div>
           <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
-            Tire fotos nítidas. Defina Preço de Custo, Preço Cheio de Loja e Preço do Bazar.
+            Crie a edição do evento e selecione as peças já cadastradas no estoque com 1 clique.
           </div>
         </div>
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-          <div style="font-size: 9pt; font-weight: 800; color: #2563eb; margin-bottom: 4px;">3. Divulgar na Vitrine</div>
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #2563eb; margin-bottom: 2px;">Passo 3</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #1d4ed8; margin-bottom: 4px;">3. Divulgar na Vitrine</div>
           <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
-            Busca instantânea, cópia de textos para WhatsApp e cards JPG com chave PIX.
+            Vitrine pronta na hora com cálculo De/Por, cópia para WhatsApp e fotos com chave PIX.
           </div>
         </div>
         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-          <div style="font-size: 9pt; font-weight: 800; color: #7c3aed; margin-bottom: 4px;">4. Vender & Lucrar</div>
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #7c3aed; margin-bottom: 2px;">Passo 4</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #6d28d9; margin-bottom: 4px;">4. Vender & Lucrar</div>
           <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
             Lançamento ágil no PDV, baixa automática de estoque e lucro líquido no Dashboard.
           </div>
@@ -835,15 +852,15 @@ export function generateUserGuidePdf(editionName?: string) {
           <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 8pt; color: #451a03; line-height: 1.5;">
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
-              <span>Cadastrar a edição do evento em <strong>+ Novo Bazar</strong>.</span>
+              <span><strong>1º:</strong> Cadastrar peças no Estoque com fotos e custos (facilita tudo!).</span>
+            </li>
+            <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
+              <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
+              <span><strong>2º:</strong> Abrir / criar a edição em + Criar Novo Bazar e vincular peças.</span>
             </li>
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
               <span>Conferir Chave PIX e WhatsApp na aba <strong>Dados da Loja</strong>.</span>
-            </li>
-            <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
-              <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
-              <span>Fotografar e cadastrar todas as peças com fotos nítidas e boa luz.</span>
             </li>
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>

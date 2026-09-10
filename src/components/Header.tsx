@@ -179,6 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="bg-[#1F2919]/90 border-t border-[#3A4A30] px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex space-x-1 sm:space-x-2 overflow-x-auto py-2 no-scrollbar">
           
+          {/* 1. Dashboard */}
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
@@ -191,19 +192,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Dashboard</span>
           </button>
 
-          {/* Vitrine de Fotos in prime position */}
-          <button
-            onClick={() => setActiveTab('catalog')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
-              activeTab === 'catalog'
-                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/40 font-bold'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
-            }`}
-          >
-            <Share2 className="h-4 w-4 text-emerald-400" />
-            <span>Vitrine de Fotos</span>
-          </button>
-
+          {/* 2. Estoque e Margens */}
           <button
             onClick={() => setActiveTab('inventory')}
             className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
@@ -213,9 +202,10 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <Package className="h-4 w-4" />
-            <span>Estoque & Margens</span>
+            <span>Estoque e Margens</span>
           </button>
 
+          {/* 3. Vendas e Clientes */}
           <button
             onClick={() => setActiveTab('sales')}
             className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
@@ -225,9 +215,23 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <ShoppingCart className="h-4 w-4" />
-            <span>Vendas & Clientes</span>
+            <span>Vendas e Clientes</span>
           </button>
 
+          {/* 4. Vitrine */}
+          <button
+            onClick={() => setActiveTab('catalog')}
+            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+              activeTab === 'catalog'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+            }`}
+          >
+            <Share2 className="h-4 w-4 text-emerald-400" />
+            <span>Vitrine</span>
+          </button>
+
+          {/* 5. Relatórios */}
           <button
             onClick={() => setActiveTab('reports')}
             className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
@@ -237,9 +241,10 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <TrendingUp className="h-4 w-4" />
-            <span>Relatório de Lucro</span>
+            <span>Relatórios</span>
           </button>
 
+          {/* 6. Dados da Loja */}
           <button
             onClick={() => setActiveTab('store')}
             className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
@@ -252,6 +257,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Dados da Loja</span>
           </button>
 
+          {/* 7. Manual de Uso */}
           <button
             onClick={() => setActiveTab('guide')}
             className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
@@ -264,6 +270,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Manual de Uso</span>
           </button>
 
+          {/* 8. Próximos Passos */}
           <button
             onClick={() => setActiveTab('next_steps')}
             className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap relative ${

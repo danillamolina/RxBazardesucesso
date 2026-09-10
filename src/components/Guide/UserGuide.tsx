@@ -63,32 +63,32 @@ export const UserGuide: React.FC<UserGuideProps> = ({
 
   const modules = [
     {
-      title: '1. Edições do Bazar (Gestão de Múltiplos Bazares)',
-      icon: Calendar,
-      badge: 'Organização',
-      color: 'from-amber-600 to-amber-700',
-      summary: 'Como criar edições, manter o último bazar em aberto e analisar históricos.',
+      title: '1. Estoque: Cadastre os Produtos Primeiro (Passo Inicial Recomendado)',
+      icon: Package,
+      badge: '⭐ Comece por aqui • Facilita Tudo',
+      color: 'from-emerald-600 to-emerald-700',
+      summary: 'Cadastrar os produtos antes no estoque é o segredo para economizar tempo e ter um bazar 100% organizado.',
       steps: [
-        'O aplicativo sempre abre automaticamente no seu bazar mais recente para você não perder tempo.',
-        'Para criar um novo evento (ex: "Bazar de Natal", "Bazar Relâmpago"), clique no botão "+ Novo Bazar" no topo da tela.',
-        'Você pode alternar entre bazares a qualquer momento ou selecionar "Todas as Edições" para uma visão consolidada de faturamento e estoque.',
-        'Cada produto e venda pode ser vinculado ao bazar correspondente, mantendo o lucro de cada edição 100% isolado e claro.'
+        'POR QUE COMEÇAR PELOS PRODUTOS: Cadastrar primeiro todas as suas peças no estoque deixa todo o seu catálogo pronto, precificado e fotografado. Quando você for abrir o bazar ou criar uma nova edição, você não precisará digitar nada na correria — basta selecionar as peças que entrarão no evento!',
+        'Como cadastrar: Clique em "+ Novo Produto" no menu superior ou na aba "Estoque e Margens".',
+        'Foto do Produto: tire uma foto na hora com a câmera do celular ou selecione da galeria. O sistema otimiza e comprime a foto automaticamente, evitando travamentos no celular.',
+        'Preço de Custo (obrigatório): quanto você pagou ou gastou na peça para que o sistema saiba seu lucro real.',
+        'Preço Cheio de Loja & Valor no Bazar: defina o preço original e o valor promocional do bazar. O sistema calcula na hora seu Lucro em R$ e a Margem de Lucro %.',
+        'Tamanho, Cor, Categoria e Subcategoria: preencha para que suas fotos fiquem organizadas na vitrine virtual e fáceis de filtrar.'
       ]
     },
     {
-      title: '2. Estoque & Cadastro Inteligente de Produtos',
-      icon: Package,
-      badge: 'Precificação & Fotos',
-      color: 'from-emerald-600 to-emerald-700',
-      summary: 'Fotos direto da câmera ou galeria com compressão que não trava o celular.',
+      title: '2. Abrir o Bazar & Gestão de Edições (Passo 2)',
+      icon: Calendar,
+      badge: 'Organização do Evento',
+      color: 'from-amber-600 to-amber-700',
+      summary: 'Com os produtos já no estoque, abrir o bazar é rápido: basta criar a edição e selecionar os itens.',
       steps: [
-        'Clique em "+ Novo Produto" no menu superior ou na aba Estoque.',
-        'Foto do Produto: tire uma foto na hora com a câmera do celular ou selecione fotos da galeria. O sistema otimiza e comprime a foto automaticamente para o app ficar super rápido e sem limite de fotos.',
-        'Preço de Custo (obrigatório): quanto você pagou ou gastou para produzir a peça.',
-        'Preço Cheio de Loja (opcional): o valor original de tabela para mostrar a promoção De/Por.',
-        'Desconto no Bazar & Valor no Bazar: defina o preço final que a cliente vai pagar. O sistema calcula na hora seu Lucro Unitário em R$ e sua Margem de Lucro %.',
-        'Tamanho, Cor e Categoria: preencha para facilitar a busca e os filtros na vitrine.',
-        'Data de Validade (opcional): ótimo para cosméticos, maquiagens e produtos perecíveis.'
+        'Facilidade Absoluta: Como você já cadastrou os produtos no estoque no Passo 1, abrir o bazar leva menos de 1 minuto.',
+        'Criar Novo Bazar: Clique no botão "+ Criar Novo Bazar" no topo da tela e defina o nome do evento (ex: "Bazar de Inverno VIP", "Bazar Relâmpago").',
+        'Selecionar Peças Participantes: Escolha quais produtos do seu estoque farão parte deste bazar específico ou ative todo o estoque de uma vez.',
+        'Edição Atual Automática: O aplicativo abre sempre no seu bazar mais recente para você não perder tempo.',
+        'Alternar entre Edições: Você pode alternar entre bazares a qualquer momento ou selecionar "Todas as Edições" para uma visão consolidada de faturamento e lucro.'
       ]
     },
     {
@@ -149,6 +149,10 @@ export const UserGuide: React.FC<UserGuideProps> = ({
   ];
 
   const faqs = [
+    {
+      question: 'Por que é muito mais fácil cadastrar os produtos primeiro e só depois abrir o bazar?',
+      answer: 'Cadastrar os produtos primeiro no estoque é a melhor prática recomendada porque você organiza seu catálogo com antecedência e tranquilidade: tira fotos com boa iluminação, confere os custos reais e calcula os preços promocionais. Quando você for abrir o bazar (ou criar uma nova edição), basta selecionar os itens que vão participar com 1 clique. Você não precisa digitar nada às pressas durante o evento, sua vitrine fica pronta na hora e o atendimento às clientes flui com rapidez total!'
+    },
     {
       question: 'Como faço para não perder minhas fotos e dados se eu trocar de celular ou computador?',
       answer: 'O Rx do Bazar armazena seus dados em um banco local seguro e de alta capacidade (IndexedDB). Para garantir total tranquilidade, vá em "Configurações" (ícone de engrenagem no topo) e clique em "Fazer Backup (Download JSON)". Guarde esse arquivo no seu Google Drive, WhatsApp ou e-mail. No novo aparelho, basta clicar em "Restaurar Backup" e selecionar o arquivo.'
@@ -287,63 +291,93 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                 O Ciclo Perfeito para um Bazar Lucrativo
               </h3>
               <p className="text-xs text-slate-500 dark:text-[#CAD7BE]">
-                Siga esta sequência simples para organizar, vender e faturar com controle financeiro absoluto.
+                Siga esta sequência recomendada para organizar, vender e faturar com facilidade e controle financeiro absoluto.
               </p>
+            </div>
+
+            {/* Dica de Ouro: Cadastre Primeiro, Abra o Bazar Depois */}
+            <div className="bg-[#FAF7F2] dark:bg-[#1A2315] border-2 border-[#8FA079]/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="p-3 bg-[#8FA079]/20 text-[#2A3722] dark:text-[#D8C7AC] rounded-xl shrink-0">
+                <Sparkles className="h-6 w-6 text-amber-500" />
+              </div>
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[11px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-md">
+                    Dica de Ouro da Danilla
+                  </span>
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">
+                    Cadastre os produtos antes de abrir o bazar!
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-[#D8C7AC] leading-relaxed">
+                  Cadastrar primeiro suas peças no <strong>Estoque</strong> (com fotos, custo e preço promocional) deixa tudo pronto e organizado. Assim, quando você for abrir o bazar ou criar uma nova edição, você só precisa selecionar as peças participantes com 1 clique, sem correria no dia do evento!
+                </p>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               
-              {/* Step 1 */}
-              <div className="bg-slate-50 dark:bg-[#1F2919] border border-slate-200 dark:border-[#3A4A30] rounded-2xl p-5 relative flex flex-col justify-between space-y-4">
+              {/* Step 1: Cadastrar os Produtos */}
+              <div className="bg-slate-50 dark:bg-[#1F2919] border-2 border-[#8FA079]/60 dark:border-[#8FA079]/40 rounded-2xl p-5 relative flex flex-col justify-between space-y-4 shadow-sm">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="w-8 h-8 rounded-xl bg-[#8FA079] text-[#1F2919] font-black text-sm flex items-center justify-center shadow">
                       1
                     </span>
-                    <Calendar className="h-5 w-5 text-amber-500" />
+                    <Package className="h-5 w-5 text-emerald-500" />
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                    Abrir o Bazar
-                  </h4>
-                  <p className="text-xs text-slate-600 dark:text-[#D8C7AC] leading-relaxed">
-                    Crie a edição do evento (ex: "Bazar de Outono VIP") ou utilize a edição ativa que já abre automaticamente.
-                  </p>
-                </div>
-                <button
-                  onClick={() => onNavigateTab('dashboard')}
-                  className="text-xs font-bold text-[#8FA079] hover:underline flex items-center gap-1 pt-2 border-t border-slate-200 dark:border-[#3A4A30]"
-                >
-                  <span>Ver Bazar Aberto</span>
-                  <ArrowRight className="h-3 w-3" />
-                </button>
-              </div>
-
-              {/* Step 2 */}
-              <div className="bg-slate-50 dark:bg-[#1F2919] border border-slate-200 dark:border-[#3A4A30] rounded-2xl p-5 relative flex flex-col justify-between space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="w-8 h-8 rounded-xl bg-[#8FA079] text-[#1F2919] font-black text-sm flex items-center justify-center shadow">
-                      2
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400">
+                      ⭐ Comece por aqui!
                     </span>
-                    <Camera className="h-5 w-5 text-emerald-500" />
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                      Cadastrar no Estoque
+                    </h4>
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                    Cadastrar com Fotos
-                  </h4>
                   <p className="text-xs text-slate-600 dark:text-[#D8C7AC] leading-relaxed">
-                    Tire fotos direto da câmera ou pegue da galeria. Defina Custo, Preço Cheio de Loja e Valor do Bazar.
+                    Cadastre todas as suas peças antes no estoque: tire fotos nítidas, defina Preço de Custo e Valor no Bazar. Fazer isso primeiro facilita todo o restante do evento!
                   </p>
                 </div>
                 <button
                   onClick={() => onOpenNewProduct()}
                   className="text-xs font-bold text-[#8FA079] hover:underline flex items-center gap-1 pt-2 border-t border-slate-200 dark:border-[#3A4A30]"
                 >
-                  <span>+ Adicionar Peça</span>
+                  <span>+ Cadastrar Produto</span>
                   <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
 
-              {/* Step 3 */}
+              {/* Step 2: Abrir o Bazar */}
+              <div className="bg-slate-50 dark:bg-[#1F2919] border border-slate-200 dark:border-[#3A4A30] rounded-2xl p-5 relative flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="w-8 h-8 rounded-xl bg-[#8FA079] text-[#1F2919] font-black text-sm flex items-center justify-center shadow">
+                      2
+                    </span>
+                    <Calendar className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400">
+                      Rápido e Prático
+                    </span>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                      Abrir o Bazar (Edição)
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-[#D8C7AC] leading-relaxed">
+                    Com os produtos já no estoque, crie a edição do evento (ex: "Bazar de Inverno VIP"). É só selecionar os produtos já prontos com poucos cliques!
+                  </p>
+                </div>
+                <button
+                  onClick={() => onNavigateTab('dashboard')}
+                  className="text-xs font-bold text-[#8FA079] hover:underline flex items-center gap-1 pt-2 border-t border-slate-200 dark:border-[#3A4A30]"
+                >
+                  <span>Ver / Criar Bazar</span>
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+
+              {/* Step 3: Divulgar na Vitrine */}
               <div className="bg-slate-50 dark:bg-[#1F2919] border border-slate-200 dark:border-[#3A4A30] rounded-2xl p-5 relative flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -352,23 +386,28 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                     </span>
                     <Share2 className="h-5 w-5 text-blue-500" />
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                    Divulgar na Vitrine
-                  </h4>
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">
+                      Catálogo Instantâneo
+                    </span>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                      Divulgar na Vitrine
+                    </h4>
+                  </div>
                   <p className="text-xs text-slate-600 dark:text-[#D8C7AC] leading-relaxed">
-                    Busque produtos por nome, copie textos prontos para WhatsApp e exporte imagens JPG com sua chave PIX.
+                    Sua vitrine virtual já nasce pronta com fotos, cálculo de desconto De/Por e textos formatados com chave PIX para enviar no WhatsApp.
                   </p>
                 </div>
                 <button
                   onClick={() => onNavigateTab('catalog')}
                   className="text-xs font-bold text-[#8FA079] hover:underline flex items-center gap-1 pt-2 border-t border-slate-200 dark:border-[#3A4A30]"
                 >
-                  <span>Abrir Vitrine de Fotos</span>
+                  <span>Abrir Vitrine</span>
                   <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
 
-              {/* Step 4 */}
+              {/* Step 4: Vender e Apurar Lucro */}
               <div className="bg-slate-50 dark:bg-[#1F2919] border border-slate-200 dark:border-[#3A4A30] rounded-2xl p-5 relative flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
@@ -377,11 +416,16 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                     </span>
                     <TrendingUp className="h-5 w-5 text-purple-500" />
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">
-                    Vender & Apurar Lucro
-                  </h4>
+                  <div>
+                    <span className="text-[10px] font-black uppercase text-purple-600 dark:text-purple-400">
+                      Caixa Ágil & Lucro Real
+                    </span>
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                      Vender & Apurar Lucro
+                    </h4>
+                  </div>
                   <p className="text-xs text-slate-600 dark:text-[#D8C7AC] leading-relaxed">
-                    Lance as vendas no caixa, dê baixa automática de estoque e acompanhe o Lucro Líquido Real no Dashboard.
+                    Lance as vendas em segundos no caixa, dê baixa automática de estoque e acompanhe o Lucro Líquido Real no Dashboard e Relatórios.
                   </p>
                 </div>
                 <button
@@ -536,23 +580,23 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                 <ul className="space-y-2.5 text-xs text-slate-600 dark:text-[#D8C7AC]">
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span>Cadastrar o nome da nova edição em <strong>+ Novo Bazar</strong>.</span>
+                    <span><strong>1º Passo:</strong> Cadastrar primeiro todas as peças no <strong>Estoque</strong> com fotos nítidas, custos e preços promocionais (fazer isso antes facilita todo o processo!).</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span>Conferir Chave PIX e WhatsApp na aba <strong>Dados da Loja</strong>.</span>
+                    <span><strong>2º Passo:</strong> Abrir ou criar a edição do evento em <strong>+ Criar Novo Bazar</strong>, vinculando os produtos já cadastrados com poucos cliques.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span>Fotografar e cadastrar todas as peças com fotos nítidas e boa luz.</span>
+                    <span>Conferir Chave PIX, WhatsApp e Instagram na aba <strong>Dados da Loja</strong>.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span>Revisar Preço de Custo e Preço De/Por de cada produto.</span>
+                    <span>Revisar as margens e a <strong>Vitrine</strong> com fotos e descontos De/Por calculados.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                    <span>Exportar a Vitrine em PDF ou gerar fotos JPG para aquecimento no Instagram/WhatsApp.</span>
+                    <span>Exportar a Vitrine ou gerar fotos JPG com mensagens prontas para aquecimento no Instagram/WhatsApp.</span>
                   </li>
                 </ul>
               </div>
