@@ -11,7 +11,8 @@ import {
   LayoutDashboard,
   Store,
   Compass,
-  BookOpen
+  BookOpen,
+  Menu
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 import { EditionManagementModal } from './Editions/EditionManagementModal';
@@ -22,6 +23,7 @@ interface HeaderProps {
   onOpenNewSale: () => void;
   onOpenNewProduct: () => void;
   onOpenSettings: () => void;
+  onOpenMobileMenu?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNewSale,
   onOpenNewProduct,
   onOpenSettings,
+  onOpenMobileMenu,
 }) => {
   const { editions, activeEditionId } = useBazar();
   const [showEditionModal, setShowEditionModal] = useState(false);
@@ -42,77 +45,92 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="bg-[#2A3722] text-white shadow-lg border-b border-[#3A4A30] sticky top-0 z-30">
       {/* Top Banner Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-2.5">
           
-          {/* Logo & Title */}
-          <div className="flex items-center space-x-3 w-full md:w-auto justify-between md:justify-start">
+          {/* Logo, Title & Mobile Header Controls */}
+          <div className="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center space-x-2.5">
               <div className="bg-gradient-to-tr from-[#8FA079] via-[#576945] to-[#3A452F] p-2 rounded-xl shadow-lg shadow-[#8FA079]/20">
-                <Sparkles className="h-6 w-6 text-white" />
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                <h1 className="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
                   Rx do Bazar de Sucesso
                 </h1>
-                <p className="text-xs text-[#D8C7AC] hidden sm:block">Controle de Estoque, Margens & Lucro em Tempo Real</p>
+                <p className="text-[11px] sm:text-xs text-[#D8C7AC]">
+                  Gestão & Precificação • <span className="text-[#8FA079] font-bold">@danillafinancas</span>
+                </p>
               </div>
             </div>
 
-          {/* Mobile Edition & New Bazar Buttons */}
+            {/* Mobile Top Controls: Edition + Settings + Menu */}
             <div className="md:hidden flex items-center gap-1.5">
               <button
                 onClick={() => {
                   setEditionModalMode('list');
                   setShowEditionModal(true);
                 }}
-                className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] px-2.5 py-1.5 rounded-lg border border-[#576945] transition max-w-[105px]"
+                className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] px-2.5 py-1.5 rounded-lg border border-[#576945] transition max-w-[120px]"
                 title="Bazar Atual & Edições"
               >
-                <Calendar className="h-3 w-3 text-[#C2AD8E] mr-1 shrink-0" />
-                <span className="truncate">{activeEditionName}</span>
-              </button>
-
-              {/* Quick Vitrine Button for Mobile */}
-              <button
-                onClick={() => setActiveTab('catalog')}
-                className={`flex items-center text-[11px] ${
-                  activeTab === 'catalog'
-                    ? 'bg-rose-600 text-white font-black shadow-sm ring-1 ring-rose-400'
-                    : 'bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] font-bold'
-                } px-2.5 py-1.5 rounded-lg border border-[#576945] transition shrink-0`}
-                title="Vitrine de Fotos"
-              >
-                <Share2 className="h-3.5 w-3.5 mr-0.5 text-emerald-300" />
-                <span>Vitrine</span>
-              </button>
-
-              <button
-                onClick={() => onOpenNewSale()}
-                className="flex items-center text-[11px] bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-black px-2.5 py-1.5 rounded-lg shadow-sm transition active:scale-95 shrink-0"
-                title="Nova Venda"
-              >
-                <Plus className="h-3.5 w-3.5 mr-0.5" />
-                <span>+ Venda</span>
-              </button>
-
-              <button
-                onClick={() => onOpenNewProduct()}
-                className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] font-bold px-2 py-1.5 rounded-lg border border-[#576945] transition shrink-0"
-                title="Novo Produto"
-              >
-                <Package className="h-3 w-3 mr-0.5 text-[#C2AD8E]" />
-                <span>+ Item</span>
+                <Calendar className="h-3.5 w-3.5 text-[#C2AD8E] mr-1 shrink-0" />
+                <span className="truncate font-semibold">{activeEditionName}</span>
               </button>
 
               <button
                 onClick={() => onOpenSettings()}
-                className="p-1.5 text-[#D8C7AC] hover:text-white bg-[#3A452F] rounded-lg border border-[#576945] transition shrink-0"
-                title="Configurações"
+                className="p-2 text-[#D8C7AC] hover:text-white bg-[#3A452F] hover:bg-[#465437] rounded-lg border border-[#576945] transition shrink-0"
+                title="Configurações & Backup"
               >
-                <Settings className="h-3.5 w-3.5" />
+                <Settings className="h-4 w-4" />
               </button>
+
+              {onOpenMobileMenu && (
+                <button
+                  onClick={onOpenMobileMenu}
+                  className="flex items-center gap-1 text-[11px] bg-[#8FA079]/20 hover:bg-[#8FA079]/30 text-[#CAD7BE] hover:text-white px-2.5 py-1.5 rounded-lg border border-[#8FA079]/40 transition shrink-0 font-bold"
+                  title="Abrir Menu de Abas"
+                >
+                  <Menu className="h-4 w-4 text-[#8FA079]" />
+                  <span>Abas</span>
+                </button>
+              )}
             </div>
+          </div>
+
+          {/* Mobile Quick Action Buttons Bar (Second Row on Mobile) */}
+          <div className="md:hidden w-full grid grid-cols-3 gap-1.5 pt-1">
+            <button
+              onClick={() => onOpenNewSale()}
+              className="flex items-center justify-center gap-1 py-2 px-2 bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-black rounded-xl text-xs shadow-md transition active:scale-95"
+              title="Registrar Nova Venda"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>+ Venda</span>
+            </button>
+
+            <button
+              onClick={() => onOpenNewProduct()}
+              className="flex items-center justify-center gap-1 py-2 px-2 bg-[#3A452F] hover:bg-[#465437] text-white font-bold rounded-xl text-xs border border-[#576945] transition active:scale-95"
+              title="Cadastrar Novo Produto"
+            >
+              <Package className="h-3.5 w-3.5 text-[#CAD7BE]" />
+              <span>+ Produto</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('catalog')}
+              className={`flex items-center justify-center gap-1 py-2 px-2 rounded-xl text-xs font-bold border transition ${
+                activeTab === 'catalog'
+                  ? 'bg-[#4A5D3B] text-white border-[#8FA079] shadow-md'
+                  : 'bg-[#3A452F] text-[#CAD7BE] hover:text-white border-[#576945]'
+              }`}
+              title="Ver Vitrine com Fotos"
+            >
+              <Share2 className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Vitrine</span>
+            </button>
           </div>
 
           {/* Desktop Edition Switcher & Quick Actions */}
@@ -176,110 +194,118 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="bg-[#1F2919]/90 border-t border-[#3A4A30] px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex space-x-1 sm:space-x-2 overflow-x-auto py-2 no-scrollbar">
+      <div className="bg-[#1F2919]/95 border-t border-[#3A4A30] px-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-2 no-scrollbar">
           
           {/* 1. Dashboard */}
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'dashboard'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
             }`}
           >
-            <LayoutDashboard className="h-4 w-4" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">1</span>
+            <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Dashboard</span>
           </button>
 
           {/* 2. Estoque e Margens */}
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'inventory'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
             }`}
           >
-            <Package className="h-4 w-4" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">2</span>
+            <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Estoque e Margens</span>
           </button>
 
           {/* 3. Vendas e Clientes */}
           <button
             onClick={() => setActiveTab('sales')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'sales'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
             }`}
           >
-            <ShoppingCart className="h-4 w-4" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">3</span>
+            <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Vendas e Clientes</span>
           </button>
 
           {/* 4. Vitrine */}
           <button
             onClick={() => setActiveTab('catalog')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'catalog'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
             }`}
           >
-            <Share2 className="h-4 w-4 text-emerald-400" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-emerald-300">4</span>
+            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
             <span>Vitrine</span>
           </button>
 
           {/* 5. Relatórios */}
           <button
             onClick={() => setActiveTab('reports')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'reports'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
             }`}
           >
-            <TrendingUp className="h-4 w-4" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">5</span>
+            <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Relatórios</span>
           </button>
 
           {/* 6. Dados da Loja */}
           <button
             onClick={() => setActiveTab('store')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'store'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
             }`}
           >
-            <Store className="h-4 w-4" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">6</span>
+            <Store className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Dados da Loja</span>
           </button>
 
           {/* 7. Manual de Uso */}
           <button
             onClick={() => setActiveTab('guide')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap ${
+            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'guide'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
             }`}
           >
-            <BookOpen className="h-4 w-4 text-[#CAD7BE]" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">7</span>
+            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#CAD7BE]" />
             <span>Manual de Uso</span>
           </button>
 
           {/* 8. Próximos Passos */}
           <button
             onClick={() => setActiveTab('next_steps')}
-            className={`flex items-center space-x-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition whitespace-nowrap relative ${
+            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 relative ${
               activeTab === 'next_steps'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold'
+                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#CAD7BE] hover:text-white hover:bg-[#3A452F] font-semibold'
             }`}
           >
-            <Compass className="h-4 w-4 text-amber-300" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-amber-300">8</span>
+            <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-300" />
             <span>Próximos Passos</span>
             <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
           </button>

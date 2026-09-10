@@ -12,7 +12,8 @@ import {
   BookOpen, 
   TrendingUp,
   Store,
-  Compass
+  Compass,
+  Menu
 } from 'lucide-react';
 import { BazarProvider } from './context/BazarContext';
 import { Header } from './components/Header';
@@ -27,6 +28,8 @@ import { BazarCatalog } from './components/Catalog/BazarCatalog';
 import { StoreDetails } from './components/Store/StoreDetails';
 import { NextSteps } from './components/NextSteps/NextSteps';
 import { UserGuide } from './components/Guide/UserGuide';
+import { MobileNavDrawer } from './components/Navigation/MobileNavDrawer';
+import { EditionManagementModal } from './components/Editions/EditionManagementModal';
 import { Product } from './types';
 import { useBazar } from './context/BazarContext';
 
@@ -54,6 +57,8 @@ function MainApp() {
   } | null>(null);
 
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isEditionModalOpen, setIsEditionModalOpen] = useState(false);
 
   const { addProduct, updateProduct } = useBazar();
 
@@ -95,6 +100,7 @@ function MainApp() {
         onOpenNewSale={() => handleOpenQuickSale()}
         onOpenNewProduct={() => handleOpenNewProduct()}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -150,49 +156,52 @@ function MainApp() {
       </main>
 
       {/* Mobile Fixed Bottom Navigation Bar (Visible on mobile screens) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1F2919]/95 backdrop-blur-md border-t border-[#3A4A30] shadow-2xl py-2 px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1F2919]/95 backdrop-blur-md border-t border-[#3A4A30] shadow-2xl py-1.5 px-2">
         <div className="max-w-md mx-auto grid grid-cols-5 gap-1 items-center">
           
+          {/* 1. Dashboard */}
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
+            className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
               activeTab === 'dashboard'
-                ? 'text-white font-bold bg-[#3A452F]'
+                ? 'text-white font-bold bg-[#3A452F] shadow-sm'
                 : 'text-[#D8C7AC]/70 hover:text-white'
             }`}
           >
             <LayoutDashboard className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-tight">Início</span>
+            <span className="text-[10px] leading-tight font-medium">Dashboard</span>
           </button>
 
+          {/* 2. Estoque */}
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
+            className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
               activeTab === 'inventory'
-                ? 'text-white font-bold bg-[#3A452F]'
+                ? 'text-white font-bold bg-[#3A452F] shadow-sm'
                 : 'text-[#D8C7AC]/70 hover:text-white'
             }`}
           >
             <Package className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-tight">Estoque</span>
+            <span className="text-[10px] leading-tight font-medium">Estoque</span>
           </button>
 
+          {/* 3. Vendas */}
           <button
             onClick={() => setActiveTab('sales')}
-            className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
+            className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
               activeTab === 'sales'
-                ? 'text-white font-bold bg-[#3A452F]'
+                ? 'text-white font-bold bg-[#3A452F] shadow-sm'
                 : 'text-[#D8C7AC]/70 hover:text-white'
             }`}
           >
             <ShoppingCart className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-tight">Vendas</span>
+            <span className="text-[10px] leading-tight font-medium">Vendas</span>
           </button>
 
-          {/* Prominent Vitrine Tab */}
+          {/* 4. Vitrine */}
           <button
             onClick={() => setActiveTab('catalog')}
-            className={`flex flex-col items-center justify-center py-1 rounded-xl transition relative ${
+            className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition relative ${
               activeTab === 'catalog'
                 ? 'text-white font-black bg-[#4A5D3B] ring-2 ring-[#8FA079] shadow-lg'
                 : 'text-[#CAD7BE] font-bold hover:text-white bg-[#3A452F]/60'
@@ -200,26 +209,49 @@ function MainApp() {
           >
             <Share2 className="h-5 w-5 mb-0.5 text-emerald-400" />
             <span className="text-[10px] leading-tight font-black text-emerald-300">Vitrine</span>
-            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+            <span className="absolute -top-1 -right-1 flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
           </button>
 
+          {/* 5. Menu Completo (Todas as 8 abas) */}
           <button
-            onClick={() => setActiveTab('guide')}
-            className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
-              activeTab === 'guide'
-                ? 'text-white font-bold bg-[#3A452F]'
+            onClick={() => setIsMobileMenuOpen(true)}
+            className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition relative ${
+              ['reports', 'store', 'guide', 'next_steps'].includes(activeTab)
+                ? 'text-white font-bold bg-[#3A452F] ring-1 ring-[#8FA079]'
                 : 'text-[#D8C7AC]/70 hover:text-white'
             }`}
+            title="Ver todas as 8 abas"
           >
-            <BookOpen className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-tight">Manual</span>
+            <Menu className="h-5 w-5 mb-0.5 text-[#CAD7BE]" />
+            <span className="text-[10px] leading-tight font-medium">Mais (Abas)</span>
+            {['reports', 'store', 'guide', 'next_steps'].includes(activeTab) && (
+              <span className="absolute top-1 right-2.5 h-2 w-2 rounded-full bg-[#8FA079]" />
+            )}
           </button>
 
         </div>
       </nav>
+
+      {/* Mobile Navigation Drawer */}
+      <MobileNavDrawer
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        onOpenNewSale={() => handleOpenQuickSale()}
+        onOpenNewProduct={() => handleOpenNewProduct()}
+        onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenEditionModal={() => setIsEditionModalOpen(true)}
+      />
+
+      {/* Edition Management Modal */}
+      <EditionManagementModal
+        isOpen={isEditionModalOpen}
+        onClose={() => setIsEditionModalOpen(false)}
+      />
 
       {/* Footer */}
       <footer className="bg-[#2A3722] text-[#D8C7AC] border-t border-[#3A4A30] py-6 text-center text-xs mt-auto hidden md:block">

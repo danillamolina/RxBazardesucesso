@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Package, 
   DollarSign, 
@@ -14,7 +14,12 @@ import {
   PhoneCall,
   UserCheck,
   Compass,
-  BookOpen
+  BookOpen,
+  Calendar,
+  Share2,
+  ChevronDown,
+  ChevronUp,
+  ArrowRight
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 import { formatCurrency, formatPercent, formatDateShort, getPaymentStatusLabel } from '../utils/formatters';
@@ -39,6 +44,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     updateSaleStatus
   } = useBazar();
 
+  const [isQuickGuideOpen, setIsQuickGuideOpen] = useState(true);
+
   // Low stock products (< 3 items)
   const lowStockProducts = products.filter(p => p.quantity > 0 && p.quantity <= 3);
   const outOfStockProducts = products.filter(p => p.quantity === 0);
@@ -50,34 +57,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <div className="space-y-6 pb-12">
       
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#2A3722] via-[#3A452F] to-[#576945] border border-[#3A4A30] rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl">
+      <div className="bg-gradient-to-r from-[#2A3722] via-[#3A452F] to-[#576945] border border-[#3A4A30] rounded-3xl p-5 sm:p-8 text-white relative overflow-hidden shadow-xl">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-15 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#8FA079] via-[#CAD7BE] to-transparent pointer-events-none" />
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative z-10">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8FA079]/30 border border-[#8FA079]/40 text-[#E5EBDE] text-xs font-semibold">
               <Sparkles className="h-3.5 w-3.5 text-amber-300" />
               Painel de Controle em Tempo Real
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white">
               Resumo do Rx do Bazar de Sucesso 🛍️
             </h2>
-            <p className="text-[#D8C7AC] text-sm max-w-2xl leading-relaxed">
+            <p className="text-[#D8C7AC] text-xs sm:text-sm max-w-2xl leading-relaxed">
               Acompanhe seu estoque atualizado, margem de lucro por peça, clientes e o faturamento real das suas vendas em um único lugar.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => onOpenNewSale()}
-              className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold px-4 py-2.5 rounded-2xl shadow-lg shadow-[#8FA079]/20 flex items-center gap-2 transition active:scale-95 text-xs sm:text-sm"
+              className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-lg shadow-[#8FA079]/20 flex items-center gap-1.5 sm:gap-2 transition active:scale-95 text-xs sm:text-sm"
             >
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Registrar Venda</span>
             </button>
             <button
               onClick={() => onNavigateTab('guide')}
-              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-3.5 py-2.5 rounded-2xl border border-[#576945] flex items-center gap-2 transition shadow-md text-xs sm:text-sm"
+              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#576945] flex items-center gap-1.5 sm:gap-2 transition shadow-md text-xs sm:text-sm"
               title="Abrir Guia e Manual Prático"
             >
               <BookOpen className="h-4 w-4 text-[#CAD7BE]" />
@@ -85,20 +92,160 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
             <button
               onClick={() => onNavigateTab('next_steps')}
-              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-3.5 py-2.5 rounded-2xl border border-[#576945] flex items-center gap-2 transition shadow-md text-xs sm:text-sm"
+              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#576945] flex items-center gap-1.5 sm:gap-2 transition shadow-md text-xs sm:text-sm"
             >
               <Compass className="h-4 w-4 text-amber-300" />
               <span>Próximos Passos</span>
             </button>
             <button
               onClick={() => onNavigateTab('catalog')}
-              className="bg-[#3A452F]/70 hover:bg-[#3A452F] text-[#D8C7AC] font-medium px-3.5 py-2.5 rounded-2xl border border-[#576945] flex items-center gap-2 transition text-xs sm:text-sm"
+              className="bg-[#3A452F]/70 hover:bg-[#3A452F] text-[#D8C7AC] font-medium px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#576945] flex items-center gap-1.5 sm:gap-2 transition text-xs sm:text-sm"
             >
               <Tag className="h-4 w-4 text-[#CAD7BE]" />
               <span>Ver Vitrine</span>
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Guia Didático Rápido Mobile & Desktop: Passo a Passo do Bazar */}
+      <div className="bg-[#FAF7F2] dark:bg-[#1F2919] border-2 border-[#8FA079]/50 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div 
+          onClick={() => setIsQuickGuideOpen(!isQuickGuideOpen)}
+          className="flex items-center justify-between cursor-pointer select-none"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-[#8FA079] text-[#1F2919] rounded-xl font-black text-xs shadow-sm">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded-md">
+                  Guia Didático Rápido
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                  Como Fazer Seu Bazar em 4 Passos Simples
+                </span>
+              </div>
+              <p className="text-[11px] sm:text-xs text-slate-600 dark:text-[#CAD7BE] mt-0.5">
+                Dica da Danilla: Cadastre as peças antes no estoque para abrir seu evento sem correria!
+              </p>
+            </div>
+          </div>
+
+          <button 
+            type="button" 
+            className="p-1.5 rounded-xl bg-slate-200/60 dark:bg-[#2A3722] text-slate-700 dark:text-white transition"
+          >
+            {isQuickGuideOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        </div>
+
+        {isQuickGuideOpen && (
+          <div className="pt-2 border-t border-slate-200 dark:border-[#3A4A30] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            
+            {/* Step 1 */}
+            <div className="p-3.5 bg-white dark:bg-[#172013] border-2 border-emerald-500/40 rounded-2xl flex flex-col justify-between space-y-2.5 shadow-sm">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded-md">
+                    1º Comece Aqui
+                  </span>
+                  <Package className="h-4 w-4 text-emerald-500" />
+                </div>
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  1. Cadastrar no Estoque
+                </h4>
+                <p className="text-[11px] text-slate-600 dark:text-[#CAD7BE] leading-relaxed">
+                  Tire fotos das peças, coloque o custo e o valor do bazar. O sistema calcula a margem na hora.
+                </p>
+              </div>
+              <button
+                onClick={() => onOpenNewProduct()}
+                className="w-full text-center py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-[11px] transition flex items-center justify-center gap-1 shadow-sm"
+              >
+                <span>+ Cadastrar Peça</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* Step 2 */}
+            <div className="p-3.5 bg-white dark:bg-[#172013] border border-slate-200 dark:border-[#3A4A30] rounded-2xl flex flex-col justify-between space-y-2.5 shadow-sm">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded-md">
+                    Passo 2
+                  </span>
+                  <Calendar className="h-4 w-4 text-amber-500" />
+                </div>
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  2. Abrir o Bazar
+                </h4>
+                <p className="text-[11px] text-slate-600 dark:text-[#CAD7BE] leading-relaxed">
+                  Crie ou selecione o evento em aberto. Suas peças já cadastradas entram com 1 clique.
+                </p>
+              </div>
+              <button
+                onClick={() => onNavigateTab('inventory')}
+                className="w-full text-center py-1.5 px-2 bg-[#2A3722] hover:bg-[#3A452F] text-[#CAD7BE] hover:text-white font-bold rounded-xl text-[11px] transition flex items-center justify-center gap-1 border border-[#3A4A30]"
+              >
+                <span>Ver / Criar Edição</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* Step 3 */}
+            <div className="p-3.5 bg-white dark:bg-[#172013] border border-slate-200 dark:border-[#3A4A30] rounded-2xl flex flex-col justify-between space-y-2.5 shadow-sm">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-md">
+                    Passo 3
+                  </span>
+                  <Share2 className="h-4 w-4 text-blue-500" />
+                </div>
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  3. Divulgar na Vitrine
+                </h4>
+                <p className="text-[11px] text-slate-600 dark:text-[#CAD7BE] leading-relaxed">
+                  Sua vitrine virtual já nasce pronta com fotos, desconto De/Por e textos formatados com chave PIX.
+                </p>
+              </div>
+              <button
+                onClick={() => onNavigateTab('catalog')}
+                className="w-full text-center py-1.5 px-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-[11px] transition flex items-center justify-center gap-1 shadow-sm"
+              >
+                <span>Abrir Vitrine</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* Step 4 */}
+            <div className="p-3.5 bg-white dark:bg-[#172013] border border-slate-200 dark:border-[#3A4A30] rounded-2xl flex flex-col justify-between space-y-2.5 shadow-sm">
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950 px-2 py-0.5 rounded-md">
+                    Passo 4
+                  </span>
+                  <TrendingUp className="h-4 w-4 text-purple-500" />
+                </div>
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white">
+                  4. Vender no Caixa
+                </h4>
+                <p className="text-[11px] text-slate-600 dark:text-[#CAD7BE] leading-relaxed">
+                  Lance as vendas no caixa, dê baixa automática de estoque e acompanhe o Lucro Líquido Real.
+                </p>
+              </div>
+              <button
+                onClick={() => onOpenNewSale()}
+                className="w-full text-center py-1.5 px-2 bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-black rounded-xl text-[11px] transition flex items-center justify-center gap-1 shadow-sm"
+              >
+                <span>+ Nova Venda</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+
+          </div>
+        )}
       </div>
 
       {/* Primary Financial Metric Cards */}
