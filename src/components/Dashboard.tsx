@@ -57,19 +57,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
     <div className="space-y-6 pb-12">
       
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#2A3722] via-[#3A452F] to-[#576945] border border-[#3A4A30] rounded-3xl p-5 sm:p-8 text-white relative overflow-hidden shadow-xl">
+      <div className="bg-gradient-to-br from-[#FAF8F5] via-[#F2EDE2] to-[#E6EFE2] md:bg-gradient-to-r md:from-[#2A3722] md:via-[#3A452F] md:to-[#576945] border border-[#DDD3C2] md:border-[#3A4A30] rounded-3xl p-5 sm:p-8 text-[#2B3323] md:text-white relative overflow-hidden shadow-sm md:shadow-xl">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-15 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#8FA079] via-[#CAD7BE] to-transparent pointer-events-none" />
         
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6 relative z-10">
           <div className="space-y-1.5 sm:space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#8FA079]/30 border border-[#8FA079]/40 text-[#E5EBDE] text-xs font-semibold">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8EFE2] md:bg-[#8FA079]/30 border border-[#CAD7BE] md:border-[#8FA079]/40 text-[#3A462E] md:text-[#E5EBDE] text-xs font-semibold">
+              <Sparkles className="h-3.5 w-3.5 text-amber-600 md:text-amber-300" />
               Painel de Controle em Tempo Real
             </div>
-            <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white">
+            <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-[#1F2919] md:text-white">
               Resumo do Rx do Bazar de Sucesso 🛍️
             </h2>
-            <p className="text-[#D8C7AC] text-xs sm:text-sm max-w-2xl leading-relaxed">
+            <p className="text-[#576945] md:text-[#D8C7AC] text-xs sm:text-sm max-w-2xl leading-relaxed">
               Acompanhe seu estoque atualizado, margem de lucro por peça, clientes e o faturamento real das suas vendas em um único lugar.
             </p>
           </div>
@@ -77,31 +77,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => onOpenNewSale()}
-              className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-lg shadow-[#8FA079]/20 flex items-center gap-1.5 sm:gap-2 transition active:scale-95 text-xs sm:text-sm"
+              className="bg-[#8FA079] hover:bg-[#7D9068] text-[#1F2919] font-extrabold px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-sm md:shadow-lg md:shadow-[#8FA079]/20 flex items-center gap-1.5 sm:gap-2 transition active:scale-95 text-xs sm:text-sm"
             >
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Registrar Venda</span>
             </button>
             <button
               onClick={() => onNavigateTab('guide')}
-              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#576945] flex items-center gap-1.5 sm:gap-2 transition shadow-md text-xs sm:text-sm"
+              className="bg-white hover:bg-[#F2EDE2] text-[#2B3323] md:bg-[#3A452F] md:hover:bg-[#465437] md:text-white font-bold px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#DDD3C2] md:border-[#576945] flex items-center gap-1.5 sm:gap-2 transition shadow-xs md:shadow-md text-xs sm:text-sm"
               title="Abrir Guia e Manual Prático"
             >
-              <BookOpen className="h-4 w-4 text-[#CAD7BE]" />
+              <BookOpen className="h-4 w-4 text-[#556348] md:text-[#CAD7BE]" />
               <span>Manual de Uso</span>
             </button>
             <button
               onClick={() => onNavigateTab('next_steps')}
-              className="bg-[#3A452F] hover:bg-[#465437] text-white font-bold px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#576945] flex items-center gap-1.5 sm:gap-2 transition shadow-md text-xs sm:text-sm"
+              className="bg-white hover:bg-[#F2EDE2] text-[#2B3323] md:bg-[#3A452F] md:hover:bg-[#465437] md:text-white font-bold px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#DDD3C2] md:border-[#576945] flex items-center gap-1.5 sm:gap-2 transition shadow-xs md:shadow-md text-xs sm:text-sm"
             >
-              <Compass className="h-4 w-4 text-amber-300" />
+              <Compass className="h-4 w-4 text-amber-600 md:text-amber-300" />
               <span>Próximos Passos</span>
             </button>
             <button
               onClick={() => onNavigateTab('catalog')}
-              className="bg-[#3A452F]/70 hover:bg-[#3A452F] text-[#D8C7AC] font-medium px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#576945] flex items-center gap-1.5 sm:gap-2 transition text-xs sm:text-sm"
+              className="bg-white hover:bg-[#F2EDE2] text-[#2B3323] md:bg-[#3A452F]/70 md:hover:bg-[#3A452F] md:text-[#D8C7AC] font-medium px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-2xl border border-[#DDD3C2] md:border-[#576945] flex items-center gap-1.5 sm:gap-2 transition text-xs sm:text-sm shadow-xs"
             >
-              <Tag className="h-4 w-4 text-[#CAD7BE]" />
+              <Tag className="h-4 w-4 text-emerald-600 md:text-[#CAD7BE]" />
               <span>Ver Vitrine</span>
             </button>
           </div>

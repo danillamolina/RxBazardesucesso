@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
     : editions.find(e => e.id === activeEditionId)?.name || 'Edição Atual';
 
   return (
-    <header className="bg-[#2A3722] text-white shadow-lg border-b border-[#3A4A30] sticky top-0 z-30">
+    <header className="bg-[#FAF8F5] md:bg-[#2A3722] text-[#2B3323] md:text-white shadow-xs md:shadow-lg border-b border-[#E5DDD0] md:border-[#3A4A30] sticky top-0 z-30 transition-colors">
       {/* Top Banner Bar */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
         <div className="flex flex-col md:flex-row items-center justify-between gap-2.5">
@@ -51,15 +51,15 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Logo, Title & Mobile Header Controls */}
           <div className="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center space-x-2.5">
-              <div className="bg-gradient-to-tr from-[#8FA079] via-[#576945] to-[#3A452F] p-2 rounded-xl shadow-lg shadow-[#8FA079]/20">
+              <div className="bg-gradient-to-tr from-[#8FA079] via-[#576945] to-[#3A452F] p-2 rounded-xl shadow-md">
                 <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-base sm:text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+                <h1 className="text-base sm:text-xl font-bold tracking-tight text-[#1F2919] md:text-white flex items-center gap-1.5">
                   Rx do Bazar de Sucesso
                 </h1>
-                <p className="text-[11px] sm:text-xs text-[#D8C7AC]">
-                  Gestão & Precificação • <span className="text-[#8FA079] font-bold">@danillafinancas</span>
+                <p className="text-[11px] sm:text-xs text-[#6A785E] md:text-[#D8C7AC]">
+                  Gestão & Precificação • <span className="text-[#4A5D3B] md:text-[#8FA079] font-bold">@danillafinancas</span>
                 </p>
               </div>
             </div>
@@ -71,16 +71,16 @@ export const Header: React.FC<HeaderProps> = ({
                   setEditionModalMode('list');
                   setShowEditionModal(true);
                 }}
-                className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] px-2.5 py-1.5 rounded-lg border border-[#576945] transition max-w-[120px]"
+                className="flex items-center text-[11px] bg-white hover:bg-[#F2EDE2] text-[#2B3323] px-2.5 py-1.5 rounded-lg border border-[#DDD3C2] shadow-xs transition max-w-[120px]"
                 title="Bazar Atual & Edições"
               >
-                <Calendar className="h-3.5 w-3.5 text-[#C2AD8E] mr-1 shrink-0" />
+                <Calendar className="h-3.5 w-3.5 text-[#71845B] mr-1 shrink-0" />
                 <span className="truncate font-semibold">{activeEditionName}</span>
               </button>
 
               <button
                 onClick={() => onOpenSettings()}
-                className="p-2 text-[#D8C7AC] hover:text-white bg-[#3A452F] hover:bg-[#465437] rounded-lg border border-[#576945] transition shrink-0"
+                className="p-2 text-[#556348] hover:text-[#1F2919] bg-white hover:bg-[#F2EDE2] rounded-lg border border-[#DDD3C2] shadow-xs transition shrink-0"
                 title="Configurações & Backup"
               >
                 <Settings className="h-4 w-4" />
@@ -89,10 +89,10 @@ export const Header: React.FC<HeaderProps> = ({
               {onOpenMobileMenu && (
                 <button
                   onClick={onOpenMobileMenu}
-                  className="flex items-center gap-1 text-[11px] bg-[#8FA079]/20 hover:bg-[#8FA079]/30 text-[#CAD7BE] hover:text-white px-2.5 py-1.5 rounded-lg border border-[#8FA079]/40 transition shrink-0 font-bold"
+                  className="flex items-center gap-1 text-[11px] bg-[#E8EFE2] hover:bg-[#DCE7D4] text-[#254217] px-2.5 py-1.5 rounded-lg border border-[#8FA079] transition shrink-0 font-bold shadow-xs"
                   title="Abrir Menu de Abas"
                 >
-                  <Menu className="h-4 w-4 text-[#8FA079]" />
+                  <Menu className="h-4 w-4 text-[#3A5D28]" />
                   <span>Abas</span>
                 </button>
               )}
@@ -103,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="md:hidden w-full grid grid-cols-3 gap-1.5 pt-1">
             <button
               onClick={() => onOpenNewSale()}
-              className="flex items-center justify-center gap-1 py-2 px-2 bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-black rounded-xl text-xs shadow-md transition active:scale-95"
+              className="flex items-center justify-center gap-1 py-2 px-2 bg-[#8FA079] hover:bg-[#7D9068] text-[#1F2919] font-black rounded-xl text-xs shadow-sm transition active:scale-95"
               title="Registrar Nova Venda"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -112,10 +112,10 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={() => onOpenNewProduct()}
-              className="flex items-center justify-center gap-1 py-2 px-2 bg-[#3A452F] hover:bg-[#465437] text-white font-bold rounded-xl text-xs border border-[#576945] transition active:scale-95"
+              className="flex items-center justify-center gap-1 py-2 px-2 bg-white hover:bg-[#F7F4EC] text-[#2B3323] font-bold rounded-xl text-xs border border-[#DDD3C2] shadow-xs transition active:scale-95"
               title="Cadastrar Novo Produto"
             >
-              <Package className="h-3.5 w-3.5 text-[#CAD7BE]" />
+              <Package className="h-3.5 w-3.5 text-[#556348]" />
               <span>+ Produto</span>
             </button>
 
@@ -123,12 +123,12 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => setActiveTab('catalog')}
               className={`flex items-center justify-center gap-1 py-2 px-2 rounded-xl text-xs font-bold border transition ${
                 activeTab === 'catalog'
-                  ? 'bg-[#4A5D3B] text-white border-[#8FA079] shadow-md'
-                  : 'bg-[#3A452F] text-[#CAD7BE] hover:text-white border-[#576945]'
+                  ? 'bg-[#E6F4EA] text-[#1B4D2E] border-[#8FA079] shadow-sm'
+                  : 'bg-white hover:bg-[#F7F4EC] text-[#334D28] border-[#DDD3C2] shadow-xs'
               }`}
               title="Ver Vitrine com Fotos"
             >
-              <Share2 className="h-3.5 w-3.5 text-emerald-400" />
+              <Share2 className="h-3.5 w-3.5 text-emerald-600" />
               <span>Vitrine</span>
             </button>
           </div>
@@ -194,7 +194,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Main Navigation Tabs */}
-      <div className="bg-[#1F2919]/95 border-t border-[#3A4A30] px-3 sm:px-6 lg:px-8">
+      <div className="bg-[#F4EFE6] md:bg-[#1F2919]/95 border-t border-[#E5DDD0] md:border-[#3A4A30] px-3 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-2 no-scrollbar">
           
           {/* 1. Dashboard */}
@@ -203,10 +203,10 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'dashboard'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">1</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">1</span>
             <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Dashboard</span>
           </button>
@@ -217,10 +217,10 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'inventory'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">2</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">2</span>
             <Package className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Estoque e Margens</span>
           </button>
@@ -231,10 +231,10 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'sales'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">3</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">3</span>
             <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Vendas e Clientes</span>
           </button>
@@ -245,11 +245,11 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'catalog'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-emerald-300">4</span>
-            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#22543D] md:bg-black/25 md:text-emerald-300">4</span>
+            <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 md:text-emerald-400" />
             <span>Vitrine</span>
           </button>
 
@@ -259,10 +259,10 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'reports'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">5</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">5</span>
             <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Relatórios</span>
           </button>
@@ -273,10 +273,10 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'store'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">6</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">6</span>
             <Store className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Dados da Loja</span>
           </button>
@@ -287,11 +287,11 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
               activeTab === 'guide'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#D8C7AC] hover:text-white hover:bg-[#3A452F]'
+                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-[#CAD7BE]">7</span>
-            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-[#CAD7BE]" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">7</span>
+            <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Manual de Uso</span>
           </button>
 
@@ -301,13 +301,13 @@ export const Header: React.FC<HeaderProps> = ({
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 relative ${
               activeTab === 'next_steps'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#CAD7BE] hover:text-white hover:bg-[#3A452F] font-semibold'
+                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#CAD7BE] md:hover:text-white md:hover:bg-[#3A452F] font-semibold'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-black/25 text-amber-300">8</span>
-            <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-300" />
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#78350F] md:bg-black/25 md:text-amber-300">8</span>
+            <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 md:text-amber-300" />
             <span>Próximos Passos</span>
-            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-amber-500 md:bg-amber-400 animate-pulse" />
           </button>
 
         </div>

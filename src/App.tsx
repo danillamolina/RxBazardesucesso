@@ -91,7 +91,7 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen notranslate bg-[#F7F4EB] dark:bg-[#1A2216] text-[#2B3323] dark:text-[#F7F4EB] font-sans antialiased flex flex-col selection:bg-[#8FA079] selection:text-white transition-colors duration-300 pb-20 md:pb-0" translate="no">
+    <div className="min-h-screen notranslate bg-[#F8F6F0] text-[#2B3323] font-sans antialiased flex flex-col selection:bg-[#8FA079] selection:text-white transition-colors duration-300 pb-20 md:pb-0" translate="no">
       
       {/* Top Header & Navigation */}
       <Header
@@ -156,7 +156,7 @@ function MainApp() {
       </main>
 
       {/* Mobile Fixed Bottom Navigation Bar (Visible on mobile screens) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1F2919]/95 backdrop-blur-md border-t border-[#3A4A30] shadow-2xl py-1.5 px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-t border-[#E2D9C8] shadow-[0_-4px_25px_rgba(0,0,0,0.06)] py-1.5 px-2">
         <div className="max-w-md mx-auto grid grid-cols-5 gap-1 items-center">
           
           {/* 1. Dashboard */}
@@ -164,11 +164,11 @@ function MainApp() {
             onClick={() => setActiveTab('dashboard')}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
               activeTab === 'dashboard'
-                ? 'text-white font-bold bg-[#3A452F] shadow-sm'
-                : 'text-[#D8C7AC]/70 hover:text-white'
+                ? 'text-[#1F2919] font-bold bg-[#E8EFE2] border border-[#C5D6B6] shadow-xs'
+                : 'text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]'
             }`}
           >
-            <LayoutDashboard className="h-5 w-5 mb-0.5" />
+            <LayoutDashboard className={`h-5 w-5 mb-0.5 ${activeTab === 'dashboard' ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
             <span className="text-[10px] leading-tight font-medium">Dashboard</span>
           </button>
 
@@ -177,11 +177,11 @@ function MainApp() {
             onClick={() => setActiveTab('inventory')}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
               activeTab === 'inventory'
-                ? 'text-white font-bold bg-[#3A452F] shadow-sm'
-                : 'text-[#D8C7AC]/70 hover:text-white'
+                ? 'text-[#1F2919] font-bold bg-[#E8EFE2] border border-[#C5D6B6] shadow-xs'
+                : 'text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]'
             }`}
           >
-            <Package className="h-5 w-5 mb-0.5" />
+            <Package className={`h-5 w-5 mb-0.5 ${activeTab === 'inventory' ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
             <span className="text-[10px] leading-tight font-medium">Estoque</span>
           </button>
 
@@ -190,11 +190,11 @@ function MainApp() {
             onClick={() => setActiveTab('sales')}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
               activeTab === 'sales'
-                ? 'text-white font-bold bg-[#3A452F] shadow-sm'
-                : 'text-[#D8C7AC]/70 hover:text-white'
+                ? 'text-[#1F2919] font-bold bg-[#E8EFE2] border border-[#C5D6B6] shadow-xs'
+                : 'text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]'
             }`}
           >
-            <ShoppingCart className="h-5 w-5 mb-0.5" />
+            <ShoppingCart className={`h-5 w-5 mb-0.5 ${activeTab === 'sales' ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
             <span className="text-[10px] leading-tight font-medium">Vendas</span>
           </button>
 
@@ -203,15 +203,15 @@ function MainApp() {
             onClick={() => setActiveTab('catalog')}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition relative ${
               activeTab === 'catalog'
-                ? 'text-white font-black bg-[#4A5D3B] ring-2 ring-[#8FA079] shadow-lg'
-                : 'text-[#CAD7BE] font-bold hover:text-white bg-[#3A452F]/60'
+                ? 'text-[#1B4D2E] font-black bg-[#E6F4EA] border border-[#9BD3AF] shadow-xs'
+                : 'text-[#2D6A4F] font-bold hover:text-[#1B4D2E] bg-[#EEF8F1] border border-[#CDE9D6]'
             }`}
           >
-            <Share2 className="h-5 w-5 mb-0.5 text-emerald-400" />
-            <span className="text-[10px] leading-tight font-black text-emerald-300">Vitrine</span>
+            <Share2 className="h-5 w-5 mb-0.5 text-emerald-600" />
+            <span className="text-[10px] leading-tight font-black text-emerald-800">Vitrine</span>
             <span className="absolute -top-1 -right-1 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
             </span>
           </button>
 
@@ -220,12 +220,12 @@ function MainApp() {
             onClick={() => setIsMobileMenuOpen(true)}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition relative ${
               ['reports', 'store', 'guide', 'next_steps'].includes(activeTab)
-                ? 'text-white font-bold bg-[#3A452F] ring-1 ring-[#8FA079]'
-                : 'text-[#D8C7AC]/70 hover:text-white'
+                ? 'text-[#1F2919] font-bold bg-[#E8EFE2] border border-[#C5D6B6] shadow-xs'
+                : 'text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]'
             }`}
             title="Ver todas as 8 abas"
           >
-            <Menu className="h-5 w-5 mb-0.5 text-[#CAD7BE]" />
+            <Menu className={`h-5 w-5 mb-0.5 ${['reports', 'store', 'guide', 'next_steps'].includes(activeTab) ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
             <span className="text-[10px] leading-tight font-medium">Mais (Abas)</span>
             {['reports', 'store', 'guide', 'next_steps'].includes(activeTab) && (
               <span className="absolute top-1 right-2.5 h-2 w-2 rounded-full bg-[#8FA079]" />
