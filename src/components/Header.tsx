@@ -88,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
 
               <button
-                onClick={onOpenNewSale}
+                onClick={() => onOpenNewSale()}
                 className="flex items-center text-[11px] bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-black px-2.5 py-1.5 rounded-lg shadow-sm transition active:scale-95 shrink-0"
                 title="Nova Venda"
               >
@@ -97,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
 
               <button
-                onClick={onOpenNewProduct}
+                onClick={() => onOpenNewProduct()}
                 className="flex items-center text-[11px] bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] font-bold px-2 py-1.5 rounded-lg border border-[#576945] transition shrink-0"
                 title="Novo Produto"
               >
@@ -106,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
 
               <button
-                onClick={onOpenSettings}
+                onClick={() => onOpenSettings()}
                 className="p-1.5 text-[#D8C7AC] hover:text-white bg-[#3A452F] rounded-lg border border-[#576945] transition shrink-0"
                 title="Configurações"
               >
@@ -146,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* New Sale Quick Button */}
             <button
-              onClick={onOpenNewSale}
+              onClick={() => onOpenNewSale()}
               className="flex items-center bg-[#4A5D3B] hover:bg-[#3D4F2F] text-white font-medium text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg shadow-sm transition active:scale-95"
             >
               <Plus className="h-4 w-4 mr-1 sm:mr-1.5" />
@@ -155,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* New Product Quick Button */}
             <button
-              onClick={onOpenNewProduct}
+              onClick={() => onOpenNewProduct()}
               className="flex items-center bg-[#3A452F] hover:bg-[#465437] text-[#F5F0E6] font-medium text-xs sm:text-sm px-3 py-2 rounded-lg border border-[#576945] transition"
             >
               <Package className="h-4 w-4 mr-1 text-[#C2AD8E]" />
@@ -164,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Settings & PDF Button */}
             <button
-              onClick={onOpenSettings}
+              onClick={() => onOpenSettings()}
               className="flex items-center bg-[#3A452F] hover:bg-[#465437] text-[#D8C7AC] hover:text-white font-medium text-xs sm:text-sm px-3 py-2 rounded-lg border border-[#576945] transition"
               title="Configurações, Backup & Relatórios PDF"
             >

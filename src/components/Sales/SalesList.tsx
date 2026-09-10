@@ -137,7 +137,7 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
           </button>
 
           <button
-            onClick={onOpenNewSale}
+            onClick={() => onOpenNewSale()}
             className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition active:scale-95"
           >
             <Plus className="h-4 w-4" />

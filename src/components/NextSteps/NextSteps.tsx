@@ -7,14 +7,13 @@ import {
   MessageSquare, 
   ExternalLink, 
   Instagram, 
-  ArrowDown, 
-  Zap, 
+  GraduationCap, 
+  UserCheck, 
   ArrowRight,
   CheckCircle2,
-  TrendingUp,
-  User,
+  Wallet,
   Building2,
-  Wallet
+  BadgePercent
 } from 'lucide-react';
 
 interface NextStepsProps {
@@ -35,101 +34,6 @@ export const NextSteps: React.FC<NextStepsProps> = () => {
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  const steps = [
-    {
-      stepNumber: 1,
-      badge: 'PASSO 1: PASSO OBRIGATÓRIO DE ENTRADA',
-      badgeColor: 'bg-[#8FA079] text-[#1F2919] font-black',
-      title: 'Finanças em Dia',
-      subtitle: 'Organização da Vida Financeira Pessoal & do Negócio da Empreendedora',
-      description: 'O pilar essencial e indispensável para toda empreendedora. É onde você organiza a casa de forma completa: estrutura suas contas pessoais, estabelece seu pró-labore, separa definitivamente o dinheiro pessoal do dinheiro da empresa e passa a ter controle total do caixa.',
-      details: 'Comece obrigatoriamente por aqui! Sem a vida financeira pessoal e o caixa da empresa organizados, qualquer receita a mais vira um balde furado.',
-      whatsappMsg: 'Olá Danilla! Quero organizar minhas finanças pessoais e da minha empresa. Como faço para entrar no Finanças em Dia?',
-      checkoutUrl: 'https://pay.kiwify.com.br/IDkxcPx',
-      buttonText: 'Garantir Minha Vaga no Finanças em Dia (Kiwify)',
-      bgColor: 'bg-gradient-to-r from-[#2A3722] via-[#3A452F] to-[#4A5D3B]',
-      borderColor: 'border-2 border-amber-400',
-      textColor: 'text-white',
-      icon: BookOpen,
-      widthClass: 'w-full max-w-4xl mx-auto',
-      isFirst: true,
-      highlights: [
-        'Separação da Pessoa Física e Jurídica',
-        'Organização de Dívidas e Orçamento Pessoal',
-        'Clareza e Controle do Caixa da Empresa',
-        'Definição Segura do seu Pró-Labore'
-      ]
-    },
-    {
-      stepNumber: 2,
-      badge: 'PASSO 2: MARGEM, PLANEJAMENTO E PLANILHA ÚNICA',
-      badgeColor: 'bg-[#CAD7BE] text-[#1F2919] font-bold',
-      title: 'Método os 3Rs da Riqueza',
-      subtitle: 'Planejamento de Finanças Pessoais & do Negócio + Reserva da Paz',
-      description: 'Com o curso Os 3 R’s da Riqueza, você vai descobrir, através de um passo a passo, como planejar suas finanças pessoais e do seu negócio, para que você possa economizar dinheiro, com uma planilha única onde você vai registrar seus gastos e ganhos, podendo ver com clareza o seu Custo de vida e as métricas essenciais para o seu Negócio e ter muito sucesso.',
-      details: 'Se você é uma Empreendedora, autônoma ou profissional liberal que busca ter Tranquilidade financeira, este curso é para você. Descubra como Formar sua Reserva da paz.',
-      whatsappMsg: 'Olá Danilla! Quero saber mais sobre o curso Os 3 R’s da Riqueza e formar minha Reserva da Paz.',
-      checkoutUrl: 'https://pay.kiwify.com.br/5K14SJV',
-      buttonText: 'Quero o Curso Os 3 R’s da Riqueza (Kiwify)',
-      bgColor: 'bg-[#3A452F]',
-      borderColor: 'border border-[#8FA079]',
-      textColor: 'text-white',
-      icon: Zap,
-      widthClass: 'w-full max-w-3xl mx-auto',
-      isFirst: false,
-      highlights: [
-        'Planilha Única de Gastos e Ganhos',
-        'Clareza do Custo de Vida & Métricas do Negócio',
-        'Formação da sua Reserva da Paz',
-        'Para Empreendedoras, Autônomas e Profissionais Liberais'
-      ]
-    },
-    {
-      stepNumber: 3,
-      badge: 'PASSO 3: DESTRAVA E DIAGNÓSTICO PONTUAL',
-      badgeColor: 'bg-[#E5EBDE] text-[#2B3323] font-bold',
-      title: 'Consultoria Sessão Única',
-      subtitle: 'Atendimento Individual Direcionado (1h15)',
-      description: 'Encontro individual focado para analisar pontualmente a vida financeira da empreendedora e da empresa. Destrave gargalos imediatos, valide precificações e receba um direcionamento prático para a sua empresa crescer.',
-      details: 'Saia da sessão com um plano de ação claro para aplicar na sua vida pessoal e no seu negócio no dia seguinte.',
-      whatsappMsg: 'Olá Danilla! Gostaria de agendar minha Consultoria Sessão Única de 1h15 com você.',
-      buttonText: 'Agendar Minha Consultoria (1h15)',
-      bgColor: 'bg-[#4A5D3B]',
-      borderColor: 'border border-[#8FA079]',
-      textColor: 'text-white',
-      icon: Target,
-      widthClass: 'w-full max-w-2xl mx-auto',
-      isFirst: false,
-      highlights: [
-        'Diagnóstico Imediato de Gargalos',
-        'Análise de Finanças Pessoais e da Empresa',
-        'Plano de Ação Direcionado'
-      ]
-    },
-    {
-      stepNumber: 4,
-      badge: 'PASSO 4: O ÁPICE DO ACOMPANHAMENTO VIP',
-      badgeColor: 'bg-amber-400 text-[#1F2919] font-black',
-      title: 'Mentoria Individual',
-      subtitle: 'O Topo da Aceleração Financeira e Empresarial',
-      description: 'Acompanhamento VIP e totalmente individualizado com Danilla Molina. Para a empreendedora que deseja alinhar a prosperidade da vida pessoal com uma empresa altamente previsível, escalável e lucrativa.',
-      details: 'Para a empreendedora decidida a ter um acompanhamento próximo e estratégico para acelerar seus resultados.',
-      whatsappMsg: 'Olá Danilla! Quero me candidatar para a sua Mentoria Individual exclusiva.',
-      buttonText: 'Candidatar-se à Mentoria Individual',
-      bgColor: 'bg-gradient-to-r from-[#1F2919] via-[#2A3722] to-[#3A452F]',
-      borderColor: 'border-2 border-amber-300',
-      textColor: 'text-white',
-      icon: Crown,
-      widthClass: 'w-full max-w-xl mx-auto',
-      isFirst: false,
-      highlights: [
-        'Acompanhamento Estratégico Próximo',
-        'Evolução Patrimonial e da Empresa',
-        'Estruturação VIP Customizada'
-      ]
-    },
-  ];
-
   return (
     <div className="space-y-8 pb-16 max-w-5xl mx-auto">
       
@@ -142,33 +46,41 @@ export const NextSteps: React.FC<NextStepsProps> = () => {
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="bg-[#8FA079]/30 text-[#E5EBDE] border border-[#8FA079]/40 font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                Danilla Molina • Finanças da Empreendedora
+                Danilla Molina • Especialista em Finanças da Empreendedora
               </span>
               <span className="bg-amber-400/20 text-amber-300 border border-amber-400/30 font-bold text-xs px-3 py-1 rounded-full flex items-center gap-1">
                 <Wallet className="h-3.5 w-3.5" />
-                Vida Pessoal & Negócio
+                Vida Pessoal & Empresa
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Próximos Passos da Sua Vida Financeira
             </h1>
             <p className="text-[#D8C7AC] text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-              Organize suas <strong>finanças pessoais e do seu negócio</strong> em uma jornada lógica e estruturada. Comece pelo <strong>Finanças em Dia</strong> e evolua com clareza e previsibilidade!
+              Descubra os formatos de apoio e capacitação com <strong>Danilla Molina</strong> para transformar a gestão do seu dinheiro, aumentar sua margem e fazer seu negócio crescer com lucro real e paz de espírito.
             </p>
           </div>
 
           {/* Quick Contact Badge */}
           <div className="bg-[#1F2919]/90 border border-[#576945] p-4 rounded-2xl shrink-0 w-full md:w-auto shadow-inner flex flex-col items-center justify-center text-center">
             <span className="text-[10px] font-black uppercase tracking-widest text-[#CAD7BE] mb-1">
-              Contato Oficial
+              Instagram Oficial
             </span>
             <span className="text-sm font-black text-white">Danilla Molina</span>
-            <span className="text-xs text-amber-300 font-bold mt-0.5">{instagramHandle}</span>
+            <a
+              href={instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-amber-300 font-bold mt-0.5 hover:underline flex items-center gap-1"
+            >
+              <Instagram className="h-3.5 w-3.5" />
+              <span>{instagramHandle}</span>
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Official Links & Contact Bar */}
+      {/* Quick Action Links Bar */}
       <div className="bg-white dark:bg-[#2A3722] rounded-3xl p-5 sm:p-6 border border-[#E2D5C3] dark:border-[#3A4A30] shadow-sm">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           
@@ -178,10 +90,10 @@ export const NextSteps: React.FC<NextStepsProps> = () => {
             </div>
             <div>
               <h3 className="font-extrabold text-sm text-[#2B3323] dark:text-[#F7F4EB]">
-                Fale Diretamente Comigo
+                Canais Oficiais de Contato e Inscrição
               </h3>
               <p className="text-xs text-[#715F46] dark:text-[#D8C7AC]">
-                Danilla Molina • Mentoria & Educação Financeira para Empreendedoras
+                Acesse o Linktree com todos os cursos ou fale comigo no WhatsApp e Instagram
               </p>
             </div>
           </div>
@@ -192,10 +104,10 @@ export const NextSteps: React.FC<NextStepsProps> = () => {
               href={linktreeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 sm:flex-initial bg-[#F7F4EB] dark:bg-[#1F2919] hover:bg-[#E5EBDE] dark:hover:bg-[#3A452F] text-[#2B3323] dark:text-[#F7F4EB] font-bold text-xs py-3 px-4 rounded-xl border border-[#E2D5C3] dark:border-[#3A4A30] transition flex items-center justify-center gap-2 active:scale-95"
+              className="flex-1 sm:flex-initial bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-black text-xs py-3 px-4 rounded-xl shadow-sm transition flex items-center justify-center gap-2 active:scale-95"
             >
-              <ExternalLink className="h-4 w-4 text-[#8FA079]" />
-              <span>Linktree Oficial</span>
+              <ExternalLink className="h-4 w-4" />
+              <span>Acessar Linktree</span>
             </a>
 
             {/* Instagram Button */}
@@ -206,7 +118,7 @@ export const NextSteps: React.FC<NextStepsProps> = () => {
               className="flex-1 sm:flex-initial bg-[#F7F4EB] dark:bg-[#1F2919] hover:bg-[#E5EBDE] dark:hover:bg-[#3A452F] text-[#2B3323] dark:text-[#F7F4EB] font-bold text-xs py-3 px-4 rounded-xl border border-[#E2D5C3] dark:border-[#3A4A30] transition flex items-center justify-center gap-2 active:scale-95"
             >
               <Instagram className="h-4 w-4 text-[#8FA079]" />
-              <span>{instagramHandle}</span>
+              <span>Instagram {instagramHandle}</span>
             </a>
 
             {/* WhatsApp Button */}
@@ -223,179 +135,306 @@ export const NextSteps: React.FC<NextStepsProps> = () => {
         </div>
       </div>
 
-      {/* Visual Inverted Pyramid Section */}
+      {/* Main Options Section */}
       <div className="space-y-6">
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <span className="text-xs font-extrabold uppercase tracking-widest text-[#8FA079] dark:text-[#CAD7BE] flex items-center justify-center gap-1.5">
-            <TrendingUp className="h-4 w-4 text-amber-400" />
-            Pirâmide de Crescimento Financeiro Invertida
+            <Sparkles className="h-4 w-4 text-amber-400" />
+            Formatos de Atendimento & Aprendizado
           </span>
           <h2 className="text-xl sm:text-2xl font-black text-[#2B3323] dark:text-[#F7F4EB] tracking-tight">
-            Etapas Obrigatórias de Evolução
+            Escolha o Próximo Passo Ideal Para Você
           </h2>
           <p className="text-xs sm:text-sm text-[#715F46] dark:text-[#D8C7AC]">
-            Desenhada para que a empreendedora entenda com clareza: comece arrumando a vida pessoal e o caixa do negócio no <strong>Finanças em Dia</strong> antes de avançar para a precificação e mentorias.
+            Desde treinamentos práticos até acompanhamentos individuais exclusivos, selecione a opção que atende ao seu momento atual.
           </p>
         </div>
 
-        {/* Start Here Callout */}
-        <div className="flex justify-center">
-          <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-400 text-[#1F2919] font-black text-xs sm:text-sm rounded-full shadow-lg border border-amber-300 animate-pulse">
-            <ArrowDown className="h-4 w-4" />
-            <span>PASSO OBRIGATÓRIO 1: FINANÇAS EM DIA (PESSOAL & NEGÓCIO)</span>
-            <ArrowDown className="h-4 w-4" />
-          </div>
-        </div>
-
-        {/* Inverted Pyramid Flow */}
         <div className="space-y-5 pt-2">
-          {steps.map((item, idx) => {
-            const IconComp = item.icon;
-
-            return (
-              <div key={item.stepNumber} className="relative space-y-3">
-                <div className={`${item.widthClass} transition-all duration-300 hover:scale-[1.01]`}>
-                  <div className={`${item.bgColor} ${item.textColor} rounded-3xl p-6 sm:p-7 ${item.borderColor} shadow-xl relative overflow-hidden`}>
-                    
-                    {/* Visual Step Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-white/15">
-                      <div className="flex items-center space-x-2.5">
-                        <div className={`p-2 rounded-xl ${item.isFirst ? 'bg-amber-400 text-[#1F2919]' : 'bg-white/10 text-amber-300'}`}>
-                          <IconComp className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <span className="text-xs font-black tracking-wider uppercase text-[#CAD7BE] block">
-                            ETAPA 0{item.stepNumber}
-                          </span>
-                        </div>
-                      </div>
-
-                      <span className={`text-[10px] uppercase tracking-wider px-3.5 py-1.5 rounded-full ${item.badgeColor}`}>
-                        {item.badge}
-                      </span>
-                    </div>
-
-                    {/* Content */}
-                    <div className="pt-4 space-y-3">
-                      <div>
-                        <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
-                          {item.title}
-                          {item.isFirst && (
-                            <CheckCircle2 className="h-6 w-6 text-amber-400 inline" />
-                          )}
-                        </h3>
-                        <p className="text-xs font-bold text-amber-300 mt-0.5">
-                          {item.subtitle}
-                        </p>
-                      </div>
-
-                      <p className="text-xs sm:text-sm text-[#E5EBDE] leading-relaxed font-medium">
-                        {item.description}
-                      </p>
-
-                      {/* Feature Bullet Points */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                        {item.highlights.map((hl, hIdx) => (
-                          <div key={hIdx} className="flex items-center gap-2 text-xs font-semibold text-white/90 bg-white/10 px-3 py-1.5 rounded-xl border border-white/10">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-amber-300 shrink-0" />
-                            <span>{hl}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <p className="text-xs text-[#D8C7AC] italic bg-black/20 p-3 rounded-xl border border-white/10">
-                        💡 {item.details}
-                      </p>
-                    </div>
-
-                    {/* CTA Button */}
-                    <div className="pt-5 mt-2 flex flex-col sm:flex-row gap-2.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (item.checkoutUrl) {
-                            window.open(item.checkoutUrl, '_blank');
-                          } else {
-                            handleOpenWhatsapp(item.whatsappMsg);
-                          }
-                        }}
-                        className={`w-full font-black text-xs sm:text-sm py-3.5 px-5 rounded-2xl shadow-md transition flex items-center justify-center gap-2 group active:scale-98 ${
-                          item.isFirst 
-                            ? 'bg-amber-400 hover:bg-amber-300 text-[#1F2919]' 
-                            : 'bg-white hover:bg-[#F7F4EB] text-[#2B3323]'
-                        }`}
-                      >
-                        {item.checkoutUrl ? (
-                          <ExternalLink className="h-4 w-4 text-[#3A452F] group-hover:scale-110 transition-transform" />
-                        ) : (
-                          <MessageSquare className="h-4 w-4 text-[#3A452F] group-hover:scale-110 transition-transform" />
-                        )}
-                        <span>{item.buttonText}</span>
-                        <ArrowRight className="h-4 w-4 ml-auto text-[#3A452F]" />
-                      </button>
-
-                      {/* Secondary WhatsApp button if checkoutUrl exists */}
-                      {item.checkoutUrl && (
-                        <button
-                          type="button"
-                          onClick={() => handleOpenWhatsapp(item.whatsappMsg)}
-                          className="sm:w-auto font-bold text-xs py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white border border-white/20 transition flex items-center justify-center gap-1.5 shrink-0"
-                          title="Tirar dúvidas no WhatsApp"
-                        >
-                          <MessageSquare className="h-4 w-4 text-amber-300" />
-                          <span className="hidden sm:inline">Dúvidas?</span>
-                        </button>
-                      )}
-                    </div>
-
-                  </div>
+          
+          {/* 1. OPÇÃO CURSOS */}
+          <div className="bg-gradient-to-r from-[#2A3722] via-[#3A452F] to-[#4A5D3B] text-white rounded-3xl p-6 sm:p-8 border-2 border-amber-400 shadow-xl relative overflow-hidden transition hover:scale-[1.005]">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-white/15">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-2xl bg-amber-400 text-[#1F2919] shadow">
+                  <GraduationCap className="h-6 w-6" />
                 </div>
-
-                {/* Arrow Connector between steps */}
-                {idx < steps.length - 1 && (
-                  <div className="flex justify-center my-1">
-                    <div className="p-1.5 bg-[#4A5D3B] text-white rounded-full border border-[#8FA079] shadow-sm">
-                      <ArrowDown className="h-4 w-4 text-amber-300" />
-                    </div>
-                  </div>
-                )}
+                <div>
+                  <span className="text-xs font-black tracking-wider uppercase text-amber-300 block">
+                    OPÇÃO 01 • EDUCAÇÃO & TREINAMENTOS
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    Cursos
+                  </h3>
+                </div>
               </div>
-            );
-          })}
-        </div>
 
-        {/* Bottom Pyramid Apex Explanation */}
-        <div className="text-center pt-4">
-          <div className="inline-flex items-center gap-3 px-5 py-3.5 bg-[#E5EBDE] dark:bg-[#1F2919] border border-[#CCD8BF] dark:border-[#3A4A30] rounded-2xl text-xs font-bold text-[#2B3323] dark:text-[#CAD7BE] max-w-2xl mx-auto shadow-sm">
-            <div className="flex items-center gap-1 shrink-0 text-[#4A5D3B]">
-              <User className="h-4 w-4" />
-              <Building2 className="h-4 w-4" />
+              <span className="text-[11px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-amber-400 text-[#1F2919]">
+                Catálogo Completo no Linktree
+              </span>
             </div>
-            <span>Organização Integrada: alinhe a vida financeira pessoal e a gestão do seu negócio com Danilla Molina.</span>
+
+            <div className="pt-5 space-y-4">
+              <p className="text-sm sm:text-base text-[#F5F0E6] leading-relaxed font-medium">
+                Tenha acesso ao catálogo completo com todos os cursos, capacitações e materiais educativos de finanças pessoais e empresariais. Todos os treinamentos estão centralizados e sempre atualizados no <strong>Linktree oficial</strong>.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/95 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                  <CheckCircle2 className="h-4 w-4 text-amber-300 shrink-0" />
+                  <span>Acesso a todos os cursos diretamente no Linktree</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/95 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                  <CheckCircle2 className="h-4 w-4 text-amber-300 shrink-0" />
+                  <span>Conteúdos práticos, aulas gravadas e materiais</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/95 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                  <Instagram className="h-4 w-4 text-amber-300 shrink-0" />
+                  <span>Dicas diárias, bastidores e lives no Instagram</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/95 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                  <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
+                  <span>Não precisa procurar curso por curso: tudo reunido em um só lugar</span>
+                </div>
+              </div>
+
+              {/* Action Buttons for Cursos */}
+              <div className="pt-4 flex flex-col sm:flex-row gap-3">
+                <a
+                  href={linktreeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 bg-amber-400 hover:bg-amber-300 text-[#1F2919] font-black text-xs sm:text-sm py-3.5 px-5 rounded-2xl shadow-lg transition flex items-center justify-center gap-2 active:scale-98"
+                >
+                  <ExternalLink className="h-4 w-4 text-[#1F2919]" />
+                  <span>Acessar Cursos no Linktree ({linktreeUrl.replace('https://', '')})</span>
+                  <ArrowRight className="h-4 w-4 ml-auto text-[#1F2919]" />
+                </a>
+
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sm:w-auto bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm py-3.5 px-5 rounded-2xl border border-white/20 transition flex items-center justify-center gap-2 active:scale-98"
+                >
+                  <Instagram className="h-4 w-4 text-amber-300" />
+                  <span>Ver Instagram {instagramHandle}</span>
+                </a>
+              </div>
+            </div>
           </div>
+
+          {/* 2. OPÇÃO INDIVIDUAL */}
+          <div className="bg-white dark:bg-[#2A3722] text-[#2B3323] dark:text-white rounded-3xl p-6 sm:p-7 border border-[#CCD8BF] dark:border-[#3A4A30] shadow-md transition hover:scale-[1.005]">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-200 dark:border-white/10">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-2xl bg-[#8FA079]/20 text-[#4A5D3B] dark:text-[#CAD7BE]">
+                  <UserCheck className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-black tracking-wider uppercase text-[#715F46] dark:text-[#CAD7BE] block">
+                    OPÇÃO 02 • ATENDIMENTO DIRECIONADO
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Individual
+                  </h3>
+                </div>
+              </div>
+
+              <span className="text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-[#E5EBDE] dark:bg-[#1F2919] text-[#2B3323] dark:text-[#CAD7BE] border border-[#CCD8BF] dark:border-[#3A4A30]">
+                Atendimento 1 a 1
+              </span>
+            </div>
+
+            <div className="pt-4 space-y-3.5">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-[#E5EBDE] leading-relaxed">
+                Atendimento personalizado e individual para analisar pontualmente a sua realidade financeira, esclarecer dúvidas urgentes e traçar metas claras entre a sua vida pessoal e o seu negócio.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-[#E5EBDE] bg-slate-50 dark:bg-[#1F2919] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Diagnóstico direto das suas necessidades</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-[#E5EBDE] bg-slate-50 dark:bg-[#1F2919] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Separação segura de contas e definição de pró-labore</span>
+                </div>
+              </div>
+
+              <div className="pt-3">
+                <button
+                  type="button"
+                  onClick={() => handleOpenWhatsapp('Olá Danilla! Gostaria de informações sobre o Atendimento Individual.')}
+                  className="w-full sm:w-auto bg-[#4A5D3B] hover:bg-[#3D4F2F] text-white font-extrabold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-md transition flex items-center justify-center gap-2 active:scale-98"
+                >
+                  <MessageSquare className="h-4 w-4 text-[#CAD7BE]" />
+                  <span>Solicitar Atendimento Individual no WhatsApp</span>
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. OPÇÃO CONSULTORIA */}
+          <div className="bg-white dark:bg-[#2A3722] text-[#2B3323] dark:text-white rounded-3xl p-6 sm:p-7 border border-[#CCD8BF] dark:border-[#3A4A30] shadow-md transition hover:scale-[1.005]">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-200 dark:border-white/10">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-2xl bg-[#4A5D3B]/20 text-[#3A452F] dark:text-amber-300">
+                  <Target className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-black tracking-wider uppercase text-[#715F46] dark:text-[#CAD7BE] block">
+                    OPÇÃO 03 • DIAGNÓSTICO & PLANO ESTRATÉGICO
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Consultoria
+                  </h3>
+                </div>
+              </div>
+
+              <span className="text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-[#E5EBDE] dark:bg-[#1F2919] text-[#2B3323] dark:text-[#CAD7BE] border border-[#CCD8BF] dark:border-[#3A4A30]">
+                Análise Aprofundada
+              </span>
+            </div>
+
+            <div className="pt-4 space-y-3.5">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-[#E5EBDE] leading-relaxed">
+                Sessão estratégica focada em identificar e destravar gargalos financeiros no seu negócio: validação de custos, formação de preço e margem de lucro real por produto, controle de fluxo de caixa e plano de ação estruturado para execução imediata.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-[#E5EBDE] bg-slate-50 dark:bg-[#1F2919] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Análise detalhada de custos, despesas e margem</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-[#E5EBDE] bg-slate-50 dark:bg-[#1F2919] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Plano prático de ação para estancar perdas e lucrar mais</span>
+                </div>
+              </div>
+
+              <div className="pt-3">
+                <button
+                  type="button"
+                  onClick={() => handleOpenWhatsapp('Olá Danilla! Gostaria de agendar uma Consultoria financeira com você.')}
+                  className="w-full sm:w-auto bg-[#3A452F] hover:bg-[#465437] text-white font-extrabold text-xs sm:text-sm py-3 px-5 rounded-2xl shadow-md transition flex items-center justify-center gap-2 active:scale-98"
+                >
+                  <MessageSquare className="h-4 w-4 text-[#CAD7BE]" />
+                  <span>Agendar Consultoria no WhatsApp</span>
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. OPÇÃO MENTORIA */}
+          <div className="bg-gradient-to-r from-[#1F2919] via-[#2A3722] to-[#3A452F] text-white rounded-3xl p-6 sm:p-8 border-2 border-amber-300 shadow-xl relative overflow-hidden transition hover:scale-[1.005]">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-white/15">
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 rounded-2xl bg-amber-400 text-[#1F2919] shadow">
+                  <Crown className="h-6 w-6" />
+                </div>
+                <div>
+                  <span className="text-xs font-black tracking-wider uppercase text-amber-300 block">
+                    OPÇÃO 04 • ACOMPANHAMENTO VIP EXCLUSIVO
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                    Mentoria
+                  </h3>
+                </div>
+              </div>
+
+              <span className="text-[11px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-amber-400 text-[#1F2919]">
+                O Topo da Aceleração
+              </span>
+            </div>
+
+            <div className="pt-5 space-y-4">
+              <p className="text-sm sm:text-base text-[#F5F0E6] leading-relaxed font-medium">
+                O formato mais completo, próximo e exclusivo com Danilla Molina. Acompanhamento VIP contínuo desenhado para empreendedoras comprometidas em alinhar prosperidade patrimonial, rentabilidade e previsibilidade do negócio em alto nível.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/95 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                  <CheckCircle2 className="h-4 w-4 text-amber-300 shrink-0" />
+                  <span>Acompanhamento próximo, individualizado e contínuo</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/95 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                  <CheckCircle2 className="h-4 w-4 text-amber-300 shrink-0" />
+                  <span>Estratégia personalizada de escala e aumento de patrimônio</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/95 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                  <CheckCircle2 className="h-4 w-4 text-amber-300 shrink-0" />
+                  <span>Acesso direto e suporte estratégico com Danilla Molina</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs font-semibold text-white/95 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                  <Sparkles className="h-4 w-4 text-amber-300 shrink-0" />
+                  <span>Formação da sua Reserva da Paz e solidez financeira</span>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <button
+                  type="button"
+                  onClick={() => handleOpenWhatsapp('Olá Danilla! Gostaria de me candidatar para a sua Mentoria VIP exclusiva.')}
+                  className="w-full sm:w-auto bg-amber-400 hover:bg-amber-300 text-[#1F2919] font-black text-xs sm:text-sm py-3.5 px-6 rounded-2xl shadow-lg transition flex items-center justify-center gap-2 active:scale-98"
+                >
+                  <Crown className="h-4 w-4 text-[#1F2919]" />
+                  <span>Candidatar-se à Mentoria com Danilla Molina</span>
+                  <ArrowRight className="h-4 w-4 ml-1 text-[#1F2919]" />
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Footer Contact Reminder Box */}
+      {/* Integration Banner: Pessoa Física & Empresa */}
+      <div className="text-center pt-2">
+        <div className="inline-flex items-center gap-3 px-5 py-3.5 bg-[#E5EBDE] dark:bg-[#1F2919] border border-[#CCD8BF] dark:border-[#3A4A30] rounded-2xl text-xs font-bold text-[#2B3323] dark:text-[#CAD7BE] max-w-2xl mx-auto shadow-sm">
+          <div className="flex items-center gap-1.5 shrink-0 text-[#4A5D3B] dark:text-[#8FA079]">
+            <Wallet className="h-4 w-4" />
+            <Building2 className="h-4 w-4" />
+          </div>
+          <span>Metodologia Integrada: organize sua vida pessoal e faça sua empresa lucrar de verdade com Danilla Molina.</span>
+        </div>
+      </div>
+
+      {/* Footer Contact Direct Box */}
       <div className="bg-gradient-to-r from-[#3A452F] to-[#2A3722] text-white rounded-3xl p-6 sm:p-7 border border-[#3A4A30] shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div className="space-y-1">
           <h4 className="font-black text-base text-white">
-            Precisa de ajuda para identificar seu momento atual?
+            Ficou com dúvida sobre qual formato é o mais indicado para você?
           </h4>
           <p className="text-xs text-[#D8C7AC]">
-            Fale diretamente com Danilla Molina pelo WhatsApp ({whatsappFormatted}) ou no Instagram {instagramHandle}.
+            Mande uma mensagem diretamente para Danilla Molina no WhatsApp ({whatsappFormatted}) ou envie um direct no Instagram {instagramHandle}.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => handleOpenWhatsapp('Olá Danilla! Gostaria de ajuda para saber por qual etapa das finanças pessoais e do negócio devo começar.')}
-          className="bg-amber-400 hover:bg-amber-300 text-[#1F2919] font-black text-xs py-3 px-5 rounded-2xl transition shrink-0 active:scale-95 shadow-md"
-        >
-          Falar com Danilla no WhatsApp
-        </button>
+        <div className="flex flex-wrap items-center gap-2 shrink-0 justify-center">
+          <a
+            href={instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs py-3 px-4 rounded-2xl border border-white/20 transition flex items-center gap-1.5"
+          >
+            <Instagram className="h-4 w-4 text-amber-300" />
+            <span>Instagram</span>
+          </a>
+          <button
+            type="button"
+            onClick={() => handleOpenWhatsapp('Olá Danilla! Gostaria de tirar uma dúvida sobre qual é a melhor opção para o meu momento atual.')}
+            className="bg-amber-400 hover:bg-amber-300 text-[#1F2919] font-black text-xs py-3 px-5 rounded-2xl transition active:scale-95 shadow-md flex items-center gap-1.5"
+          >
+            <MessageSquare className="h-4 w-4" />
+            <span>Conversar no WhatsApp</span>
+          </button>
+        </div>
       </div>
 
     </div>
   );
 };
+

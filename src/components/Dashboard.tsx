@@ -69,7 +69,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           <div className="flex flex-wrap gap-2.5">
             <button
-              onClick={onOpenNewSale}
+              onClick={() => onOpenNewSale()}
               className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold px-4 py-2.5 rounded-2xl shadow-lg shadow-[#8FA079]/20 flex items-center gap-2 transition active:scale-95 text-xs sm:text-sm"
             >
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -316,7 +316,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-4">
             <button
-              onClick={onOpenNewProduct}
+              onClick={() => onOpenNewProduct()}
               className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-semibold py-2.5 rounded-xl transition flex items-center justify-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -344,7 +344,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="text-center py-10 text-slate-500 dark:text-slate-400">
               <p>Nenhuma venda registrada ainda no bazar.</p>
               <button
-                onClick={onOpenNewSale}
+                onClick={() => onOpenNewSale()}
                 className="mt-3 bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl"
               >
                 Registrar Primeira Venda

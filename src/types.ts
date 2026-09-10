@@ -24,6 +24,7 @@ export interface Product {
   id: string;
   name: string;
   sku?: string;
+  barcode?: string; // Código de barras (EAN-13, Code 128, etc.)
   expirationDate?: string; // Validade do produto (ex: "2026-12-31" ou "12/2026")
   category: ProductCategory;
   subcategory?: string; // Subcategoria (ex: "Vestidos", "Perfumes & Fragrâncias", "Conjuntos", etc.)
@@ -51,6 +52,7 @@ export interface SaleItem {
   unitCostPrice: number;
   unitBazarPrice: number;
   sizeColor?: string;
+  barcode?: string;
 }
 
 export interface PartialPaymentRecord {

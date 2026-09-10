@@ -4,6 +4,7 @@ import { Product } from '../../types';
 import { formatCurrency, formatPercent, calculateMarginPercent, calculatePriceFromMargin } from '../../utils/formatters';
 import { optimizeProductImage } from '../../utils/imageOptimizer';
 import { useBazar } from '../../context/BazarContext';
+import { BarcodeScannerModal } from '../Common/BarcodeScannerModal';
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -22,6 +23,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
   const [name, setName] = useState('');
   const [sku, setSku] = useState('');
+  const [barcode, setBarcode] = useState('');
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
   const [expirationDate, setExpirationDate] = useState('');
   const [selectedEditionIds, setSelectedEditionIds] = useState<string[]>([]);
   
@@ -61,6 +64,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     if (productToEdit) {
       setName(productToEdit.name);
       setSku(productToEdit.sku || '');
+      setBarcode(productToEdit.barcode || '');
       setExpirationDate(productToEdit.expirationDate || '');
       
       const foundCat = categories.find((c) => c.name === productToEdit.category);
@@ -122,6 +126,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     } else {
       setName('');
       setSku('');
+      setBarcode('');
       setExpirationDate('');
       const defaultCat = categories[0]?.name || 'Roupas';
       setSelectedCategoryOption(defaultCat);
@@ -167,6 +172,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({
   const calculatedDiscountPercent = numFull > 0 && numPrice > 0 && numFull > numPrice
     ? Math.max(0, (1 - (numPrice / numFull)) * 100)
     : 0;
+
+  const generateRandomBarcode = () => {
+    let code = '789';
+    for (let i = 0; i < 9; i++) {
+      code += Math.floor(Math.random() * 10);
+    }
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      sum += parseInt(code[i], 10) * (i % 2 === 0 ? 1 : 3);
+    }
+    const checkDigit = (10 - (sum % 10)) % 10;
+    code += checkDigit;
+    setBarcode(code);
+  };
 
   const handleFullPriceChange = (val: number | '') => {
     setFullPrice(val);
@@ -311,6 +330,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({
     onSave({
       name: name.trim(),
       sku: sku.trim() || undefined,
+      barcode: barcode.trim() || undefined,
       expirationDate: expirationDate.trim() || undefined,
       category: finalCategory,
       subcategory: finalSubcategory,
@@ -370,9 +390,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({
               <span>Identificação do Produto</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
               {/* Nome do Produto */}
-              <div className="sm:col-span-2">
+              <div className="sm:col-span-6">
                 <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
                     <Tag className="h-3.5 w-3.5 text-rose-500" />
@@ -387,23 +407,60 @@ export const ProductModal: React.FC<ProductModalProps> = ({
                   placeholder="ex: Vestido Midi Floral Linho"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition shadow-sm"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition shadow-sm"
                 />
               </div>
 
-              {/* Código do Produto (SKU) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 flex items-center gap-1.5">
+              {/* Código SKU */}
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1.5 flex items-center gap-1">
                   <Barcode className="h-3.5 w-3.5 text-rose-500" />
-                  Código do Produto
+                  Código / SKU
                 </label>
                 <input
                   type="text"
                   placeholder="ex: REF-102"
                   value={sku}
                   onChange={(e) => setSku(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm font-black text-rose-600 dark:text-rose-400 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition shadow-sm"
+                  className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl px-3 py-2.5 text-xs font-black text-rose-600 dark:text-rose-400 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition shadow-sm"
                 />
+              </div>
+
+              {/* Código de Barras (EAN / Barcode) */}
+              <div className="sm:col-span-4">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Barcode className="h-3.5 w-3.5 text-rose-500" />
+                    Código de Barras (EAN)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={generateRandomBarcode}
+                    className="text-[10px] font-extrabold text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-0.5 bg-rose-100/60 dark:bg-rose-900/40 px-2 py-0.5 rounded-md"
+                    title="Gerar código de barras automático padrão EAN-13"
+                  >
+                    <Sparkles className="h-3 w-3 text-rose-500" />
+                    <span>Gerar EAN</span>
+                  </button>
+                </div>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    placeholder="Escanear ou digitar..."
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl pl-3 pr-20 py-2 text-xs font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsBarcodeScannerOpen(true)}
+                    className="absolute right-1.5 px-2.5 py-1 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[11px] font-bold flex items-center gap-1 shadow-sm transition active:scale-95"
+                    title="Abrir câmera do celular ou computador para escanear código de barras físico"
+                  >
+                    <Camera className="h-3.5 w-3.5" />
+                    <span>Ler</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -915,6 +972,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({
 
         </form>
       </div>
+
+      {isBarcodeScannerOpen && (
+        <BarcodeScannerModal
+          isOpen={isBarcodeScannerOpen}
+          onClose={() => setIsBarcodeScannerOpen(false)}
+          onScanSuccess={(scannedCode) => {
+            setBarcode(scannedCode);
+          }}
+          title="Escanear Código de Barras da Peça"
+          description="Aponte a câmera para a etiqueta do produto para preencher o código de barras automaticamente"
+        />
+      )}
     </div>
   );
 };

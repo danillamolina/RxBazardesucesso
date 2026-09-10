@@ -17,11 +17,13 @@ import {
   Filter,
   MessageSquare,
   Copy,
-  Check
+  Check,
+  Camera
 } from 'lucide-react';
 import { Product, PaymentStatus, PaymentMethod, SaleItem } from '../../types';
 import { useBazar } from '../../context/BazarContext';
 import { formatCurrency, createWhatsAppReceiptFromSale, generateOrderReceiptText } from '../../utils/formatters';
+import { BarcodeScannerModal } from '../Common/BarcodeScannerModal';
 
 interface NewSaleModalProps {
   isOpen: boolean;
@@ -70,6 +72,10 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
   const [installmentsCount, setInstallmentsCount] = useState<number>(1);
   const [amountPaidNow, setAmountPaidNow] = useState<number | ''>('');
+
+  // Barcode Scanning
+  const [isBarcodeScannerOpen, setIsBarcodeScannerOpen] = useState(false);
+  const [activeScanRowIndex, setActiveScanRowIndex] = useState<number | null>(null);
 
   const createNewItem = (preselected?: Product | null): ItemRow => ({
     id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
@@ -184,9 +190,10 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
         if (query) {
           const matchesName = p.name.toLowerCase().includes(query);
           const matchesSku = p.sku ? p.sku.toLowerCase().includes(query) : false;
+          const matchesBarcode = p.barcode ? p.barcode.toLowerCase().includes(query) : false;
           const matchesSizeColor = p.sizeColor ? p.sizeColor.toLowerCase().includes(query) : false;
           const matchesSub = p.subcategory ? p.subcategory.toLowerCase().includes(query) : false;
-          if (!matchesName && !matchesSku && !matchesSizeColor && !matchesSub) {
+          if (!matchesName && !matchesSku && !matchesBarcode && !matchesSizeColor && !matchesSub) {
             if (p.id === item.productId) return true; // keep current selection visible
             return false;
           }
@@ -194,6 +201,90 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
         return true;
       })
       .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  };
+
+  const handleBarcodeScanned = (scannedCode: string, matchedProduct?: Product) => {
+    if (activeScanRowIndex !== null && activeScanRowIndex < items.length) {
+      // Scanned for a specific item row
+      if (matchedProduct) {
+        setItems((prev) =>
+          prev.map((it, idx) => {
+            if (idx !== activeScanRowIndex) return it;
+            return {
+              ...it,
+              productId: matchedProduct.id,
+              unitBazarPrice: matchedProduct.bazarPrice,
+              filterText: '',
+            };
+          })
+        );
+      } else {
+        // No direct match, put code in filterText to search
+        setItems((prev) =>
+          prev.map((it, idx) => {
+            if (idx !== activeScanRowIndex) return it;
+            return {
+              ...it,
+              filterText: scannedCode,
+            };
+          })
+        );
+      }
+    } else {
+      // General scan from main button
+      if (matchedProduct) {
+        // Check if there is an empty item row without a productId
+        const emptyRowIndex = items.findIndex((it) => !it.productId);
+        if (emptyRowIndex !== -1) {
+          setItems((prev) =>
+            prev.map((it, idx) => {
+              if (idx !== emptyRowIndex) return it;
+              return {
+                ...it,
+                productId: matchedProduct.id,
+                unitBazarPrice: matchedProduct.bazarPrice,
+                filterText: '',
+              };
+            })
+          );
+        } else {
+          // Check if product is already in the list, if so increment quantity
+          const existingItemIndex = items.findIndex((it) => it.productId === matchedProduct.id);
+          if (existingItemIndex !== -1) {
+            setItems((prev) =>
+              prev.map((it, idx) => {
+                if (idx !== existingItemIndex) return it;
+                return {
+                  ...it,
+                  quantitySold: it.quantitySold + 1,
+                };
+              })
+            );
+          } else {
+            // Prepend new row at the top with this product
+            setItems((prev) => [
+              {
+                id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+                productId: matchedProduct.id,
+                quantitySold: 1,
+                unitBazarPrice: matchedProduct.bazarPrice,
+                filterText: '',
+                categoryFilter: '',
+              },
+              ...prev,
+            ]);
+          }
+        }
+      } else {
+        // No match found for this barcode: set filter of top item or add row
+        setItems((prev) => {
+          if (prev.length > 0) {
+            return prev.map((it, idx) => idx === 0 ? { ...it, filterText: scannedCode } : it);
+          }
+          return [createNewItem()];
+        });
+      }
+    }
   };
 
   // Calculations
@@ -496,14 +587,29 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                 </span>
               </div>
 
-              <button
-                type="button"
-                onClick={handleAddItem}
-                className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 px-3.5 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 transition active:scale-95 shadow-sm"
-              >
-                <Plus className="h-4 w-4" />
-                <span>+ Adicionar Produto ao Topo</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveScanRowIndex(null);
+                    setIsBarcodeScannerOpen(true);
+                  }}
+                  className="text-xs font-bold text-white bg-rose-500 hover:bg-rose-600 flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition active:scale-95 shadow-sm shadow-rose-500/20"
+                  title="Abrir a câmera para escanear código de barras e preencher ou adicionar o produto automaticamente"
+                >
+                  <Camera className="h-3.5 w-3.5" />
+                  <span>Escanear Código de Barras</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAddItem}
+                  className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-800 transition active:scale-95 shadow-sm"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>+ Adicionar Produto</span>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3.5 max-h-72 overflow-y-auto pr-1">
@@ -575,24 +681,39 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {/* Search Input for this item */}
-                        <div className="relative">
+                        <div className="relative flex items-center">
                           <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                           <input
                             type="text"
-                            placeholder="Buscar nome, SKU ou cor..."
+                            placeholder="Buscar nome, SKU, código de barras..."
                             value={item.filterText || ''}
                             onChange={(e) => handleItemChange(index, 'filterText', e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-7 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pl-8 pr-16 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
                           />
-                          {item.filterText && (
+                          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                            {item.filterText && (
+                              <button
+                                type="button"
+                                onClick={() => handleItemChange(index, 'filterText', '')}
+                                className="text-slate-400 hover:text-slate-600 p-1 text-xs font-bold"
+                                title="Limpar busca"
+                              >
+                                ✕
+                              </button>
+                            )}
                             <button
                               type="button"
-                              onClick={() => handleItemChange(index, 'filterText', '')}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold"
+                              onClick={() => {
+                                setActiveScanRowIndex(index);
+                                setIsBarcodeScannerOpen(true);
+                              }}
+                              className="px-1.5 py-0.5 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-bold flex items-center gap-0.5 transition shadow-sm"
+                              title="Escanear código de barras para este produto"
                             >
-                              ✕
+                              <Camera className="h-2.5 w-2.5" />
+                              <span>Ler</span>
                             </button>
-                          )}
+                          </div>
                         </div>
 
                         {/* Category filter for this item */}
@@ -637,7 +758,7 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
                           </option>
                           {itemFilteredProducts.map((p) => (
                             <option key={p.id} value={p.id} disabled={p.quantity === 0}>
-                              {p.sku ? `[Cód: ${p.sku}] ` : ''}{p.name} {p.sizeColor ? `(${p.sizeColor})` : ''} — {p.quantity === 0 ? 'SEM ESTOQUE' : `${p.quantity} un.`} - {formatCurrency(p.bazarPrice)}
+                              {p.barcode ? `[EAN: ${p.barcode}] ` : (p.sku ? `[Cód: ${p.sku}] ` : '')}{p.name} {p.sizeColor ? `(${p.sizeColor})` : ''} — {p.quantity === 0 ? 'SEM ESTOQUE' : `${p.quantity} un.`} - {formatCurrency(p.bazarPrice)}
                             </option>
                           ))}
                         </select>
@@ -865,6 +986,26 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({
 
         </form>
       </div>
+
+      {isBarcodeScannerOpen && (
+        <BarcodeScannerModal
+          isOpen={isBarcodeScannerOpen}
+          onClose={() => {
+            setIsBarcodeScannerOpen(false);
+            setActiveScanRowIndex(null);
+          }}
+          onScanSuccess={(scannedCode, matchedProduct) => {
+            handleBarcodeScanned(scannedCode, matchedProduct);
+          }}
+          products={products}
+          title={
+            activeScanRowIndex !== null
+              ? `Escanear Código de Barras (Item #${activeScanRowIndex + 1})`
+              : "Escanear Código de Barras do Pedido"
+          }
+          description="Aponte a câmera para a etiqueta com código de barras ou digite o código manualmente"
+        />
+      )}
     </div>
   );
 };

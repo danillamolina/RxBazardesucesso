@@ -58,7 +58,12 @@ function MainApp() {
   const { addProduct, updateProduct } = useBazar();
 
   const handleOpenNewProduct = (prod?: Product) => {
-    setProductToEdit(prod || null);
+    // Defend against DOM/React synthetic events being passed as prod
+    if (prod && typeof prod === 'object' && 'id' in prod && 'name' in prod && !('nativeEvent' in (prod as any))) {
+      setProductToEdit(prod);
+    } else {
+      setProductToEdit(null);
+    }
     setIsProductModalOpen(true);
   };
 
@@ -71,8 +76,12 @@ function MainApp() {
   };
 
   const handleOpenQuickSale = (prod?: Product, cust?: any) => {
-    setPreselectedProductForSale(prod || null);
-    setPreselectedCustomerForSale(cust || null);
+    // Defend against DOM/React synthetic events being passed as prod or cust
+    const validProd = prod && typeof prod === 'object' && 'id' in prod && 'name' in prod && !('nativeEvent' in (prod as any)) ? prod : null;
+    const validCust = cust && typeof cust === 'object' && 'name' in cust && !('nativeEvent' in (cust as any)) ? cust : null;
+    
+    setPreselectedProductForSale(validProd);
+    setPreselectedCustomerForSale(validCust);
     setIsSaleModalOpen(true);
   };
 

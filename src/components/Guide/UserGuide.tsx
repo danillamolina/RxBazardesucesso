@@ -209,7 +209,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({
               <span>Imprimir / Salvar PDF</span>
             </button>
             <button
-              onClick={onOpenNewProduct}
+              onClick={() => onOpenNewProduct()}
               className="bg-[#8FA079] hover:bg-[#A3B48D] text-[#1F2919] font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center justify-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -335,7 +335,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                   </p>
                 </div>
                 <button
-                  onClick={onOpenNewProduct}
+                  onClick={() => onOpenNewProduct()}
                   className="text-xs font-bold text-[#8FA079] hover:underline flex items-center gap-1 pt-2 border-t border-slate-200 dark:border-[#3A4A30]"
                 >
                   <span>+ Adicionar Peça</span>
@@ -385,7 +385,7 @@ export const UserGuide: React.FC<UserGuideProps> = ({
                   </p>
                 </div>
                 <button
-                  onClick={onOpenNewSale}
+                  onClick={() => onOpenNewSale()}
                   className="text-xs font-bold text-[#8FA079] hover:underline flex items-center gap-1 pt-2 border-t border-slate-200 dark:border-[#3A4A30]"
                 >
                   <span>+ Registrar Venda</span>
