@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1B2416" />
+      <stop offset="50%" stop-color="#283520" />
+      <stop offset="100%" stop-color="#3D4F31" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="40%" stop-color="#F7F4EB" />
+      <stop offset="100%" stop-color="#D8C7AC" />
+    </linearGradient>
+    <linearGradient id="sageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A9BA94" />
+      <stop offset="50%" stop-color="#8FA079" />
+      <stop offset="100%" stop-color="#6F805B" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000000" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <!-- Full Bleed Background for Maskable Icon -->
+  <rect width="512" height="512" fill="url(#bgGrad)" />
+
+  <!-- Inner Safe Zone Circle Content (inside 80% safe zone ~ diameter 410px) -->
+  <circle cx="256" cy="245" r="145" fill="#8FA079" fill-opacity="0.1" />
+
+  <!-- Monogram Rx slightly smaller to fit safe zone perfectly -->
+  <g filter="url(#shadow)" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+    <!-- Letter R -->
+    <text x="145" y="285" font-size="185" font-weight="900" fill="url(#goldGrad)" letter-spacing="-5">R</text>
+    
+    <!-- Letter x in emerald/sage accent -->
+    <text x="268" y="290" font-size="155" font-weight="900" fill="url(#sageGrad)" letter-spacing="-2">x</text>
+  </g>
+
+  <!-- Top Sparkle Icon -->
+  <path d="M 355 135 Q 355 155 375 155 Q 355 155 355 175 Q 355 155 335 155 Q 355 155 355 135 Z" fill="#EAD9BD" />
+
+  <!-- Subtitle Pill BAZAR -->
+  <g filter="url(#shadow)">
+    <rect x="156" y="345" width="200" height="40" rx="20" fill="#8FA079" fill-opacity="0.25" stroke="url(#sageGrad)" stroke-width="2" />
+    <text x="256" y="372" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="800" fill="#F7F4EB" text-anchor="middle" letter-spacing="5">BAZAR</text>
+  </g>
+</svg>

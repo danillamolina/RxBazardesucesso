@@ -15,11 +15,13 @@ import {
   PieChart,
   ShoppingBag,
   PackageCheck,
-  BookOpen
+  BookOpen,
+  Smartphone
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { exportBazarData, importBazarDataFromFile } from '../../utils/backup';
 import { generateStockPdf, generateSalesPdf, generateExecutiveSummaryPdf, generateUserGuidePdf } from '../../utils/pdfGenerator';
+import { PWAInstallButton } from '../PWA/PWAInstallButton';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -358,6 +360,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </div>
 
             </div>
+          </div>
+
+          <hr className="border-slate-200 dark:border-slate-800" />
+
+          {/* SECTION: INSTALAÇÃO DO APP NO CELULAR */}
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-2">
+              <Smartphone className="h-4 w-4 text-[#8FA079]" />
+              Aplicativo Mobile & Área de Trabalho (Ícone Rx)
+            </h3>
+            <PWAInstallButton variant="settings" />
           </div>
 
           <hr className="border-slate-200 dark:border-slate-800" />

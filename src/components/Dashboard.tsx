@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 import { formatCurrency, formatPercent, formatDateShort, getPaymentStatusLabel } from '../utils/formatters';
+import { PWAInstallButton } from './PWA/PWAInstallButton';
 
 interface DashboardProps {
   onOpenNewSale: () => void;
@@ -107,6 +108,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* PWA Mobile & Desktop Home Screen Card with Rx Icon */}
+      <PWAInstallButton variant="banner" />
 
       {/* Guia Didático Rápido Mobile & Desktop: Passo a Passo do Bazar */}
       <div className="bg-[#FAF7F2] dark:bg-[#1F2919] border-2 border-[#8FA079]/50 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">

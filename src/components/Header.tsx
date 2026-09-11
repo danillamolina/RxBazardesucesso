@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 import { EditionManagementModal } from './Editions/EditionManagementModal';
+import { PWAInstallButton } from './PWA/PWAInstallButton';
 
 interface HeaderProps {
   activeTab: string;
@@ -64,14 +65,16 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             </div>
 
-            {/* Mobile Top Controls: Edition + Settings + Menu */}
+            {/* Mobile Top Controls: Edition + Install + Settings + Menu */}
             <div className="md:hidden flex items-center gap-1.5">
+              <PWAInstallButton variant="mobile-bar" />
+
               <button
                 onClick={() => {
                   setEditionModalMode('list');
                   setShowEditionModal(true);
                 }}
-                className="flex items-center text-[11px] bg-white hover:bg-[#F2EDE2] text-[#2B3323] px-2.5 py-1.5 rounded-lg border border-[#DDD3C2] shadow-xs transition max-w-[120px]"
+                className="flex items-center text-[11px] bg-white hover:bg-[#F2EDE2] text-[#2B3323] px-2 py-1.5 rounded-lg border border-[#DDD3C2] shadow-xs transition max-w-[100px]"
                 title="Bazar Atual & Edições"
               >
                 <Calendar className="h-3.5 w-3.5 text-[#71845B] mr-1 shrink-0" />
@@ -179,6 +182,9 @@ export const Header: React.FC<HeaderProps> = ({
               <Package className="h-4 w-4 mr-1 text-[#C2AD8E]" />
               <span>+ Produto</span>
             </button>
+
+            {/* PWA Install Button with Rx Icon */}
+            <PWAInstallButton variant="header" />
 
             {/* Settings & PDF Button */}
             <button

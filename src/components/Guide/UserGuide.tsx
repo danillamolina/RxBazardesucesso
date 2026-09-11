@@ -170,6 +170,10 @@ export const UserGuide: React.FC<UserGuideProps> = ({
       answer: 'Abra a aba "Vitrine de Fotos" e digite parte do nome da peça, cor ou código na barra de busca no topo. A vitrine filtra na mesma hora. Você pode clicar no botão "Copiar Texto" ou "Enviar Foto" e mandar direto para a cliente com os valores calculados.'
     },
     {
+      question: 'Como colocar o aplicativo na área de trabalho do meu celular com o ícone Rx?',
+      answer: 'É muito simples e prático! Toque no botão "App Rx" ou "Instalar App" disponível no topo e no menu de abas do sistema. No iPhone (Safari), toque no botão Compartilhar (ícone com quadrado e seta para cima no rodapé do Safari) e selecione "Adicionar à Tela de Início". No Android (Google Chrome), toque em "Adicionar à Área de Trabalho" ou toque nos 3 pontinhos no canto superior e escolha "Instalar aplicativo". O sistema criará o ícone verde escuro oficial "Rx" na sua tela inicial, permitindo que você acerte seu estoque e registre vendas em tela cheia com 1 toque!'
+    },
+    {
       question: 'O que significa a opção "Todas as Edições" no seletor de bazar?',
       answer: 'Permite que você visualize todo o estoque e o faturamento histórico somado de todos os bazares que você já realizou. Para o dia a dia do evento, recomendamos manter selecionada a edição específica do bazar atual.'
     }

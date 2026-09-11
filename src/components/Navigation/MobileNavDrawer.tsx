@@ -18,6 +18,7 @@ import {
   Info
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
+import { PWAInstallButton } from '../PWA/PWAInstallButton';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -194,6 +195,11 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
 
         {/* Scrollable Tabs List */}
         <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 no-scrollbar">
+          {/* PWA Mobile Install Option with Rx Icon */}
+          <div className="pb-1">
+            <PWAInstallButton variant="drawer" />
+          </div>
+
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
