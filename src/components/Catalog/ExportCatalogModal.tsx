@@ -23,11 +23,19 @@ import {
   Flame,
   CheckCircle2,
   Camera,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ShoppingBag
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { Product } from '../../types';
-import { formatCurrency, formatPercent, generateFullCatalogExportText, getProductPriceDetails } from '../../utils/formatters';
+import { 
+  formatCurrency, 
+  formatPercent, 
+  generateFullCatalogExportText, 
+  getProductPriceDetails,
+  getStoreOnlineUrl,
+  generateStoreInvitationWhatsAppText
+} from '../../utils/formatters';
 import { 
   downloadMultipleProductsIndividualJpgs, 
   shareMultipleProductsWithEditedImages,
@@ -43,6 +51,7 @@ interface ExportCatalogModalProps {
   onClose: () => void;
   products?: Product[];
   initialSelectedProductIds?: string[];
+  onOpenCustomerStoreView?: () => void;
 }
 
 export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
@@ -50,9 +59,13 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   onClose,
   products: propsProducts,
   initialSelectedProductIds,
+  onOpenCustomerStoreView,
 }) => {
-  const { products: contextProducts, categories } = useBazar();
+  const { products: contextProducts, categories, storeInfo } = useBazar();
   const allProducts = propsProducts || contextProducts || [];
+
+  const storeUrl = getStoreOnlineUrl();
+  const [copiedStoreUrl, setCopiedStoreUrl] = useState(false);
 
   // Filter only items with available quantity and visible in catalog
   const availableProducts = useMemo(() => {
@@ -199,6 +212,19 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
     navigator.clipboard.writeText(catalogText);
     setCopiedText(true);
     setTimeout(() => setCopiedText(false), 2500);
+  };
+
+  // Share direct store link with invitation text focused on interactive cart
+  const handleShareStoreLinkWhatsApp = (destination: 'standard' | 'business' = 'standard') => {
+    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl);
+    const url = buildWhatsAppDirectUrl(text, undefined, destination, true);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCopyStoreUrl = () => {
+    navigator.clipboard.writeText(storeUrl);
+    setCopiedStoreUrl(true);
+    setTimeout(() => setCopiedStoreUrl(false), 2500);
   };
 
   // Quick single card download/save to gallery
@@ -552,6 +578,77 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
                 </div>
               </button>
 
+            </div>
+          </div>
+
+          {/* 🌟 LOJA ONLINE INTERATIVA COM SACOLA (Para Enviar ao Cliente) */}
+          <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs shrink-0">
+                  <ShoppingBag className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="font-black text-sm sm:text-base text-emerald-950">
+                      Loja Online Interativa com Sacola de Compras
+                    </h4>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300">
+                      Recomendado para Clientes
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-800 font-medium mt-0.5">
+                    Seu cliente abre no WhatsApp como uma loja real com fotos, escolhe os tamanhos, coloca na sacola e te envia o pedido pronto!
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Link Box & Action Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+              <div className="flex-1 bg-white border border-emerald-300 rounded-xl px-3.5 py-2.5 text-xs font-mono text-emerald-900 truncate flex items-center justify-between shadow-2xs">
+                <span className="truncate select-all">{storeUrl}</span>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                {/* Copy Link Button */}
+                <button
+                  type="button"
+                  onClick={handleCopyStoreUrl}
+                  className="px-3.5 py-2.5 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-extrabold text-xs shadow-2xs transition active:scale-95 flex items-center gap-1.5"
+                  title="Copiar link da Loja para colar no WhatsApp, Instagram ou Status"
+                >
+                  {copiedStoreUrl ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-emerald-600" />}
+                  <span>{copiedStoreUrl ? 'Link Copiado!' : 'Copiar Link'}</span>
+                </button>
+
+                {/* Send Store Link WhatsApp Button */}
+                <button
+                  type="button"
+                  onClick={() => handleShareStoreLinkWhatsApp('standard')}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition active:scale-95 flex items-center gap-1.5"
+                  title="Enviar convite da loja online pronto para o WhatsApp com link e instruções da sacola"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  <span>Enviar Loja no WhatsApp</span>
+                </button>
+
+                {/* Preview as Customer */}
+                {onOpenCustomerStoreView && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenCustomerStoreView();
+                    }}
+                    className="px-3.5 py-2.5 rounded-xl bg-teal-900 hover:bg-teal-800 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5"
+                    title="Ver exatamente como seu cliente visualiza a Loja e a Sacola no celular"
+                  >
+                    <ExternalLink className="h-4 w-4 text-teal-300" />
+                    <span>Ver como Cliente</span>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

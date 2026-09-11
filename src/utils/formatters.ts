@@ -558,25 +558,77 @@ export function createWhatsAppProductShareLink(
   return `https://api.whatsapp.com/send?text=${encodeURIComponent(rawText)}`;
 }
 
+// Helper to obtain the direct link to the customer-facing Online Store
+export function getStoreOnlineUrl(customUrl?: string): string {
+  if (customUrl) return customUrl;
+  if (typeof window !== 'undefined' && window.location) {
+    const origin = window.location.origin;
+    const pathname = window.location.pathname;
+    return `${origin}${pathname}?loja=1`;
+  }
+  return '';
+}
+
+// Generate an attractive invitation message focused on the interactive online store with cart
+export function generateStoreInvitationWhatsAppText(storeInfo?: StoreInfo, customUrl?: string): string {
+  const store = getEffectiveStoreInfo(storeInfo);
+  const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
+  const url = getStoreOnlineUrl(customUrl);
+
+  return (
+    `🛍️✨ *LOJA ONLINE DO NOSSO BAZAR ABERTA!* ✨🛍️\n\n` +
+    `Olá! Preparamos uma loja virtual completa para você escolher suas peças favoritas com muito conforto e rapidez:\n\n` +
+    `👉 *CLIQUE NO LINK PARA ABRIR A LOJA E SACOLA:*\n` +
+    `${url}\n\n` +
+    `✨ *Como funciona:* \n` +
+    `1️⃣ Veja todas as fotos em alta definição com preços De/Por\n` +
+    `2️⃣ Escolha seus tamanhos e adicione na sacolinha de compras\n` +
+    `3️⃣ Clique em "Enviar Pedido" para me mandar seu pedido pronto pelo WhatsApp!\n\n` +
+    `🔥 Peças com até *70% OFF* e estoque limitado com pronta entrega imediata! Acesse agora e garanta as suas antes que esgotem! 🥰💖\n\n` +
+    `🏪 *${storeName}*`
+  );
+}
+
 // Generate Full Catalog Text for WhatsApp Export organized by Category and Subcategory
-export function generateFullCatalogExportText(products: {
-  name: string;
-  bazarPrice: number;
-  fullPrice?: number;
-  description?: string;
-  sizeColor?: string;
-  imageUrl?: string;
-  category?: string;
-  subcategory?: string;
-  quantity?: number;
-}[]): string {
+export function generateFullCatalogExportText(
+  products: {
+    name: string;
+    bazarPrice: number;
+    fullPrice?: number;
+    description?: string;
+    sizeColor?: string;
+    imageUrl?: string;
+    category?: string;
+    subcategory?: string;
+    quantity?: number;
+  }[],
+  storeInfoOrUrl?: StoreInfo | string
+): string {
   if (!products || products.length === 0) {
     return '🛍️ *RX DO BAZAR DE SUCESSO*: Nenhum produto selecionado no momento.';
   }
 
-  let text = `🛍️✨ *VITRINE DE FOTOS & OFERTAS — RX DO BAZAR DE SUCESSO* ✨🛍️\n`;
-  text += `Confira as peças selecionadas disponíveis para pronta entrega:\n`;
-  text += `───────────────────────\n\n`;
+  let storeUrl = '';
+  let storeName = 'Rx do Bazar de Sucesso';
+
+  if (typeof storeInfoOrUrl === 'string') {
+    storeUrl = storeInfoOrUrl;
+  } else if (storeInfoOrUrl && typeof storeInfoOrUrl === 'object') {
+    storeName = storeInfoOrUrl.name?.trim() || storeName;
+  }
+
+  if (!storeUrl) {
+    storeUrl = getStoreOnlineUrl();
+  }
+
+  let text = `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS — ${storeName.toUpperCase()}* ✨🛍️\n\n`;
+  if (storeUrl) {
+    text += `🛒 *ACESSE NOSSA LOJA ONLINE COM SACOLA INTERATIVA:* \n`;
+    text += `👉 ${storeUrl}\n`;
+    text += `_(Acesse pelo link para ver fotos completas, colocar na sacolinha e enviar seu pedido com 1 toque no WhatsApp!)_\n\n`;
+    text += `───────────────────────\n`;
+  }
+  text += `Confira as peças selecionadas disponíveis para pronta entrega:\n\n`;
 
   // Group products by category and then subcategory
   const categoriesMap: Record<string, Record<string, typeof products>> = {};
@@ -631,8 +683,11 @@ export function generateFullCatalogExportText(products: {
   });
 
   text += `───────────────────────\n`;
-  text += `⚡ *COMO RESERVAR A SUA PEÇA:*\n`;
-  text += `Responda a esta mensagem informando o número ou nome da peça para garantir! Estoque com pronta entrega! 🥰💖`;
+  if (storeUrl) {
+    text += `🛍️ *PREFERE ESCOLHER PELA SACOLA DE COMPRAS?*\n`;
+    text += `👉 Abra a Loja Online: ${storeUrl}\n\n`;
+  }
+  text += `⚡ *COMO COMPRAR:* Adicione na sacola pelo link acima ou responda a esta mensagem informando o número ou nome da peça para garantir! Estoque com pronta entrega! 🥰💖`;
 
   return text;
 }

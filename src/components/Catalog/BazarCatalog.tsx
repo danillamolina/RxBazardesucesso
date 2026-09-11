@@ -52,7 +52,11 @@ import { CategoryManagementModal } from './CategoryManagementModal';
 import { PhotoOptionsModal } from './PhotoOptionsModal';
 import { OnlineStoreCartModal, CartItem } from './OnlineStoreCartModal';
 
-export const BazarCatalog: React.FC = () => {
+export interface BazarCatalogProps {
+  onOpenCustomerStoreView?: () => void;
+}
+
+export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreView }) => {
   const { products, sales, categories, storeInfo } = useBazar();
 
   // Search & Filter State
@@ -471,6 +475,19 @@ export const BazarCatalog: React.FC = () => {
             <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Exportar no WhatsApp</span>
           </button>
+
+          {/* View as Customer Store Button */}
+          {onOpenCustomerStoreView && (
+            <button
+              type="button"
+              onClick={onOpenCustomerStoreView}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition active:scale-95"
+              title="Ver e testar a Loja Online com Sacola exatamente como o cliente vê pelo WhatsApp"
+            >
+              <Store className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Ver como</span> Cliente
+            </button>
+          )}
         </div>
       </div>
 
@@ -1553,6 +1570,7 @@ export const BazarCatalog: React.FC = () => {
         onClose={() => setIsExportCatalogOpen(false)}
         products={products}
         initialSelectedProductIds={selectedProductIds}
+        onOpenCustomerStoreView={onOpenCustomerStoreView}
       />
 
       {/* Send to Customer Modal */}

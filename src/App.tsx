@@ -30,10 +30,23 @@ import { NextSteps } from './components/NextSteps/NextSteps';
 import { UserGuide } from './components/Guide/UserGuide';
 import { MobileNavDrawer } from './components/Navigation/MobileNavDrawer';
 import { EditionManagementModal } from './components/Editions/EditionManagementModal';
+import { CustomerOnlineStore } from './components/Store/CustomerOnlineStore';
 import { Product } from './types';
 import { useBazar } from './context/BazarContext';
 
 function MainApp() {
+  // Check if opened via customer store link (?loja=1 or ?loja=online)
+  const [isCustomerStoreView, setIsCustomerStoreView] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const lojaParam = params.get('loja') || params.get('store') || params.get('view');
+      if (lojaParam === '1' || lojaParam === 'online' || lojaParam === 'true' || lojaParam === 'loja') {
+        return true;
+      }
+    }
+    return false;
+  });
+
   const [activeTab, setActiveTab] = useState<string>(() => {
     // Na versão mobile, abre diretamente na Vitrine conforme solicitado pelo usuário
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
@@ -90,6 +103,24 @@ function MainApp() {
     setIsSaleModalOpen(true);
   };
 
+  // If viewing as pure Customer Online Store (via shared WhatsApp link ?loja=1 or merchant preview)
+  if (isCustomerStoreView) {
+    return (
+      <CustomerOnlineStore
+        onExitToAdmin={() => {
+          setIsCustomerStoreView(false);
+          if (typeof window !== 'undefined' && window.history) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('loja');
+            url.searchParams.delete('store');
+            url.searchParams.delete('view');
+            window.history.replaceState({}, '', url.pathname);
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen notranslate bg-[#F8F6F0] text-[#2B3323] font-sans antialiased flex flex-col selection:bg-[#8FA079] selection:text-white transition-colors duration-300 pb-20 md:pb-0" translate="no">
       
@@ -128,7 +159,9 @@ function MainApp() {
         )}
 
         {activeTab === 'catalog' && (
-          <BazarCatalog />
+          <BazarCatalog 
+            onOpenCustomerStoreView={() => setIsCustomerStoreView(true)}
+          />
         )}
 
         {activeTab === 'store' && (
