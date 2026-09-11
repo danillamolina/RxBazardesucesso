@@ -537,7 +537,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6">
             {filteredProducts.map((prod) => {
               const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(prod);
               const isSoldOut = prod.quantity <= 0;
@@ -557,7 +557,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
                     {/* Photo Container with Zoom Lightbox Click */}
                     <div 
                       onClick={() => setLightboxProduct(prod)}
-                      className="relative h-64 sm:h-60 bg-slate-50 border-b border-slate-100 overflow-hidden flex items-center justify-center cursor-pointer group/img"
+                      className="relative h-44 sm:h-60 bg-slate-50 border-b border-slate-100 overflow-hidden flex items-center justify-center cursor-pointer group/img"
                       title="Clique para ver a foto ampliada"
                     >
                       {/* Product Image */}
@@ -565,28 +565,28 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
                         <img
                           src={prod.imageUrl}
                           alt={prod.name}
-                          className={`w-full h-full object-contain p-2 group-hover/img:scale-105 transition-transform duration-500 ${
+                          className={`w-full h-full object-contain p-1.5 sm:p-2 group-hover/img:scale-105 transition-transform duration-500 ${
                             isSoldOut ? 'grayscale contrast-75' : ''
                           }`}
                           referrerPolicy="no-referrer"
                           loading="lazy"
                         />
                       ) : (
-                        <div className="text-center p-4 text-slate-400">
-                          <ShoppingBag className="h-8 w-8 mx-auto mb-1 opacity-50" />
-                          <span className="text-xs font-bold">Foto da Peça</span>
+                        <div className="text-center p-3 text-slate-400">
+                          <ShoppingBag className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-1 opacity-50" />
+                          <span className="text-[11px] sm:text-xs font-bold">Foto</span>
                         </div>
                       )}
 
                       {/* Top Badges: Discount % & Low Stock */}
-                      <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
+                      <div className="absolute top-2 left-2 flex flex-col gap-1 z-10">
                         {hasDiscount && (
-                          <span className="bg-rose-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs flex items-center gap-1">
+                          <span className="bg-rose-600 text-white text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-md shadow-xs flex items-center gap-0.5">
                             🔥 {discountPercent}% OFF
                           </span>
                         )}
                         {prod.quantity > 0 && prod.quantity <= 2 && (
-                          <span className="bg-amber-600 text-white text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md shadow-xs">
+                          <span className="bg-amber-600 text-white text-[8.5px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md shadow-xs">
                             ⚡ Restam {prod.quantity} un.
                           </span>
                         )}
@@ -595,58 +595,58 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
                       {/* Sold Out Overlay */}
                       {isSoldOut && (
                         <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-10">
-                          <span className="bg-slate-900 text-white text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-xl border border-white/20">
+                          <span className="bg-slate-900 text-white text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-white/20">
                             Esgotado
                           </span>
                         </div>
                       )}
 
                       {/* Category Pill */}
-                      <span className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-xs text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs border border-slate-200/60">
+                      <span className="absolute bottom-1.5 left-1.5 bg-white/95 backdrop-blur-xs text-slate-700 text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md shadow-xs border border-slate-200/60 max-w-[85%] truncate">
                         {prod.subcategory ? `${prod.category} • ${prod.subcategory}` : prod.category}
                       </span>
                     </div>
 
                     {/* Product Information */}
-                    <div className="p-3.5 space-y-2">
+                    <div className="p-2.5 sm:p-3.5 space-y-1 sm:space-y-2">
                       
                       {/* Name & Size */}
                       <div>
                         <h4 
                           onClick={() => setLightboxProduct(prod)}
-                          className="font-black text-sm text-slate-900 line-clamp-2 hover:text-rose-600 transition cursor-pointer"
+                          className="font-black text-xs sm:text-sm text-slate-900 line-clamp-2 hover:text-rose-600 transition cursor-pointer"
                         >
                           {prod.name}
                         </h4>
                         
                         {prod.sizeColor && (
-                          <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                            <span>Tamanho/Cor:</span>
-                            <span className="text-rose-700 font-extrabold">{prod.sizeColor}</span>
+                          <div className="mt-1 inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-slate-600 bg-slate-100 px-1.5 sm:px-2 py-0.5 rounded-md truncate max-w-full">
+                            <span>Tam:</span>
+                            <span className="text-rose-700 font-extrabold truncate">{prod.sizeColor}</span>
                           </div>
                         )}
                       </div>
 
                       {/* Short Description */}
                       {prod.description && (
-                        <p className="text-[11.5px] text-slate-500 line-clamp-2 leading-relaxed">
+                        <p className="text-[10.5px] sm:text-[11.5px] text-slate-500 line-clamp-1 sm:line-clamp-2 leading-relaxed">
                           {prod.description}
                         </p>
                       )}
 
                       {/* Price Section De/Por */}
-                      <div className="pt-2 border-t border-slate-100">
+                      <div className="pt-1.5 sm:pt-2 border-t border-slate-100">
                         {hasDiscount && (
-                          <span className="text-xs text-slate-400 line-through block font-medium">
+                          <span className="text-[10px] sm:text-xs text-slate-400 line-through block font-medium">
                             De {formatCurrency(fullPrice)}
                           </span>
                         )}
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-base sm:text-lg font-black text-rose-700">
+                        <div className="flex items-baseline gap-1 flex-wrap">
+                          <span className="text-sm sm:text-lg font-black text-rose-700">
                             {formatCurrency(bazarPrice)}
                           </span>
                           {hasDiscount && (
-                            <span className="text-[10px] font-bold text-emerald-600">
+                            <span className="text-[9px] sm:text-[10px] font-bold text-emerald-600">
                               (Economize {formatCurrency(discountAmount)})
                             </span>
                           )}
@@ -657,26 +657,26 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
                   </div>
 
                   {/* Add to Cart Actions */}
-                  <div className="p-3 pt-0">
+                  <div className="p-2 sm:p-3 pt-0">
                     {isSoldOut ? (
-                      <div className="w-full py-2 bg-slate-100 text-slate-400 font-bold text-xs rounded-xl text-center">
-                        Peça Esgotada
+                      <div className="w-full py-1.5 sm:py-2 bg-slate-100 text-slate-400 font-bold text-[10px] sm:text-xs rounded-xl text-center">
+                        Esgotado
                       </div>
                     ) : cartItem ? (
-                      <div className="flex items-center justify-between bg-rose-50 border border-rose-300 rounded-xl p-1 shadow-xs">
+                      <div className="flex items-center justify-between bg-rose-50 border border-rose-300 rounded-xl p-0.5 sm:p-1 shadow-xs">
                         <button
                           type="button"
                           onClick={() => handleUpdateCartQuantity(prod.id, cartItem.quantity - 1)}
-                          className="p-1.5 rounded-lg bg-white text-rose-600 hover:bg-rose-100 transition shadow-xs"
+                          className="p-1 sm:p-1.5 rounded-lg bg-white text-rose-600 hover:bg-rose-100 transition shadow-xs"
                           title="Diminuir quantidade"
                         >
-                          <Minus className="h-4 w-4" />
+                          <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </button>
-                        <div className="text-center">
-                          <span className="text-xs font-black text-rose-700">
+                        <div className="text-center px-1">
+                          <span className="text-[10.5px] sm:text-xs font-black text-rose-700">
                             {cartItem.quantity} na Sacola
                           </span>
-                          <span className="text-[10px] text-slate-500 block font-semibold">
+                          <span className="text-[9px] sm:text-[10px] text-slate-500 block font-semibold">
                             {formatCurrency(prod.bazarPrice * cartItem.quantity)}
                           </span>
                         </div>
@@ -684,20 +684,21 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
                           type="button"
                           onClick={() => handleAddToCart(prod)}
                           disabled={cartItem.quantity >= prod.quantity}
-                          className="p-1.5 rounded-lg bg-white text-rose-600 hover:bg-rose-100 transition shadow-xs disabled:opacity-30"
+                          className="p-1 sm:p-1.5 rounded-lg bg-white text-rose-600 hover:bg-rose-100 transition shadow-xs disabled:opacity-30"
                           title="Aumentar quantidade"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         </button>
                       </div>
                     ) : (
                       <button
                         type="button"
                         onClick={() => handleAddToCart(prod)}
-                        className="w-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95 group/btn"
+                        className="w-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[11px] sm:text-xs py-2 sm:py-2.5 px-2 rounded-xl flex items-center justify-center gap-1 shadow-sm transition active:scale-95 group/btn"
                       >
-                        <ShoppingBag className="h-4 w-4 group-hover/btn:scale-110 transition" />
-                        <span>Adicionar à Sacola</span>
+                        <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 group-hover/btn:scale-110 transition shrink-0" />
+                        <span className="hidden sm:inline">Adicionar à Sacola</span>
+                        <span className="sm:hidden inline">+ Sacola</span>
                       </button>
                     )}
                   </div>
@@ -714,9 +715,9 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
       {totalCartItems > 0 && (
         <aside
           aria-label="Sacola de Compras Flutuante"
-          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          className="fixed bottom-3 left-3 right-3 sm:left-auto sm:right-6 sm:bottom-6 z-40 animate-in fade-in slide-in-from-bottom-4 duration-300"
         >
-          <div className="bg-slate-900/95 backdrop-blur-md text-white p-3 sm:p-4 rounded-2xl shadow-2xl border border-white/20 flex items-center justify-between gap-4 max-w-lg mx-auto sm:w-96">
+          <div className="bg-slate-900/95 backdrop-blur-md text-white p-3 sm:p-4 rounded-2xl shadow-2xl border border-white/20 flex items-center justify-between gap-3 sm:gap-4 max-w-lg mx-auto sm:w-96">
             
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">

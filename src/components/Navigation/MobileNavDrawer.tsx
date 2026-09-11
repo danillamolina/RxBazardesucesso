@@ -15,7 +15,9 @@ import {
   Plus,
   ArrowRight,
   CheckCircle2,
-  Info
+  Info,
+  ShoppingBag,
+  MessageSquare
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { PWAInstallButton } from '../PWA/PWAInstallButton';
@@ -29,6 +31,7 @@ interface MobileNavDrawerProps {
   onOpenNewProduct: () => void;
   onOpenSettings: () => void;
   onOpenEditionModal: () => void;
+  onOpenCustomerStoreView?: () => void;
 }
 
 export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
@@ -40,6 +43,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   onOpenNewProduct,
   onOpenSettings,
   onOpenEditionModal,
+  onOpenCustomerStoreView,
 }) => {
   const { editions, activeEditionId } = useBazar();
 
@@ -182,6 +186,54 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
           <p className="leading-tight">
             <strong className="text-amber-800 font-extrabold">Dica da Danilla:</strong> Cadastre suas peças no <strong>Estoque</strong> antes de abrir o evento. Facilita todo o processo!
           </p>
+        </div>
+
+        {/* 🌟 LOJA ONLINE COM SACOLA (VISÃO DO CLIENTE) */}
+        <div className="mx-4 my-2.5 bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-2xl p-3.5 shadow-xs shrink-0 space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs shrink-0">
+                <ShoppingBag className="h-4 w-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="font-black text-xs text-emerald-950">Loja Online com Sacola</h4>
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300">
+                    Cliente
+                  </span>
+                </div>
+                <p className="text-[11px] text-emerald-800 font-medium">Link que seu cliente abre no WhatsApp</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 pt-0.5">
+            <button
+              onClick={() => {
+                onClose();
+                if (onOpenCustomerStoreView) {
+                  onOpenCustomerStoreView();
+                } else {
+                  setActiveTab('catalog');
+                }
+              }}
+              className="py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-xs active:scale-95"
+            >
+              <Store className="h-3.5 w-3.5" />
+              <span>Abrir Loja</span>
+            </button>
+            
+            <button
+              onClick={() => {
+                onClose();
+                setActiveTab('catalog');
+              }}
+              className="py-2 px-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black flex items-center justify-center gap-1.5 shadow-2xs active:scale-95"
+            >
+              <Share2 className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Ver Vitrine</span>
+            </button>
+          </div>
         </div>
 
         {/* Scrollable Tabs List */}

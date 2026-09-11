@@ -12,7 +12,8 @@ import {
   Store,
   Compass,
   BookOpen,
-  Menu
+  Menu,
+  ShoppingBag
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 import { EditionManagementModal } from './Editions/EditionManagementModal';
@@ -25,6 +26,7 @@ interface HeaderProps {
   onOpenNewProduct: () => void;
   onOpenSettings: () => void;
   onOpenMobileMenu?: () => void;
+  onOpenCustomerStoreView?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -34,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenNewProduct,
   onOpenSettings,
   onOpenMobileMenu,
+  onOpenCustomerStoreView,
 }) => {
   const { editions, activeEditionId } = useBazar();
   const [showEditionModal, setShowEditionModal] = useState(false);
@@ -103,10 +106,10 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Mobile Quick Action Buttons Bar (Second Row on Mobile) */}
-          <div className="md:hidden w-full grid grid-cols-3 gap-1.5 pt-1">
+          <div className="md:hidden w-full grid grid-cols-4 gap-1.5 pt-1">
             <button
               onClick={() => onOpenNewSale()}
-              className="flex items-center justify-center gap-1 py-2 px-2 bg-[#8FA079] hover:bg-[#7D9068] text-[#1F2919] font-black rounded-xl text-xs shadow-sm transition active:scale-95"
+              className="flex items-center justify-center gap-1 py-2 px-1.5 bg-[#8FA079] hover:bg-[#7D9068] text-[#1F2919] font-black rounded-xl text-xs shadow-sm transition active:scale-95"
               title="Registrar Nova Venda"
             >
               <Plus className="h-3.5 w-3.5" />
@@ -115,16 +118,16 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={() => onOpenNewProduct()}
-              className="flex items-center justify-center gap-1 py-2 px-2 bg-white hover:bg-[#F7F4EC] text-[#2B3323] font-bold rounded-xl text-xs border border-[#DDD3C2] shadow-xs transition active:scale-95"
+              className="flex items-center justify-center gap-1 py-2 px-1.5 bg-white hover:bg-[#F7F4EC] text-[#2B3323] font-bold rounded-xl text-xs border border-[#DDD3C2] shadow-xs transition active:scale-95"
               title="Cadastrar Novo Produto"
             >
               <Package className="h-3.5 w-3.5 text-[#556348]" />
-              <span>+ Produto</span>
+              <span>+ Peça</span>
             </button>
 
             <button
               onClick={() => setActiveTab('catalog')}
-              className={`flex items-center justify-center gap-1 py-2 px-2 rounded-xl text-xs font-bold border transition ${
+              className={`flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl text-xs font-bold border transition ${
                 activeTab === 'catalog'
                   ? 'bg-[#E6F4EA] text-[#1B4D2E] border-[#8FA079] shadow-sm'
                   : 'bg-white hover:bg-[#F7F4EC] text-[#334D28] border-[#DDD3C2] shadow-xs'
@@ -133,6 +136,15 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Share2 className="h-3.5 w-3.5 text-emerald-600" />
               <span>Vitrine</span>
+            </button>
+
+            <button
+              onClick={() => (onOpenCustomerStoreView ? onOpenCustomerStoreView() : setActiveTab('catalog'))}
+              className="flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs transition active:scale-95 border border-emerald-500"
+              title="Abrir Loja Online com Sacola (Visão do Cliente)"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              <span>Loja</span>
             </button>
           </div>
 

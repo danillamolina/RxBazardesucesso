@@ -491,6 +491,38 @@ export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreV
         </div>
       </div>
 
+      {/* Mobile Special Banner: Loja Online com Sacola para Clientes */}
+      {onOpenCustomerStoreView && (
+        <div className="sm:hidden bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700 rounded-2xl p-3.5 flex items-center justify-between gap-2 shadow-xs">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs shrink-0">
+              <ShoppingBag className="h-5 w-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <h4 className="font-black text-xs text-emerald-950 dark:text-emerald-100 truncate">
+                  Loja Online com Sacola
+                </h4>
+                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300 dark:bg-emerald-900 dark:text-emerald-200 shrink-0">
+                  Cliente
+                </span>
+              </div>
+              <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium truncate">
+                O cliente escolhe e te envia o pedido no WhatsApp
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenCustomerStoreView}
+            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition active:scale-95 shrink-0 flex items-center gap-1"
+          >
+            <Store className="h-3.5 w-3.5" />
+            <span>Abrir</span>
+          </button>
+        </div>
+      )}
+
       {/* Boutique Store Profile Header in Online Store Mode */}
       {storeMode === 'store' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fade-in">

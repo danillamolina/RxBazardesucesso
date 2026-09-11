@@ -103,6 +103,15 @@ function MainApp() {
     setIsSaleModalOpen(true);
   };
 
+  const handleOpenCustomerStoreView = () => {
+    setIsCustomerStoreView(true);
+    if (typeof window !== 'undefined' && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('loja', '1');
+      window.history.pushState({}, '', url.toString());
+    }
+  };
+
   // If viewing as pure Customer Online Store (via shared WhatsApp link ?loja=1 or merchant preview)
   if (isCustomerStoreView) {
     return (
@@ -132,6 +141,7 @@ function MainApp() {
         onOpenNewProduct={() => handleOpenNewProduct()}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+        onOpenCustomerStoreView={handleOpenCustomerStoreView}
       />
 
       {/* Main Content Area */}
@@ -275,6 +285,7 @@ function MainApp() {
         onOpenNewProduct={() => handleOpenNewProduct()}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenEditionModal={() => setIsEditionModalOpen(true)}
+        onOpenCustomerStoreView={handleOpenCustomerStoreView}
       />
 
       {/* Edition Management Modal */}
