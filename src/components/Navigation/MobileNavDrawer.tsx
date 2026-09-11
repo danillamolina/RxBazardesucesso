@@ -53,8 +53,8 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
     {
       id: 'dashboard',
       num: 1,
-      name: 'Dashboard',
-      subtitle: 'Resumo geral em tempo real, lucro realizado e faturamento',
+      name: 'Dashboard e Relatórios',
+      subtitle: 'Painel em tempo real, apuração de lucro líquido, gráficos e PDFs',
       icon: LayoutDashboard,
       color: 'text-emerald-700 bg-emerald-100 border-emerald-200',
       badge: null,
@@ -87,17 +87,8 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
       badge: 'WhatsApp',
     },
     {
-      id: 'reports',
-      num: 5,
-      name: 'Relatórios',
-      subtitle: 'Apuração detalhada de lucro líquido real, comissão e gráficos',
-      icon: TrendingUp,
-      color: 'text-purple-700 bg-purple-100 border-purple-200',
-      badge: null,
-    },
-    {
       id: 'store',
-      num: 6,
+      num: 5,
       name: 'Dados da Loja',
       subtitle: 'Sua chave PIX, telefone de atendimento WhatsApp e perfil do Instagram',
       icon: Store,
@@ -106,7 +97,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
     },
     {
       id: 'guide',
-      num: 7,
+      num: 6,
       name: 'Manual de Uso',
       subtitle: 'Passo a passo didático, checklist pré-bazar e download em PDF impresso',
       icon: BookOpen,
@@ -115,7 +106,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
     },
     {
       id: 'next_steps',
-      num: 8,
+      num: 7,
       name: 'Próximos Passos',
       subtitle: 'Cursos oficiais, consultoria financeira individual e mentoria VIP com Danilla',
       icon: Compass,
@@ -202,7 +193,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
 
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+            const isActive = activeTab === item.id || (item.id === 'dashboard' && activeTab === 'reports');
 
             return (
               <button

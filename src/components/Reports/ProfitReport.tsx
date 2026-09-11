@@ -16,7 +16,8 @@ import {
   BarChart3,
   ShoppingBag,
   Flame,
-  Gem
+  Gem,
+  ArrowLeft
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -44,9 +45,17 @@ import { TopProductsReport } from './TopProductsReport';
 
 type ReportTab = 'lucro_geral' | 'clientes_compras' | 'mais_vendidos';
 
-export const ProfitReport: React.FC = () => {
+interface ProfitReportProps {
+  initialSubTab?: ReportTab;
+  onBackToOverview?: () => void;
+}
+
+export const ProfitReport: React.FC<ProfitReportProps> = ({
+  initialSubTab = 'lucro_geral',
+  onBackToOverview,
+}) => {
   const { products, sales, financialSummary, stockMetrics, editions, activeEditionId } = useBazar();
-  const [activeSubTab, setActiveSubTab] = useState<ReportTab>('lucro_geral');
+  const [activeSubTab, setActiveSubTab] = useState<ReportTab>(initialSubTab);
   const [showExportMenu, setShowExportMenu] = useState(false);
 
   const activeEditionName = editions.find(e => e.id === activeEditionId)?.name || 'Geral';
@@ -180,6 +189,18 @@ export const ProfitReport: React.FC = () => {
         
         {/* Sub-Navigation Buttons */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          {onBackToOverview && (
+            <button
+              type="button"
+              onClick={onBackToOverview}
+              className="px-3 py-2 rounded-xl font-bold text-xs bg-[#E8EFE2] hover:bg-[#DCE7D4] text-[#254217] border border-[#8FA079] flex items-center gap-1.5 transition shrink-0 shadow-xs"
+              title="Voltar para a Visão Geral do Painel"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Painel</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setActiveSubTab('lucro_geral')}

@@ -891,4 +891,100 @@ export async function shareMultipleProductsWithEditedImages(
   return { sharedNatively: false };
 }
 
+/**
+ * Downloads the original clean product photo without price overlays or watermarks
+ */
+export async function downloadProductOriginalPhoto(product: Product): Promise<void> {
+  if (!product.imageUrl) return;
+  const sanitizedName = product.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '_')
+    .replace(/_+/g, '_')
+    .substring(0, 30);
+  const filename = `foto_original_${sanitizedName || 'produto'}.jpg`;
 
+  try {
+    if (product.imageUrl.startsWith('data:') || product.imageUrl.startsWith('blob:')) {
+      const link = document.createElement('a');
+      link.href = product.imageUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
+    const response = await fetch(product.imageUrl, { mode: 'cors' });
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  } catch {
+    const link = document.createElement('a');
+    link.href = product.imageUrl;
+    link.target = '_blank';
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+}
+
+/**
+ * Downloads multiple original clean photos into a ZIP archive
+ */
+export async function downloadMultipleOriginalPhotosZip(
+  products: Product[],
+  onProgress?: (current: number, total: number, productName: string) => void
+): Promise<void> {
+  const prodsWithPhotos = products.filter((p) => Boolean(p.imageUrl));
+  if (prodsWithPhotos.length === 0) return;
+
+  const zip = new JSZip();
+  const total = prodsWithPhotos.length;
+
+  for (let i = 0; i < total; i++) {
+    const prod = prodsWithPhotos[i];
+    if (onProgress) {
+      onProgress(i + 1, total, prod.name);
+    }
+
+    try {
+      let blob: Blob | null = null;
+      if (prod.imageUrl!.startsWith('data:')) {
+        const res = await fetch(prod.imageUrl!);
+        blob = await res.blob();
+      } else {
+        const res = await fetch(prod.imageUrl!, { mode: 'cors' });
+        blob = await res.blob();
+      }
+
+      if (blob) {
+        const sanitizedName = prod.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, '_')
+          .replace(/_+/g, '_')
+          .substring(0, 30);
+        const indexStr = String(i + 1).padStart(2, '0');
+        const filename = `${indexStr}_original_${sanitizedName || 'foto'}.jpg`;
+        zip.file(filename, blob);
+      }
+    } catch (err) {
+      console.error(`Erro ao incluir foto original de ${prod.name}:`, err);
+    }
+  }
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(zipBlob);
+  link.download = `fotos_originais_bazar_${Date.now()}.zip`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}

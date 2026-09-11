@@ -203,18 +203,18 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="bg-[#F4EFE6] md:bg-[#1F2919]/95 border-t border-[#E5DDD0] md:border-[#3A4A30] px-3 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-2 no-scrollbar">
           
-          {/* 1. Dashboard */}
+          {/* 1. Dashboard e Relatórios */}
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
-              activeTab === 'dashboard'
+              activeTab === 'dashboard' || activeTab === 'reports'
                 ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
                 : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
             <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">1</span>
             <LayoutDashboard className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>Dashboard</span>
+            <span>Dashboard e Relatórios</span>
           </button>
 
           {/* 2. Estoque e Margens */}
@@ -259,21 +259,7 @@ export const Header: React.FC<HeaderProps> = ({
             <span>Vitrine</span>
           </button>
 
-          {/* 5. Relatórios */}
-          <button
-            onClick={() => setActiveTab('reports')}
-            className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
-              activeTab === 'reports'
-                ? 'bg-[#4A5D3B] text-white shadow-md shadow-[#4A5D3B]/40 font-bold ring-1 ring-[#8FA079]'
-                : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
-            }`}
-          >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">5</span>
-            <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>Relatórios</span>
-          </button>
-
-          {/* 6. Dados da Loja */}
+          {/* 5. Dados da Loja */}
           <button
             onClick={() => setActiveTab('store')}
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
@@ -282,12 +268,12 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">6</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">5</span>
             <Store className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Dados da Loja</span>
           </button>
 
-          {/* 7. Manual de Uso */}
+          {/* 6. Manual de Uso */}
           <button
             onClick={() => setActiveTab('guide')}
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 ${
@@ -296,12 +282,12 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#D8C7AC] md:hover:text-white md:hover:bg-[#3A452F]'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">7</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#33412A] md:bg-black/25 md:text-[#CAD7BE]">6</span>
             <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             <span>Manual de Uso</span>
           </button>
 
-          {/* 8. Próximos Passos */}
+          {/* 7. Próximos Passos */}
           <button
             onClick={() => setActiveTab('next_steps')}
             className={`flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition whitespace-nowrap shrink-0 relative ${
@@ -310,7 +296,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-[#4F5D42] hover:text-[#1F2919] hover:bg-[#EBE4D6] md:text-[#CAD7BE] md:hover:text-white md:hover:bg-[#3A452F] font-semibold'
             }`}
           >
-            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#78350F] md:bg-black/25 md:text-amber-300">8</span>
+            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#78350F] md:bg-black/25 md:text-amber-300">7</span>
             <Compass className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-600 md:text-amber-300" />
             <span>Próximos Passos</span>
             <span className="h-2 w-2 rounded-full bg-amber-500 md:bg-amber-400 animate-pulse" />

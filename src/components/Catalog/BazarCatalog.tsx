@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Copy, 
   Check, 
@@ -27,18 +27,33 @@ import {
   Send,
   SlidersHorizontal,
   Share2,
-  Camera
+  Camera,
+  ShoppingBag,
+  Store,
+  Plus,
+  Minus,
+  ArrowRight,
+  Instagram,
+  FileDown
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { formatCurrency, formatPercent, getProductPriceDetails } from '../../utils/formatters';
 import { Product } from '../../types';
-import { shareProductJpgWhatsApp, downloadProductJpg, downloadMultipleProductsIndividualJpgs } from '../../utils/productJpgGenerator';
+import { 
+  shareProductJpgWhatsApp, 
+  downloadProductJpg, 
+  downloadMultipleProductsIndividualJpgs,
+  downloadProductOriginalPhoto,
+  downloadMultipleOriginalPhotosZip
+} from '../../utils/productJpgGenerator';
 import { ExportCatalogModal } from './ExportCatalogModal';
 import { SendToCustomerModal } from './SendToCustomerModal';
 import { CategoryManagementModal } from './CategoryManagementModal';
+import { PhotoOptionsModal } from './PhotoOptionsModal';
+import { OnlineStoreCartModal, CartItem } from './OnlineStoreCartModal';
 
 export const BazarCatalog: React.FC = () => {
-  const { products, sales, categories } = useBazar();
+  const { products, sales, categories, storeInfo } = useBazar();
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -53,10 +68,76 @@ export const BazarCatalog: React.FC = () => {
 
   // View & UI State: default to classified grid by category & subcategory
   const [viewMode, setViewMode] = useState<'grid' | 'horizontal'>('grid');
+  const [storeMode, setStoreMode] = useState<'store' | 'manager'>('store'); // 'store' = Loja Online, 'manager' = Painel Gestão
   const [isExportCatalogOpen, setIsExportCatalogOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [sendCustomerProduct, setSendCustomerProduct] = useState<Product | null>(null);
   const [isSendCustomerOpen, setIsSendCustomerOpen] = useState(false);
+
+  // Online Store Cart & Photo Options State
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('bazar_online_store_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [photoModalProduct, setPhotoModalProduct] = useState<Product | null>(null);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+
+  // Save cart changes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('bazar_online_store_cart', JSON.stringify(cart));
+    } catch (e) {
+      console.error('Failed to save cart:', e);
+    }
+  }, [cart]);
+
+  // Cart operations
+  const handleAddToCart = (product: Product) => {
+    if (product.quantity <= 0) return;
+    setCart((prev) => {
+      const existing = prev.find((item) => item.product.id === product.id);
+      if (existing) {
+        if (existing.quantity >= product.quantity) return prev;
+        return prev.map((item) =>
+          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const handleUpdateCartQuantity = (productId: string, newQty: number) => {
+    if (newQty <= 0) {
+      handleRemoveFromCart(productId);
+      return;
+    }
+    setCart((prev) =>
+      prev.map((item) => {
+        if (item.product.id === productId) {
+          const max = item.product.quantity;
+          return { ...item, quantity: Math.min(newQty, max) };
+        }
+        return item;
+      })
+    );
+  };
+
+  const handleRemoveFromCart = (productId: string) => {
+    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+  };
+
+  const handleClearCart = () => {
+    setCart([]);
+  };
+
+  const totalCartItems = useMemo(() => cart.reduce((sum, item) => sum + item.quantity, 0), [cart]);
+  const totalCartValue = useMemo(() => cart.reduce((sum, item) => sum + (item.product.bazarPrice * item.quantity), 0), [cart]);
 
   // Selected Products for WhatsApp Vitrine Export
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
@@ -243,6 +324,7 @@ export const BazarCatalog: React.FC = () => {
   };
 
   const [isSavingToGallery, setIsSavingToGallery] = useState(false);
+  const [isDownloadingOriginalsZip, setIsDownloadingOriginalsZip] = useState(false);
 
   const handleSaveSelectedToGallery = async () => {
     const selected = catalogProducts.filter((p) => selectedProductIds.includes(p.id));
@@ -254,6 +336,19 @@ export const BazarCatalog: React.FC = () => {
       console.error('Erro ao salvar fotos editadas na galeria:', err);
     } finally {
       setIsSavingToGallery(false);
+    }
+  };
+
+  const handleDownloadSelectedOriginalsZip = async () => {
+    const selected = catalogProducts.filter((p) => selectedProductIds.includes(p.id));
+    if (selected.length === 0) return;
+    setIsDownloadingOriginalsZip(true);
+    try {
+      await downloadMultipleOriginalPhotosZip(selected);
+    } catch (err) {
+      console.error('Erro ao baixar fotos originais em zip:', err);
+    } finally {
+      setIsDownloadingOriginalsZip(false);
     }
   };
 
@@ -270,6 +365,11 @@ export const BazarCatalog: React.FC = () => {
     setIsSendCustomerOpen(true);
   };
 
+  const handleOpenPhotoOptions = (prod: Product) => {
+    setPhotoModalProduct(prod);
+    setIsPhotoModalOpen(true);
+  };
+
   const handleShareProductPhotoAndText = async (prod: Product) => {
     try {
       await shareProductJpgWhatsApp(prod, 'standard', undefined, undefined, true);
@@ -279,24 +379,78 @@ export const BazarCatalog: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 pb-16 notranslate" translate="no">
+    <div className="space-y-6 pb-20 notranslate" translate="no">
       
-      {/* Header Banner - Clean Light Theme */}
+      {/* Header Banner - Clean Light Theme with Mode Switcher & Cart */}
       <div className="bg-gradient-to-r from-rose-50 via-pink-50/80 to-purple-50/80 border border-rose-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 text-slate-900 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 border border-rose-200 text-rose-700 text-[11px] sm:text-xs font-bold mb-1.5 shadow-xs">
-            <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            Vitrine de Fotos do Bazar
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 border border-rose-200 text-rose-700 text-[11px] sm:text-xs font-bold shadow-xs">
+              <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              Vitrine & Loja Online do Bazar
+            </div>
+
+            {/* Mode Switcher Pills */}
+            <div className="bg-white/80 dark:bg-slate-800/80 p-0.5 rounded-xl border border-rose-200/60 dark:border-slate-700 flex items-center">
+              <button
+                type="button"
+                onClick={() => setStoreMode('store')}
+                className={`px-3 py-1 rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 ${
+                  storeMode === 'store'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-300'
+                }`}
+              >
+                <Store className="h-3.5 w-3.5" />
+                <span>Modo Loja Online</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStoreMode('manager')}
+                className={`px-3 py-1 rounded-lg text-xs font-extrabold transition flex items-center gap-1.5 ${
+                  storeMode === 'manager'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-300'
+                }`}
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+                <span>Modo Gestão</span>
+              </button>
+            </div>
           </div>
+
           <h2 className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight text-slate-900">
-            Vitrine de Produtos por Categorias & Subcategorias
+            {storeMode === 'store' ? 'Loja Online do Bazar' : 'Vitrine de Produtos & Gestão de Fotos'}
           </h2>
           <p className="text-slate-600 text-xs sm:text-sm mt-1 max-w-2xl font-medium">
-            Fotos de alta qualidade organizadas por seções. Baixe a foto editada com preços e descontos ou envie diretamente para seus clientes no WhatsApp.
+            {storeMode === 'store'
+              ? 'Selecione as peças na sacola para fechar pedidos com os clientes, baixe fotos com preços ou envie direto no WhatsApp.'
+              : 'Fotos de alta qualidade organizadas por seções. Baixe a foto limpa ou editada com preços e descontos ou envie aos clientes.'}
           </p>
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {/* Shopping Cart Button */}
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="relative bg-white hover:bg-slate-50 text-slate-900 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white border border-rose-300 dark:border-rose-900 font-extrabold text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-sm flex items-center gap-2 transition active:scale-95 group"
+          >
+            <div className="relative">
+              <ShoppingBag className="h-4 w-4 text-rose-600 group-hover:scale-110 transition" />
+              {totalCartItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-rose-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                  {totalCartItems}
+                </span>
+              )}
+            </div>
+            <span>Sacola da Loja</span>
+            {totalCartValue > 0 && (
+              <span className="bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-xs font-black px-2 py-0.5 rounded-lg">
+                {formatCurrency(totalCartValue)}
+              </span>
+            )}
+          </button>
+
           {/* Manage Categories Button */}
           <button
             onClick={() => setIsCategoryModalOpen(true)}
@@ -304,7 +458,7 @@ export const BazarCatalog: React.FC = () => {
             title="Criar e gerenciar categorias e subcategorias"
           >
             <Settings2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-rose-500" />
-            <span>Gerenciar Categorias</span>
+            <span className="hidden sm:inline">Categorias</span>
           </button>
 
           {/* Export Vitrine to WhatsApp Button */}
@@ -315,10 +469,76 @@ export const BazarCatalog: React.FC = () => {
             className="bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md shadow-rose-600/20 flex items-center gap-1.5 transition active:scale-95"
           >
             <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>Exportar Vitrine no WhatsApp</span>
+            <span>Exportar no WhatsApp</span>
           </button>
         </div>
       </div>
+
+      {/* Boutique Store Profile Header in Online Store Mode */}
+      {storeMode === 'store' && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center font-black text-xl shadow-md shadow-rose-500/30 shrink-0">
+              <Store className="h-6 w-6 sm:h-7 sm:w-7" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  {storeInfo.name || 'Rx do Bazar de Sucesso'}
+                </h3>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
+                  🟢 Loja Online Aberta
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Navegue pelas peças, adicione à sacola e finalize o pedido no WhatsApp ou baixe as fotos dos produtos!
+              </p>
+              <div className="flex items-center gap-3 mt-1.5 text-xs flex-wrap">
+                {storeInfo.whatsapp && (
+                  <a
+                    href={`https://wa.me/55${storeInfo.whatsapp.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <span>WhatsApp da Loja</span>
+                  </a>
+                )}
+                {storeInfo.instagram && (
+                  <a
+                    href={`https://instagram.com/${storeInfo.instagram.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-bold text-pink-600 dark:text-pink-400 hover:underline"
+                  >
+                    <Instagram className="h-3.5 w-3.5" />
+                    <span>{storeInfo.instagram}</span>
+                  </a>
+                )}
+                {storeInfo.pixKey && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
+                    🔑 PIX: {storeInfo.pixKey}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="w-full md:w-auto px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md flex items-center justify-center gap-2 transition active:scale-95"
+          >
+            <ShoppingBag className="h-4 w-4" />
+            <span>Ver Minha Sacola ({totalCartItems})</span>
+            {totalCartValue > 0 && (
+              <span className="bg-white/20 px-2 py-0.5 rounded-lg text-xs font-black">
+                {formatCurrency(totalCartValue)}
+              </span>
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Real-time Status, Search, Categories, Subcategories and Sorting Toolbar */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-4">
@@ -629,22 +849,35 @@ export const BazarCatalog: React.FC = () => {
 
         {selectedProductIds.length > 0 && (
           <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+            {/* Download edited cards */}
             <button
               onClick={handleSaveSelectedToGallery}
               disabled={isSavingToGallery}
               className="flex-1 sm:flex-none bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-extrabold text-xs px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs flex items-center justify-center gap-1.5 transition active:scale-95 disabled:opacity-50"
-              title="Baixar fotos editadas dos produtos selecionados na galeria"
+              title="Baixar cards com preços dos produtos selecionados"
             >
               <Download className="h-4 w-4 text-rose-500" />
-              <span>{isSavingToGallery ? 'Baixando...' : `Baixar Fotos (${selectedProductIds.length})`}</span>
+              <span>{isSavingToGallery ? 'Baixando...' : `Cards com Preço (${selectedProductIds.length})`}</span>
             </button>
 
+            {/* Download clean original photos ZIP */}
+            <button
+              onClick={handleDownloadSelectedOriginalsZip}
+              disabled={isDownloadingOriginalsZip}
+              className="flex-1 sm:flex-none bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-extrabold text-xs px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs flex items-center justify-center gap-1.5 transition active:scale-95 disabled:opacity-50"
+              title="Baixar fotos originais limpas (sem preços) em arquivo ZIP"
+            >
+              <FileDown className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              <span>{isDownloadingOriginalsZip ? 'Compactando...' : `Fotos Originais (.ZIP)`}</span>
+            </button>
+
+            {/* Send to WhatsApp */}
             <button
               onClick={handleOpenExportWithSelection}
               className="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 transition active:scale-95"
             >
               <MessageSquare className="h-4 w-4" />
-              <span>Enviar Fotos e Texto ({selectedProductIds.length})</span>
+              <span>Enviar no WhatsApp ({selectedProductIds.length})</span>
             </button>
           </div>
         )}
@@ -741,6 +974,7 @@ export const BazarCatalog: React.FC = () => {
                             const isSoldOut = prod.quantity === 0;
                             const isLowStock = prod.quantity > 0 && prod.quantity <= 3;
                             const isSelected = selectedProductIds.includes(prod.id);
+                            const cartItem = cart.find((item) => item.product.id === prod.id);
 
                             return (
                               <div
@@ -755,7 +989,11 @@ export const BazarCatalog: React.FC = () => {
                                 } rounded-2xl overflow-hidden shadow-xs transition flex flex-col sm:flex-row group relative`}
                               >
                                 {/* Photo Section */}
-                                <div className="relative w-full sm:w-5/12 h-52 sm:h-auto min-h-[190px] bg-slate-50 dark:bg-slate-800/80 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 shrink-0 overflow-hidden flex items-center justify-center">
+                                <div 
+                                  onClick={() => handleOpenPhotoOptions(prod)}
+                                  className="relative w-full sm:w-5/12 h-52 sm:h-auto min-h-[190px] bg-slate-50 dark:bg-slate-800/80 border-b sm:border-b-0 sm:border-r border-slate-100 dark:border-slate-800 shrink-0 overflow-hidden flex items-center justify-center cursor-pointer group/photo"
+                                  title="Clique para ver a foto, baixar ou enviar"
+                                >
                                   
                                   {/* Selection Checkbox Overlay */}
                                   <div
@@ -779,7 +1017,7 @@ export const BazarCatalog: React.FC = () => {
                                     <img
                                       src={prod.imageUrl}
                                       alt={prod.name}
-                                      className={`w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ${
+                                      className={`w-full h-full object-contain p-2 group-hover/photo:scale-105 transition-transform duration-500 ${
                                         isSoldOut ? 'grayscale contrast-75' : ''
                                       }`}
                                       referrerPolicy="no-referrer"
@@ -912,34 +1150,78 @@ export const BazarCatalog: React.FC = () => {
                                     )}
                                   </div>
 
-                                  {/* Actions Bar: 3 Clear Direct Options */}
-                                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-1.5">
-                                    <button
-                                      onClick={() => handleDownloadJpg(prod)}
-                                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-extrabold text-[11px] py-2.5 sm:py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 dark:border-slate-700 active:scale-95"
-                                      title="Baixar foto editada (JPG) com preços e desconto"
-                                    >
-                                      <Download className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
-                                      <span className="truncate">Baixar Foto</span>
-                                    </button>
+                                  {/* Online Store Cart & Photo Actions */}
+                                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                                    {/* Cart Button or Counter */}
+                                    {isSoldOut ? (
+                                      <div className="w-full py-1.5 px-3 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-xs rounded-xl text-center">
+                                        Peça Esgotada no Estoque
+                                      </div>
+                                    ) : cartItem ? (
+                                      <div className="flex items-center justify-between bg-rose-50 dark:bg-rose-950/70 border border-rose-300 dark:border-rose-800 rounded-xl p-1 shadow-xs">
+                                        <button
+                                          onClick={() => handleUpdateCartQuantity(prod.id, cartItem.quantity - 1)}
+                                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 text-rose-600 hover:bg-rose-100 dark:hover:bg-slate-700 transition shadow-xs"
+                                          title="Diminuir quantidade"
+                                        >
+                                          <Minus className="h-3.5 w-3.5" />
+                                        </button>
+                                        <div className="text-center">
+                                          <span className="text-xs font-black text-rose-700 dark:text-rose-300">
+                                            {cartItem.quantity} na Sacola
+                                          </span>
+                                          <span className="text-[10px] text-slate-500 block font-semibold">
+                                            {formatCurrency(prod.bazarPrice * cartItem.quantity)}
+                                          </span>
+                                        </div>
+                                        <button
+                                          onClick={() => handleAddToCart(prod)}
+                                          disabled={cartItem.quantity >= prod.quantity}
+                                          className="p-1.5 rounded-lg bg-white dark:bg-slate-800 text-rose-600 hover:bg-rose-100 dark:hover:bg-slate-700 transition shadow-xs disabled:opacity-30"
+                                          title="Aumentar quantidade"
+                                        >
+                                          <Plus className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <button
+                                        onClick={() => handleAddToCart(prod)}
+                                        className="w-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95"
+                                      >
+                                        <ShoppingBag className="h-4 w-4" />
+                                        <span>Adicionar à Sacola</span>
+                                      </button>
+                                    )}
 
-                                    <button
-                                      onClick={() => handleOpenSendCustomerPhoto(prod)}
-                                      className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 dark:text-indigo-300 font-extrabold text-[11px] py-2.5 sm:py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 active:scale-95"
-                                      title="Enviar foto editada para um cliente"
-                                    >
-                                      <UserCheck className="h-3.5 w-3.5 shrink-0" />
-                                      <span className="truncate">Para Cliente</span>
-                                    </button>
+                                    {/* Actions Bar: 3 Clear Direct Options */}
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                      <button
+                                        onClick={() => handleOpenPhotoOptions(prod)}
+                                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-extrabold text-[11px] py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 border border-slate-200 dark:border-slate-700 active:scale-95"
+                                        title="Baixar foto (Original limpa ou Card com preços)"
+                                      >
+                                        <Download className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                                        <span className="truncate">Baixar Fotos</span>
+                                      </button>
 
-                                    <button
-                                      onClick={() => handleShareProductPhotoAndText(prod)}
-                                      className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] py-2.5 sm:py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
-                                      title="Enviar foto editada e texto completo no WhatsApp"
-                                    >
-                                      <MessageSquare className="h-3.5 w-3.5 shrink-0" />
-                                      <span className="truncate">Foto e Texto</span>
-                                    </button>
+                                      <button
+                                        onClick={() => handleOpenSendCustomerPhoto(prod)}
+                                        className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 dark:text-indigo-300 font-extrabold text-[11px] py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 active:scale-95"
+                                        title="Enviar foto editada para um cliente"
+                                      >
+                                        <UserCheck className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">Para Cliente</span>
+                                      </button>
+
+                                      <button
+                                        onClick={() => handleShareProductPhotoAndText(prod)}
+                                        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[11px] py-2 px-1.5 rounded-xl transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
+                                        title="Enviar foto editada e texto completo no WhatsApp"
+                                      >
+                                        <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                                        <span className="truncate">WhatsApp</span>
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -954,6 +1236,7 @@ export const BazarCatalog: React.FC = () => {
                             const isSoldOut = prod.quantity === 0;
                             const isLowStock = prod.quantity > 0 && prod.quantity <= 3;
                             const isSelected = selectedProductIds.includes(prod.id);
+                            const cartItem = cart.find((item) => item.product.id === prod.id);
 
                             return (
                               <div
@@ -969,7 +1252,11 @@ export const BazarCatalog: React.FC = () => {
                               >
                                 <div>
                                   {/* Photo Container */}
-                                  <div className="relative h-48 sm:h-48 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 overflow-hidden flex items-center justify-center">
+                                  <div 
+                                    onClick={() => handleOpenPhotoOptions(prod)}
+                                    className="relative h-48 sm:h-48 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 overflow-hidden flex items-center justify-center cursor-pointer group/photo"
+                                    title="Clique para ver a foto, baixar ou enviar"
+                                  >
                                     
                                     {/* Selection Checkbox */}
                                     <div
@@ -992,7 +1279,7 @@ export const BazarCatalog: React.FC = () => {
                                       <img
                                         src={prod.imageUrl}
                                         alt={prod.name}
-                                        className={`w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500 ${
+                                        className={`w-full h-full object-contain p-2 group-hover/photo:scale-105 transition-transform duration-500 ${
                                           isSoldOut ? 'grayscale contrast-75' : ''
                                         }`}
                                         referrerPolicy="no-referrer"
@@ -1110,35 +1397,74 @@ export const BazarCatalog: React.FC = () => {
                                   </div>
                                 </div>
 
-                                {/* Actions: 3 Clear Direct Options with Touch Targets */}
-                                <div className="p-2 bg-slate-50/60 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-1">
-                                  <button
-                                    onClick={() => handleDownloadJpg(prod)}
-                                    className="w-full bg-white hover:bg-slate-100 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-extrabold text-[10.5px] py-2 px-1 rounded-lg transition flex items-center justify-center gap-1 border border-slate-200 dark:border-slate-700 active:scale-95"
-                                    title="Baixar foto editada (JPG) com preços e desconto"
-                                  >
-                                    <Download className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
-                                    <span className="truncate">Baixar</span>
-                                  </button>
+                                 {/* Actions: Shopping Bag & Direct Product Actions */}
+                                 <div className="p-2 bg-slate-50/60 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+                                   {/* Cart Button or Counter */}
+                                   {isSoldOut ? (
+                                     <div className="w-full py-1 px-1.5 bg-slate-100 dark:bg-slate-800 text-slate-400 font-bold text-[10.5px] rounded-lg text-center">
+                                       Esgotado
+                                     </div>
+                                   ) : cartItem ? (
+                                     <div className="flex items-center justify-between bg-rose-50 dark:bg-rose-950/70 border border-rose-300 dark:border-rose-800 rounded-lg p-1 shadow-xs">
+                                       <button
+                                         onClick={() => handleUpdateCartQuantity(prod.id, cartItem.quantity - 1)}
+                                         className="p-1 rounded bg-white dark:bg-slate-800 text-rose-600 hover:bg-rose-100 dark:hover:bg-slate-700 transition shadow-xs"
+                                         title="Diminuir quantidade"
+                                       >
+                                         <Minus className="h-3 w-3" />
+                                       </button>
+                                       <span className="text-[10.5px] font-black text-rose-700 dark:text-rose-300">
+                                         {cartItem.quantity} na Sacola
+                                       </span>
+                                       <button
+                                         onClick={() => handleAddToCart(prod)}
+                                         disabled={cartItem.quantity >= prod.quantity}
+                                         className="p-1 rounded bg-white dark:bg-slate-800 text-rose-600 hover:bg-rose-100 dark:hover:bg-slate-700 transition shadow-xs disabled:opacity-30"
+                                         title="Aumentar quantidade"
+                                       >
+                                         <Plus className="h-3 w-3" />
+                                       </button>
+                                     </div>
+                                   ) : (
+                                     <button
+                                       onClick={() => handleAddToCart(prod)}
+                                       className="w-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[11px] py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition active:scale-95"
+                                     >
+                                       <ShoppingBag className="h-3.5 w-3.5" />
+                                       <span>Adicionar à Sacola</span>
+                                     </button>
+                                   )}
 
-                                  <button
-                                    onClick={() => handleOpenSendCustomerPhoto(prod)}
-                                    className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 dark:text-indigo-300 font-extrabold text-[10.5px] py-2 px-1 rounded-lg transition flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 active:scale-95"
-                                    title="Enviar foto editada para um cliente"
-                                  >
-                                    <UserCheck className="h-3.5 w-3.5 shrink-0" />
-                                    <span className="truncate">Cliente</span>
-                                  </button>
+                                   {/* Photo Download and Share Buttons */}
+                                   <div className="grid grid-cols-3 gap-1">
+                                     <button
+                                       onClick={() => handleOpenPhotoOptions(prod)}
+                                       className="w-full bg-white hover:bg-slate-100 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-extrabold text-[10.5px] py-1.5 px-1 rounded-lg transition flex items-center justify-center gap-1 border border-slate-200 dark:border-slate-700 active:scale-95"
+                                       title="Baixar foto (Original limpa ou Card com preços)"
+                                     >
+                                       <Download className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                                       <span className="truncate">Fotos</span>
+                                     </button>
 
-                                  <button
-                                    onClick={() => handleShareProductPhotoAndText(prod)}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10.5px] py-2 px-1 rounded-lg transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
-                                    title="Enviar foto editada e texto no WhatsApp"
-                                  >
-                                    <MessageSquare className="h-3.5 w-3.5 shrink-0" />
-                                    <span className="truncate">Foto+Txt</span>
-                                  </button>
-                                </div>
+                                     <button
+                                       onClick={() => handleOpenSendCustomerPhoto(prod)}
+                                       className="w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 dark:text-indigo-300 font-extrabold text-[10.5px] py-1.5 px-1 rounded-lg transition flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 active:scale-95"
+                                       title="Enviar foto editada para um cliente"
+                                     >
+                                       <UserCheck className="h-3.5 w-3.5 shrink-0" />
+                                       <span className="truncate">Cliente</span>
+                                     </button>
+
+                                     <button
+                                       onClick={() => handleShareProductPhotoAndText(prod)}
+                                       className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10.5px] py-1.5 px-1 rounded-lg transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
+                                       title="Enviar foto editada e texto no WhatsApp"
+                                     >
+                                       <MessageSquare className="h-3.5 w-3.5 shrink-0" />
+                                       <span className="truncate">WhatsApp</span>
+                                     </button>
+                                   </div>
+                                 </div>
 
                               </div>
                             );
@@ -1197,6 +1523,30 @@ export const BazarCatalog: React.FC = () => {
         </div>
       )}
 
+      {/* Floating Shopping Bag Pill when Cart has items */}
+      {totalCartItems > 0 && (
+        <aside
+          aria-label="Sacola de Compras"
+          className="fixed bottom-4 right-4 z-40 animate-in fade-in slide-in-from-bottom-3 duration-200"
+        >
+          <button
+            onClick={() => setIsCartOpen(true)}
+            className="bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm px-4 py-3 rounded-full shadow-2xl flex items-center gap-2.5 border-2 border-white dark:border-slate-800 transition active:scale-95 group"
+          >
+            <div className="relative">
+              <ShoppingBag className="h-5 w-5 group-hover:scale-110 transition" />
+              <span className="absolute -top-1.5 -right-2 bg-white text-rose-600 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
+                {totalCartItems}
+              </span>
+            </div>
+            <span>Minha Sacola</span>
+            <span className="bg-rose-700/80 px-2 py-0.5 rounded-full text-xs font-extrabold">
+              {formatCurrency(totalCartValue)}
+            </span>
+          </button>
+        </aside>
+      )}
+
       {/* Export Full/Selective Vitrine Modal */}
       <ExportCatalogModal
         isOpen={isExportCatalogOpen}
@@ -1217,6 +1567,26 @@ export const BazarCatalog: React.FC = () => {
       <CategoryManagementModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
+      />
+
+      {/* Photo Options Modal (Download Card, Download Original, Share WhatsApp) */}
+      <PhotoOptionsModal
+        isOpen={isPhotoModalOpen}
+        onClose={() => {
+          setIsPhotoModalOpen(false);
+          setPhotoModalProduct(null);
+        }}
+        product={photoModalProduct}
+      />
+
+      {/* Online Store Shopping Cart Modal */}
+      <OnlineStoreCartModal
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        cart={cart}
+        onUpdateQuantity={handleUpdateCartQuantity}
+        onRemoveItem={handleRemoveFromCart}
+        onClearCart={handleClearCart}
       />
 
     </div>

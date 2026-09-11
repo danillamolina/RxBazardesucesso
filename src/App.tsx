@@ -105,8 +105,9 @@ function MainApp() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 notranslate" translate="no">
-        {activeTab === 'dashboard' && (
+        {(activeTab === 'dashboard' || activeTab === 'reports') && (
           <Dashboard
+            initialSection={activeTab === 'reports' ? 'reports' : 'overview'}
             onOpenNewSale={() => handleOpenQuickSale()}
             onOpenNewProduct={() => handleOpenNewProduct()}
             onNavigateTab={(tab) => setActiveTab(tab)}
@@ -124,10 +125,6 @@ function MainApp() {
           <SalesList
             onOpenNewSale={(cust) => handleOpenQuickSale(undefined, cust)}
           />
-        )}
-
-        {activeTab === 'reports' && (
-          <ProfitReport />
         )}
 
         {activeTab === 'catalog' && (
@@ -159,16 +156,16 @@ function MainApp() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-t border-[#E2D9C8] shadow-[0_-4px_25px_rgba(0,0,0,0.06)] py-1.5 px-2">
         <div className="max-w-md mx-auto grid grid-cols-5 gap-1 items-center">
           
-          {/* 1. Dashboard */}
+          {/* 1. Dashboard e Relatórios */}
           <button
             onClick={() => setActiveTab('dashboard')}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
-              activeTab === 'dashboard'
+              activeTab === 'dashboard' || activeTab === 'reports'
                 ? 'text-[#1F2919] font-bold bg-[#E8EFE2] border border-[#C5D6B6] shadow-xs'
                 : 'text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]'
             }`}
           >
-            <LayoutDashboard className={`h-5 w-5 mb-0.5 ${activeTab === 'dashboard' ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
+            <LayoutDashboard className={`h-5 w-5 mb-0.5 ${activeTab === 'dashboard' || activeTab === 'reports' ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
             <span className="text-[10px] leading-tight font-medium">Dashboard</span>
           </button>
 
@@ -215,19 +212,19 @@ function MainApp() {
             </span>
           </button>
 
-          {/* 5. Menu Completo (Todas as 8 abas) */}
+          {/* 5. Menu Completo (Todas as 7 abas) */}
           <button
             onClick={() => setIsMobileMenuOpen(true)}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition relative ${
-              ['reports', 'store', 'guide', 'next_steps'].includes(activeTab)
+              ['store', 'guide', 'next_steps'].includes(activeTab)
                 ? 'text-[#1F2919] font-bold bg-[#E8EFE2] border border-[#C5D6B6] shadow-xs'
                 : 'text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]'
             }`}
-            title="Ver todas as 8 abas"
+            title="Ver todas as 7 abas"
           >
-            <Menu className={`h-5 w-5 mb-0.5 ${['reports', 'store', 'guide', 'next_steps'].includes(activeTab) ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
+            <Menu className={`h-5 w-5 mb-0.5 ${['store', 'guide', 'next_steps'].includes(activeTab) ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
             <span className="text-[10px] leading-tight font-medium">Mais (Abas)</span>
-            {['reports', 'store', 'guide', 'next_steps'].includes(activeTab) && (
+            {['store', 'guide', 'next_steps'].includes(activeTab) && (
               <span className="absolute top-1 right-2.5 h-2 w-2 rounded-full bg-[#8FA079]" />
             )}
           </button>
@@ -262,9 +259,9 @@ function MainApp() {
           <div className="flex items-center space-x-4 overflow-x-auto py-1">
             <button 
               onClick={() => setActiveTab('dashboard')} 
-              className="hover:text-[#F7F4EB] transition"
+              className="hover:text-[#F7F4EB] transition font-semibold"
             >
-              Dashboard
+              Dashboard e Relatórios
             </button>
             <button 
               onClick={() => setActiveTab('inventory')} 
@@ -283,12 +280,6 @@ function MainApp() {
               className="hover:text-[#F7F4EB] transition font-semibold text-[#8FA079]"
             >
               Vitrine
-            </button>
-            <button 
-              onClick={() => setActiveTab('reports')} 
-              className="hover:text-[#F7F4EB] transition"
-            >
-              Relatórios
             </button>
             <button 
               onClick={() => setActiveTab('store')} 

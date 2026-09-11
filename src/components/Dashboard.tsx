@@ -19,19 +19,27 @@ import {
   Share2,
   ChevronDown,
   ChevronUp,
-  ArrowRight
+  ArrowRight,
+  LayoutDashboard,
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import { useBazar } from '../context/BazarContext';
 import { formatCurrency, formatPercent, formatDateShort, getPaymentStatusLabel } from '../utils/formatters';
 import { PWAInstallButton } from './PWA/PWAInstallButton';
+import { ProfitReport } from './Reports/ProfitReport';
+
+export type DashboardSection = 'overview' | 'reports' | 'customers' | 'top_products';
 
 interface DashboardProps {
+  initialSection?: DashboardSection;
   onOpenNewSale: () => void;
   onOpenNewProduct: () => void;
   onNavigateTab: (tab: string) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
+  initialSection = 'overview',
   onOpenNewSale,
   onOpenNewProduct,
   onNavigateTab,
@@ -45,7 +53,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
     updateSaleStatus
   } = useBazar();
 
+  const [dashboardSection, setDashboardSection] = useState<DashboardSection>(initialSection);
   const [isQuickGuideOpen, setIsQuickGuideOpen] = useState(true);
+
+  // Sync with initialSection if it changes from external navigation
+  React.useEffect(() => {
+    if (initialSection) {
+      setDashboardSection(initialSection);
+    }
+  }, [initialSection]);
 
   // Low stock products (< 3 items)
   const lowStockProducts = products.filter(p => p.quantity > 0 && p.quantity <= 3);
@@ -57,7 +73,82 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="space-y-6 pb-12">
       
-      {/* Welcome Banner */}
+      {/* Combined Dashboard & Reports Sub-Navigation Bar */}
+      <div className="bg-white dark:bg-[#1F2919] border border-[#DDD3C2] dark:border-[#3A4A30] p-1.5 rounded-2xl shadow-xs flex items-center justify-between gap-2 overflow-x-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setDashboardSection('overview')}
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition whitespace-nowrap ${
+              dashboardSection === 'overview'
+                ? 'bg-[#2A3722] text-white shadow-sm ring-1 ring-[#8FA079]'
+                : 'text-[#556348] hover:text-[#1F2919] hover:bg-[#F2EDE2] dark:text-[#CAD7BE] dark:hover:bg-[#2F3E26]'
+            }`}
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            <span>Painel Geral</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDashboardSection('reports')}
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition whitespace-nowrap ${
+              dashboardSection === 'reports'
+                ? 'bg-rose-600 text-white shadow-sm'
+                : 'text-[#556348] hover:text-[#1F2919] hover:bg-[#F2EDE2] dark:text-[#CAD7BE] dark:hover:bg-[#2F3E26]'
+            }`}
+          >
+            <TrendingUp className="h-4 w-4 text-emerald-400" />
+            <span>Lucro & Gráficos</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDashboardSection('customers')}
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition whitespace-nowrap ${
+              dashboardSection === 'customers'
+                ? 'bg-sky-600 text-white shadow-sm'
+                : 'text-[#556348] hover:text-[#1F2919] hover:bg-[#F2EDE2] dark:text-[#CAD7BE] dark:hover:bg-[#2F3E26]'
+            }`}
+          >
+            <UserCheck className="h-4 w-4 text-sky-400" />
+            <span>Clientes & Compras</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDashboardSection('top_products')}
+            className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition whitespace-nowrap ${
+              dashboardSection === 'top_products'
+                ? 'bg-amber-600 text-white shadow-sm'
+                : 'text-[#556348] hover:text-[#1F2919] hover:bg-[#F2EDE2] dark:text-[#CAD7BE] dark:hover:bg-[#2F3E26]'
+            }`}
+          >
+            <Sparkles className="h-4 w-4 text-amber-400" />
+            <span>Mais Vendidos</span>
+          </button>
+        </div>
+
+        <div className="hidden md:flex items-center gap-2 pr-2 text-xs text-[#6A785E] dark:text-[#CAD7BE] shrink-0">
+          <span className="font-semibold">Dashboard & Relatórios Unificados</span>
+        </div>
+      </div>
+
+      {/* When deep reports section is selected, render ProfitReport directly */}
+      {dashboardSection !== 'overview' ? (
+        <ProfitReport
+          initialSubTab={
+            dashboardSection === 'customers'
+              ? 'clientes_compras'
+              : dashboardSection === 'top_products'
+              ? 'mais_vendidos'
+              : 'lucro_geral'
+          }
+          onBackToOverview={() => setDashboardSection('overview')}
+        />
+      ) : (
+        <>
+          {/* Welcome Banner */}
       <div className="bg-gradient-to-br from-[#FAF8F5] via-[#F2EDE2] to-[#E6EFE2] md:bg-gradient-to-r md:from-[#2A3722] md:via-[#3A452F] md:to-[#576945] border border-[#DDD3C2] md:border-[#3A4A30] rounded-3xl p-5 sm:p-8 text-[#2B3323] md:text-white relative overflow-hidden shadow-sm md:shadow-xl">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-15 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#8FA079] via-[#CAD7BE] to-transparent pointer-events-none" />
         
@@ -397,6 +488,57 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
+      {/* Integrated Reports & Analytical Dashboards Callout */}
+      <div className="bg-gradient-to-br from-[#2A3722] via-[#3A452F] to-[#4A5D3B] text-white rounded-3xl p-5 sm:p-6 shadow-md border border-[#3A4A30] flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden">
+        <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-15 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#8FA079] to-transparent pointer-events-none" />
+        
+        <div className="flex items-center gap-3.5 relative z-10">
+          <div className="p-3 bg-[#8FA079]/25 rounded-2xl border border-[#8FA079]/40 text-[#CAD7BE] shrink-0">
+            <TrendingUp className="h-6 w-6 text-emerald-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#8FA079] text-[#1F2919]">
+                Relatórios Integrados
+              </span>
+              <h4 className="text-sm sm:text-base font-extrabold text-white">
+                Apuração Detalhada de Lucro, Clientes & PDFs
+              </h4>
+            </div>
+            <p className="text-xs text-[#D8C7AC] mt-1 max-w-xl leading-relaxed">
+              Consulte gráficos comparativos de faturamento vs custo de estoque, apuração por categoria, ranking de compradores e emita relatórios em PDF prontos para impressão.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 relative z-10 shrink-0">
+          <button
+            type="button"
+            onClick={() => setDashboardSection('reports')}
+            className="px-3.5 py-2 rounded-xl bg-[#8FA079] hover:bg-[#7D9068] text-[#1F2919] font-black text-xs transition shadow-sm flex items-center gap-1.5"
+          >
+            <BarChart3 className="h-4 w-4" />
+            <span>Ver Gráficos & PDFs</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDashboardSection('customers')}
+            className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition flex items-center gap-1.5"
+          >
+            <UserCheck className="h-4 w-4 text-[#CAD7BE]" />
+            <span>Clientes</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setDashboardSection('top_products')}
+            className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition flex items-center gap-1.5"
+          >
+            <Sparkles className="h-4 w-4 text-amber-300" />
+            <span>Mais Vendidos</span>
+          </button>
+        </div>
+      </div>
+
       {/* Two Column Layout: Low Stock Alerts & Recent Sales */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
@@ -585,6 +727,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           Abrir Manual de Uso
         </button>
       </div>
+      </>
+      )}
 
     </div>
   );
