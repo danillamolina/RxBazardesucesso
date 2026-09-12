@@ -19,6 +19,7 @@ const DEFAULT_STORE_INFO: StoreInfo = {
   address: 'Rua Principal, 100 - Centro',
   phone: '(11) 99999-8888',
   whatsapp: '(11) 99999-8888',
+  whatsappGroupLink: '',
   instagram: '@danillafinancas',
   pixKey: '11999998888',
   notes: 'Horário de Atendimento: Segunda a Sábado das 09h às 18h. Retiradas no local ou entregas combinadas!',

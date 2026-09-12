@@ -15,6 +15,7 @@ export interface StoreInfo {
   address: string;
   phone: string;
   whatsapp: string;
+  whatsappGroupLink?: string; // Link de convite do Grupo do Bazar no WhatsApp (ex: https://chat.whatsapp.com/...)
   instagram?: string;
   pixKey?: string;
   notes?: string;

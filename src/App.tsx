@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Store,
   Compass,
-  Menu
+  Menu,
+  Calendar
 } from 'lucide-react';
 import { BazarProvider } from './context/BazarContext';
 import { Header } from './components/Header';
@@ -183,6 +184,7 @@ function MainApp() {
             onNavigateTab={(tab) => setActiveTab(tab)}
             onOpenNewProduct={() => handleOpenNewProduct()}
             onOpenNewSale={() => handleOpenQuickSale()}
+            onOpenEditionModal={() => setIsEditionModalOpen(true)}
           />
         )}
 
@@ -199,20 +201,17 @@ function MainApp() {
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FAF8F5]/95 backdrop-blur-md border-t border-[#E2D9C8] shadow-[0_-4px_25px_rgba(0,0,0,0.06)] py-1.5 px-2">
         <div className="max-w-md mx-auto grid grid-cols-5 gap-1 items-center">
           
-          {/* 1. Dashboard e Relatórios */}
+          {/* 1. Bazar */}
           <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
-              activeTab === 'dashboard' || activeTab === 'reports'
-                ? 'text-[#1F2919] font-bold bg-[#E8EFE2] border border-[#C5D6B6] shadow-xs'
-                : 'text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]'
-            }`}
+            onClick={() => setIsEditionModalOpen(true)}
+            className="flex flex-col items-center justify-center py-1.5 rounded-xl transition text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]"
+            title="Criar e Gerenciar Bazares"
           >
-            <LayoutDashboard className={`h-5 w-5 mb-0.5 ${activeTab === 'dashboard' || activeTab === 'reports' ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
-            <span className="text-[10px] leading-tight font-medium">Dashboard</span>
+            <Calendar className="h-5 w-5 mb-0.5 text-emerald-700" />
+            <span className="text-[10px] leading-tight font-bold text-emerald-800">1. Bazar</span>
           </button>
 
-          {/* 2. Estoque */}
+          {/* 2. Produtos */}
           <button
             onClick={() => setActiveTab('inventory')}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition ${
@@ -222,7 +221,7 @@ function MainApp() {
             }`}
           >
             <Package className={`h-5 w-5 mb-0.5 ${activeTab === 'inventory' ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
-            <span className="text-[10px] leading-tight font-medium">Estoque</span>
+            <span className="text-[10px] leading-tight font-medium">2. Produtos</span>
           </button>
 
           {/* 3. Vendas */}
@@ -235,7 +234,7 @@ function MainApp() {
             }`}
           >
             <ShoppingCart className={`h-5 w-5 mb-0.5 ${activeTab === 'sales' ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
-            <span className="text-[10px] leading-tight font-medium">Vendas</span>
+            <span className="text-[10px] leading-tight font-medium">3. Vendas</span>
           </button>
 
           {/* 4. Vitrine */}
@@ -248,26 +247,26 @@ function MainApp() {
             }`}
           >
             <Share2 className="h-5 w-5 mb-0.5 text-emerald-600" />
-            <span className="text-[10px] leading-tight font-black text-emerald-800">Vitrine</span>
+            <span className="text-[10px] leading-tight font-black text-emerald-800">4. Vitrine</span>
             <span className="absolute -top-1 -right-1 flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
             </span>
           </button>
 
-          {/* 5. Menu Completo (Todas as 7 abas) */}
+          {/* 5. Menu Completo (Todas as 8 etapas) */}
           <button
             onClick={() => setIsMobileMenuOpen(true)}
             className={`flex flex-col items-center justify-center py-1.5 rounded-xl transition relative ${
-              ['store', 'guide', 'next_steps'].includes(activeTab)
+              ['dashboard', 'reports', 'store', 'guide', 'next_steps'].includes(activeTab)
                 ? 'text-[#1F2919] font-bold bg-[#E8EFE2] border border-[#C5D6B6] shadow-xs'
                 : 'text-[#667258] hover:text-[#1F2919] hover:bg-[#F2EDE2]'
             }`}
-            title="Ver todas as 7 abas"
+            title="Ver todas as 8 etapas do menu"
           >
-            <Menu className={`h-5 w-5 mb-0.5 ${['store', 'guide', 'next_steps'].includes(activeTab) ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
-            <span className="text-[10px] leading-tight font-medium">Mais (Abas)</span>
-            {['store', 'guide', 'next_steps'].includes(activeTab) && (
+            <Menu className={`h-5 w-5 mb-0.5 ${['dashboard', 'reports', 'store', 'guide', 'next_steps'].includes(activeTab) ? 'text-[#4A5D3B]' : 'text-[#7D8B6E]'}`} />
+            <span className="text-[10px] leading-tight font-medium">Mais (Menu)</span>
+            {['dashboard', 'reports', 'store', 'guide', 'next_steps'].includes(activeTab) && (
               <span className="absolute top-1 right-2.5 h-2 w-2 rounded-full bg-[#8FA079]" />
             )}
           </button>

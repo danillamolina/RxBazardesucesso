@@ -13,7 +13,8 @@ import {
   ExternalLink,
   Store,
   Sparkles,
-  ShoppingBag
+  ShoppingBag,
+  Users
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { getStoreOnlineUrl, generateStoreInvitationWhatsAppText } from '../../utils/formatters';
@@ -26,6 +27,7 @@ export const StoreDetails: React.FC = () => {
     address: storeInfo.address || '',
     phone: storeInfo.phone || '',
     whatsapp: storeInfo.whatsapp || '',
+    whatsappGroupLink: storeInfo.whatsappGroupLink || '',
     instagram: storeInfo.instagram || '',
     pixKey: storeInfo.pixKey || '',
     notes: storeInfo.notes || '',
@@ -58,6 +60,7 @@ export const StoreDetails: React.FC = () => {
       `📍 *Endereço:* ${formData.address || 'Não informado'}\n` +
       `📞 *Telefone:* ${formData.phone || 'Não informado'}\n` +
       `💬 *WhatsApp:* ${formData.whatsapp || 'Não informado'}\n` +
+      (formData.whatsappGroupLink ? `👥 *Grupo do Bazar:* ${formData.whatsappGroupLink}\n` : '') +
       (formData.instagram ? `📸 *Instagram:* ${formData.instagram}\n` : '') +
       (formData.pixKey ? `🔑 *Chave Pix:* ${formData.pixKey}\n` : '') +
       (formData.notes ? `\nℹ️ *Informações:* ${formData.notes}\n` : '')
@@ -317,6 +320,44 @@ export const StoreDetails: React.FC = () => {
 
             </div>
 
+            {/* Link do Grupo do Bazar no WhatsApp */}
+            <div className="bg-[#FAF7F2] dark:bg-[#1A2315] border border-[#8FA079]/40 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#2A3722] dark:text-[#E5EBDE] flex items-center gap-1.5">
+                  <Users className="h-4 w-4 text-emerald-600" />
+                  Link do Grupo do Bazar no WhatsApp (Grupo VIP)
+                </label>
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-800 dark:text-emerald-300">
+                  Opcional & Recomendado
+                </span>
+              </div>
+              <p className="text-xs text-[#5C6E4D] dark:text-[#CAD7BE] leading-relaxed">
+                Cole o link de convite do grupo do WhatsApp onde as clientes participam do bazar. Na Loja Online, as clientes terão o botão direto para postar o pedido dentro do grupo para que todas as participantes vejam a reserva delas!
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  name="whatsappGroupLink"
+                  value={formData.whatsappGroupLink}
+                  onChange={handleChange}
+                  placeholder="Ex: https://chat.whatsapp.com/ExemploDoGrupo"
+                  className="flex-1 bg-white dark:bg-[#1F2919] border border-[#E2D5C3] dark:border-[#3A4A30] rounded-xl px-4 py-2.5 text-xs text-[#2B3323] dark:text-[#F7F4EB] placeholder-[#C2AD8E] focus:outline-none focus:ring-2 focus:ring-[#8FA079] transition font-mono"
+                />
+                {formData.whatsappGroupLink && (
+                  <a
+                    href={formData.whatsappGroupLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 shrink-0 transition"
+                    title="Testar link do grupo"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>Testar Grupo</span>
+                  </a>
+                )}
+              </div>
+            </div>
+
             {/* Instagram & Chave Pix */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               
@@ -438,6 +479,23 @@ export const StoreDetails: React.FC = () => {
                   <span className="font-bold text-[#E5EBDE]">{formData.whatsapp || 'Não cadastrado'}</span>
                 </div>
               </div>
+
+              {formData.whatsappGroupLink && (
+                <div className="flex items-start space-x-2.5">
+                  <Users className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-[#CAD7BE] font-bold block">Grupo do Bazar (WhatsApp):</span>
+                    <a 
+                      href={formData.whatsappGroupLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-emerald-300 underline text-[11px] break-all hover:text-emerald-200"
+                    >
+                      {formData.whatsappGroupLink}
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {formData.instagram && (
                 <div className="flex items-start space-x-2.5">

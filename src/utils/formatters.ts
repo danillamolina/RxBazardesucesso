@@ -559,24 +559,63 @@ export function createWhatsAppProductShareLink(
 }
 
 // Helper to obtain the direct link to the customer-facing Online Store
-export function getStoreOnlineUrl(customUrl?: string): string {
-  if (customUrl) return customUrl;
-  if (typeof window !== 'undefined' && window.location) {
+// Supports passing an editionId to connect that specific bazar edition to the link!
+export function getStoreOnlineUrl(editionIdOrCustomUrl?: string, explicitEditionId?: string): string {
+  let customUrl = '';
+  let editionId = '';
+
+  if (editionIdOrCustomUrl) {
+    if (editionIdOrCustomUrl.startsWith('http://') || editionIdOrCustomUrl.startsWith('https://')) {
+      customUrl = editionIdOrCustomUrl;
+      editionId = explicitEditionId || '';
+    } else {
+      editionId = editionIdOrCustomUrl;
+    }
+  }
+
+  let baseUrl = customUrl;
+  if (!baseUrl && typeof window !== 'undefined' && window.location) {
     const origin = window.location.origin;
     const pathname = window.location.pathname;
-    return `${origin}${pathname}?loja=1`;
+    baseUrl = `${origin}${pathname}`;
   }
-  return '';
+
+  if (!baseUrl) {
+    baseUrl = 'https://rx-bazar.app';
+  }
+
+  try {
+    const urlObj = new URL(baseUrl, typeof window !== 'undefined' ? window.location.origin : 'https://rx-bazar.app');
+    urlObj.searchParams.set('loja', '1');
+    if (editionId && editionId !== 'all') {
+      urlObj.searchParams.set('edicao', editionId);
+    } else {
+      urlObj.searchParams.delete('edicao');
+    }
+    return urlObj.toString();
+  } catch {
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    let res = `${baseUrl}${separator}loja=1`;
+    if (editionId && editionId !== 'all') {
+      res += `&edicao=${encodeURIComponent(editionId)}`;
+    }
+    return res;
+  }
 }
 
 // Generate an attractive invitation message focused on the interactive online store with cart
-export function generateStoreInvitationWhatsAppText(storeInfo?: StoreInfo, customUrl?: string): string {
+export function generateStoreInvitationWhatsAppText(
+  storeInfo?: StoreInfo, 
+  customUrlOrEditionId?: string,
+  editionName?: string
+): string {
   const store = getEffectiveStoreInfo(storeInfo);
   const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
-  const url = getStoreOnlineUrl(customUrl);
+  const url = getStoreOnlineUrl(customUrlOrEditionId);
+  const title = editionName ? `LOJA ONLINE: ${editionName.toUpperCase()}` : 'LOJA ONLINE DO NOSSO BAZAR ABERTA!';
 
   return (
-    `🛍️✨ *LOJA ONLINE DO NOSSO BAZAR ABERTA!* ✨🛍️\n\n` +
+    `🛍️✨ *${title}* ✨🛍️\n\n` +
     `Olá! Preparamos uma loja virtual completa para você escolher suas peças favoritas com muito conforto e rapidez:\n\n` +
     `👉 *CLIQUE NO LINK PARA ABRIR A LOJA E SACOLA:*\n` +
     `${url}\n\n` +

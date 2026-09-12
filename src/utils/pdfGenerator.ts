@@ -798,38 +798,68 @@ export function generateUserGuidePdf(editionName?: string) {
       </div>
     </div>
 
-    <!-- Section 1: 4-Step Flow -->
+    <!-- Section 1: Fluxo Ideal em 8 Passos -->
     <div style="margin-bottom: 24px;">
       <h3 style="font-size: 11pt; font-weight: 800; color: #1e293b; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1.5px solid #cbd5e1; padding-bottom: 4px;">
-        1. Fluxo Recomendado em 4 Passos Rápidos
+        1. Fluxo Ideal Recomendado (8 Passos Sequenciais)
       </h3>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 10px;">
+        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #059669; margin-bottom: 2px;">⭐ 1º Passo</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #065f46; margin-bottom: 4px;">1. Criar o Bazar</div>
+          <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
+            Defina o evento, selecione os produtos participantes e gere o link exclusivo da edição.
+          </div>
+        </div>
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #d97706; margin-bottom: 2px;">2º Passo</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #b45309; margin-bottom: 4px;">2. Produtos</div>
+          <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
+            Cadastre as peças com fotos nítidas, custo e preço promocional com cálculo automático De/Por.
+          </div>
+        </div>
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #2563eb; margin-bottom: 2px;">3º Passo</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #1d4ed8; margin-bottom: 4px;">3. Vendas</div>
+          <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
+            Registre no caixa ágil em segundos com baixa automática de estoque e cálculo de margem.
+          </div>
+        </div>
+        <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #e11d48; margin-bottom: 2px;">4º Passo</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #be123c; margin-bottom: 4px;">4. Vitrine</div>
+          <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
+            Envie o link exclusivo da edição com sacola de compras e fechamento direto no WhatsApp.
+          </div>
+        </div>
+      </div>
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
-        <div style="background: #f8fafc; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px;">
-          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #059669; margin-bottom: 2px;">⭐ Comece Aqui</div>
-          <div style="font-size: 9pt; font-weight: 800; color: #065f46; margin-bottom: 4px;">1. Cadastrar no Estoque</div>
+        <div style="background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #0d9488; margin-bottom: 2px;">5º Passo</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #0f766e; margin-bottom: 4px;">5. Relatórios</div>
           <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
-            Tire fotos nítidas e defina Custo e Preço do Bazar. Fazer isso primeiro facilita todo o evento.
+            Analise faturamento, ticket médio, formas de pagamento e o Lucro Líquido Real no bolso.
           </div>
         </div>
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #d97706; margin-bottom: 2px;">Passo 2</div>
-          <div style="font-size: 9pt; font-weight: 800; color: #b45309; margin-bottom: 4px;">2. Abrir o Bazar</div>
+        <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #4f46e5; margin-bottom: 2px;">6º Passo</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #4338ca; margin-bottom: 4px;">6. Dados da Loja</div>
           <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
-            Crie a edição do evento e selecione as peças já cadastradas no estoque com 1 clique.
+            Mantenha chave PIX, telefone, Instagram e o backup dos dados sempre atualizados.
           </div>
         </div>
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #2563eb; margin-bottom: 2px;">Passo 3</div>
-          <div style="font-size: 9pt; font-weight: 800; color: #1d4ed8; margin-bottom: 4px;">3. Divulgar na Vitrine</div>
+        <div style="background: #f7fee7; border: 1px solid #d9f99d; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #65a30d; margin-bottom: 2px;">7º Passo</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #4d7c0f; margin-bottom: 4px;">7. Manual de Uso</div>
           <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
-            Vitrine pronta na hora com cálculo De/Por, cópia para WhatsApp e fotos com chave PIX.
+            Consulte este guia a qualquer momento e imprima em PDF para treinar sua equipe.
           </div>
         </div>
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
-          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #7c3aed; margin-bottom: 2px;">Passo 4</div>
-          <div style="font-size: 9pt; font-weight: 800; color: #6d28d9; margin-bottom: 4px;">4. Vender & Lucrar</div>
+        <div style="background: #fffbeb; border: 1px solid #fed7aa; border-radius: 8px; padding: 10px;">
+          <div style="font-size: 7.5pt; font-weight: 800; text-transform: uppercase; color: #c2410c; margin-bottom: 2px;">8º Passo</div>
+          <div style="font-size: 9pt; font-weight: 800; color: #9a3412; margin-bottom: 4px;">8. Próximos Passos</div>
           <div style="font-size: 8pt; color: #334155; line-height: 1.35;">
-            Lançamento ágil no PDV, baixa automática de estoque e lucro líquido no Dashboard.
+            Cursos de precificação, gestão de estoque e mentoria VIP exclusiva com Danilla Finanças.
           </div>
         </div>
       </div>
@@ -852,23 +882,23 @@ export function generateUserGuidePdf(editionName?: string) {
           <ul style="margin: 0; padding-left: 0; list-style: none; font-size: 8pt; color: #451a03; line-height: 1.5;">
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
-              <span><strong>1º:</strong> Cadastrar peças no Estoque com fotos e custos (facilita tudo!).</span>
+              <span><strong>1º Passo:</strong> Criar o Bazar (ou selecionar a edição) e gerar o link exclusivo com as peças conectadas.</span>
             </li>
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
-              <span><strong>2º:</strong> Abrir / criar a edição em + Criar Novo Bazar e vincular peças.</span>
+              <span><strong>2º Passo:</strong> Cadastrar ou revisar os <strong>Produtos</strong> no estoque com fotos nítidas, custos e preços De/Por.</span>
             </li>
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
-              <span>Conferir Chave PIX e WhatsApp na aba <strong>Dados da Loja</strong>.</span>
+              <span>Conferir Chave PIX, WhatsApp e Instagram na aba <strong>Dados da Loja</strong>.</span>
             </li>
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
-              <span>Revisar Preço de Custo e Preço De/Por de cada produto.</span>
+              <span>Revisar as margens e a <strong>Vitrine</strong> com cálculo De/Por e sacola de compras.</span>
             </li>
             <li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 6px;">
               <span style="display: inline-block; width: 12px; height: 12px; border: 1.5px solid #b45309; border-radius: 2px; margin-top: 2px; flex-shrink: 0;"></span>
-              <span>Exportar Vitrine de Fotos em PDF / JPG para aquecimento nas redes sociais.</span>
+              <span>Exportar Vitrine de Fotos em PDF / JPG para aquecimento nas redes sociais e WhatsApp.</span>
             </li>
           </ul>
         </div>
@@ -935,56 +965,74 @@ export function generateUserGuidePdf(editionName?: string) {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #ffffff;">
-          <div style="font-weight: 800; font-size: 9pt; color: #0f172a; margin-bottom: 4px;">
-            1. Edições do Bazar (Gestão Múltipla)
+          <div style="font-weight: 800; font-size: 9pt; color: #065f46; margin-bottom: 4px;">
+            1. Criar o Bazar (Edições & Link do Evento)
           </div>
           <div style="font-size: 8pt; color: #475569; line-height: 1.4;">
-            O app abre direto na edição mais recente. Para criar novos eventos, use o botão "+ Novo Bazar". Alterne a qualquer momento ou selecione "Todas as Edições" para consolidação geral.
+            Crie a edição do evento (ex: "Bazar VIP"), selecione os produtos participantes e compartilhe o link exclusivo oficial conectado aos produtos.
           </div>
         </div>
 
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #ffffff;">
-          <div style="font-weight: 800; font-size: 9pt; color: #0f172a; margin-bottom: 4px;">
-            2. Estoque & Cadastro Inteligente com Fotos
+          <div style="font-weight: 800; font-size: 9pt; color: #b45309; margin-bottom: 4px;">
+            2. Produtos (Estoque, Fotos & Margens)
           </div>
           <div style="font-size: 8pt; color: #475569; line-height: 1.4;">
-            Tire fotos pela câmera ou galeria com compressão ultra-rápida. Preencha Preço de Custo, Preço Cheio De/Por e Preço Bazar para cálculo automático de Lucro Unitário e Margem %.
+            Cadastre peças com fotos nítidas otimizadas, custo real e preço De/Por promocional com cálculo automático de Lucro Unitário e Margem %.
           </div>
         </div>
 
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #ffffff;">
-          <div style="font-weight: 800; font-size: 9pt; color: #0f172a; margin-bottom: 4px;">
-            3. Vitrine Virtual & Compartilhamento WhatsApp
+          <div style="font-weight: 800; font-size: 9pt; color: #1d4ed8; margin-bottom: 4px;">
+            3. Vendas (Caixa Ágil & Baixa Automática)
           </div>
           <div style="font-size: 8pt; color: #475569; line-height: 1.4;">
-            Busca instantânea por nome ou código. Copie textos pré-formatados para WhatsApp com 1 clique e gere imagens JPG profissionais com chave PIX e dados da loja.
+            Lance vendas em segundos escolhendo produto, cliente e forma de pagamento (PIX, Cartão, Dinheiro ou Fiado). O estoque baixa na mesma hora.
           </div>
         </div>
 
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #ffffff;">
-          <div style="font-weight: 800; font-size: 9pt; color: #0f172a; margin-bottom: 4px;">
-            4. PDV & Registro de Vendas Rápidas
+          <div style="font-weight: 800; font-size: 9pt; color: #be123c; margin-bottom: 4px;">
+            4. Vitrine (Catálogo com Sacola WhatsApp)
           </div>
           <div style="font-size: 8pt; color: #475569; line-height: 1.4;">
-            Lance vendas em segundos escolhendo produto, cliente e forma de pagamento (PIX, Dinheiro, Cartão ou Fiado). O estoque baixa automaticamente e o lucro é computado.
+            Busca instantânea por nome ou código. O cliente monta a sacola na vitrine virtual e envia o pedido pronto diretamente para o seu WhatsApp.
           </div>
         </div>
 
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #ffffff;">
-          <div style="font-weight: 800; font-size: 9pt; color: #0f172a; margin-bottom: 4px;">
-            5. Dashboard & Relatórios Financeiros
+          <div style="font-weight: 800; font-size: 9pt; color: #0f766e; margin-bottom: 4px;">
+            5. Relatórios (Lucro Líquido Real & Métricas)
           </div>
           <div style="font-size: 8pt; color: #475569; line-height: 1.4;">
-            Painel com Lucro Líquido Real, Margem Média, CMV, valores a receber e ranking dos produtos mais rentáveis. Exportação em PDF e planilha Excel / CSV.
+            Painel com Lucro Líquido Real no bolso, faturamento total, margem média, ticket médio e ranking dos produtos mais rentáveis da edição.
           </div>
         </div>
 
         <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #ffffff;">
-          <div style="font-weight: 800; font-size: 9pt; color: #0f172a; margin-bottom: 4px;">
-            6. Dados da Loja & Backup Seguro
+          <div style="font-weight: 800; font-size: 9pt; color: #4338ca; margin-bottom: 4px;">
+            6. Dados da Loja (PIX, Contatos & Backup Seguro)
           </div>
           <div style="font-size: 8pt; color: #475569; line-height: 1.4;">
-            Personalize sua chave PIX, telefone e Instagram. Baixe o arquivo de backup JSON periodicamente em Configurações para transferir de aparelho ou restaurar quando quiser.
+            Configure chave PIX, telefone WhatsApp e Instagram. Baixe o backup JSON para proteger seus dados ou transferir de celular com segurança.
+          </div>
+        </div>
+
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #ffffff;">
+          <div style="font-weight: 800; font-size: 9pt; color: #4d7c0f; margin-bottom: 4px;">
+            7. Manual de Uso (Guia Didático da Equipe)
+          </div>
+          <div style="font-size: 8pt; color: #475569; line-height: 1.4;">
+            Consulte orientações passo a passo a qualquer momento e gere este manual em PDF para capacitar atendentes e equipe no evento.
+          </div>
+        </div>
+
+        <div style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px; background: #ffffff;">
+          <div style="font-weight: 800; font-size: 9pt; color: #9a3412; margin-bottom: 4px;">
+            8. Próximos Passos (Cursos & Mentoria VIP)
+          </div>
+          <div style="font-size: 8pt; color: #475569; line-height: 1.4;">
+            Evolua a gestão do seu negócio com cursos oficiais de precificação, finanças e mentoria individual estratégica com a Danilla.
           </div>
         </div>
 

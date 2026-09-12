@@ -20,7 +20,8 @@ import {
   ExternalLink,
   Info,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Users
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { Product } from '../../types';
@@ -32,7 +33,21 @@ interface CustomerOnlineStoreProps {
 }
 
 export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExitToAdmin }) => {
-  const { products, categories, storeInfo } = useBazar();
+  const { products, categories, storeInfo, editions, activeEditionId } = useBazar();
+
+  // Target Edition from URL (e.g. ?loja=1&edicao=edition_123)
+  const targetEditionId = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('edicao') || params.get('bazar') || params.get('edition') || params.get('editionId');
+    }
+    return null;
+  }, []);
+
+  const targetEdition = useMemo(() => {
+    if (!targetEditionId || targetEditionId === 'all') return null;
+    return editions.find(e => e.id === targetEditionId || (e as any).slug === targetEditionId) || null;
+  }, [targetEditionId, editions]);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,10 +90,22 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
     return cart.reduce((acc, item) => acc + (item.product.bazarPrice * item.quantity), 0);
   }, [cart]);
 
-  // Available visible products
+  // Available visible products - automatically connected to the edition link if specified
   const catalogProducts = useMemo(() => {
-    return products.filter((p) => p.showInCatalog !== false);
-  }, [products]);
+    return products.filter((p) => {
+      if (p.showInCatalog === false) return false;
+
+      // When a specific bazar edition link is used, strictly show only that edition's products
+      if (targetEdition) {
+        if (p.bazarEditionIds && p.bazarEditionIds.length > 0) {
+          return p.bazarEditionIds.includes(targetEdition.id);
+        }
+        return p.bazarEditionId === targetEdition.id;
+      }
+
+      return true;
+    });
+  }, [products, targetEdition]);
 
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
@@ -270,6 +297,20 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
         <div className="bg-slate-50/80 border-t border-slate-100 px-4 py-2">
           <div className="max-w-6xl mx-auto flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar text-xs">
             
+            {storeInfo.whatsappGroupLink && (
+              <a
+                href={storeInfo.whatsappGroupLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold hover:bg-emerald-500 shadow-xs transition shrink-0"
+                title="Acessar o Grupo do Bazar no WhatsApp"
+              >
+                <Users className="h-3.5 w-3.5 text-emerald-100" />
+                <span>Grupo do Bazar (WhatsApp)</span>
+                <ExternalLink className="h-3 w-3 text-emerald-200" />
+              </a>
+            )}
+
             {storeCleanWhatsapp && (
               <a
                 href={`https://wa.me/55${storeCleanWhatsapp}`}
@@ -322,20 +363,58 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
             )}
           </div>
         </div>
+
+        {/* Edition Indicator Banner (When opened with ?edicao=...) */}
+        {targetEdition && (
+          <div className="bg-gradient-to-r from-rose-50 via-pink-50 to-rose-50 border-t border-b border-rose-200 px-4 py-2.5">
+            <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="bg-rose-600 text-white font-extrabold text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-xs shrink-0">
+                  <Sparkles className="h-3 w-3" />
+                  Edição Conectada
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-slate-900">
+                  Peças do Bazar: <strong className="text-rose-700 font-extrabold">{targetEdition.name}</strong>
+                </span>
+                <span className="text-[11px] text-slate-500 font-medium hidden sm:inline">
+                  ({catalogProducts.length} {catalogProducts.length === 1 ? 'peça vinculada' : 'peças vinculadas'})
+                </span>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.history) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('edicao');
+                    url.searchParams.delete('bazar');
+                    url.searchParams.delete('edition');
+                    url.searchParams.delete('editionId');
+                    window.location.href = url.toString();
+                  }
+                }}
+                className="text-xs font-bold text-rose-700 hover:text-rose-900 underline flex items-center gap-1 shrink-0 ml-auto"
+                title="Limpar filtro de edição e ver todas as peças da loja"
+              >
+                <span>Ver todas as peças da loja</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Hero How-it-works Bar */}
       <section className="bg-gradient-to-r from-rose-50 via-pink-50/70 to-purple-50/70 border-b border-rose-100 py-3 px-4">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-700">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             <span className="p-1 rounded-lg bg-rose-100 text-rose-700 font-black">1</span>
-            <span className="font-semibold">Escolha suas peças e adicione à sacola</span>
+            <span className="font-semibold">Escolha suas peças</span>
             <ChevronRight className="h-3 w-3 text-slate-400 hidden sm:inline" />
             <span className="p-1 rounded-lg bg-rose-100 text-rose-700 font-black hidden sm:inline">2</span>
-            <span className="font-semibold hidden sm:inline">Abra a sacola e clique em "Enviar Pedido"</span>
+            <span className="font-semibold hidden sm:inline">Monte sua sacola</span>
             <ChevronRight className="h-3 w-3 text-slate-400 hidden sm:inline" />
-            <span className="p-1 rounded-lg bg-rose-100 text-rose-700 font-black hidden sm:inline">3</span>
-            <span className="font-semibold hidden sm:inline">Finalizamos seu pedido direto no WhatsApp!</span>
+            <span className="p-1 rounded-lg bg-emerald-100 text-emerald-800 font-black hidden sm:inline">3</span>
+            <span className="font-semibold text-emerald-800 hidden sm:inline">Envie no Grupo do Bazar no WhatsApp para todos verem!</span>
           </div>
 
           <span className="font-bold text-rose-700 bg-white px-2.5 py-1 rounded-full border border-rose-200 shadow-2xs self-start sm:self-auto">
@@ -752,6 +831,8 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
         onUpdateQuantity={handleUpdateCartQuantity}
         onRemoveItem={handleRemoveFromCart}
         onClearCart={handleClearCart}
+        editionName={targetEdition?.name}
+        editionId={targetEdition?.id}
       />
 
       {/* Lightbox / Zoom Photo Modal */}

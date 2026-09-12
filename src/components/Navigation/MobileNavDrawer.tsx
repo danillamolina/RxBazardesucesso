@@ -55,22 +55,26 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
 
   const menuItems = [
     {
-      id: 'dashboard',
+      id: 'editions',
       num: 1,
-      name: 'Dashboard e Relatórios',
-      subtitle: 'Painel em tempo real, apuração de lucro líquido, gráficos e PDFs',
-      icon: LayoutDashboard,
+      name: 'Criar o Bazar (Edições)',
+      subtitle: 'Defina a nova edição, selecione as peças e gere o link para as clientes',
+      icon: Calendar,
       color: 'text-emerald-700 bg-emerald-100 border-emerald-200',
-      badge: null,
+      badge: '1º Criar Bazar',
+      action: () => {
+        onClose();
+        onOpenEditionModal();
+      },
     },
     {
       id: 'inventory',
       num: 2,
-      name: 'Estoque e Margens',
+      name: 'Produtos (Estoque e Margens)',
       subtitle: 'Fotos nítidas, custos reais e cálculo automático da margem de lucro',
       icon: Package,
       color: 'text-amber-700 bg-amber-100 border-amber-200',
-      badge: '⭐ Cadastre 1º aqui',
+      badge: '2º Produtos',
     },
     {
       id: 'sales',
@@ -79,43 +83,52 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
       subtitle: 'Caixa ágil com baixa automática de estoque, fiado e clientes',
       icon: ShoppingCart,
       color: 'text-blue-700 bg-blue-100 border-blue-200',
-      badge: null,
+      badge: '3º Vendas',
     },
     {
       id: 'catalog',
       num: 4,
-      name: 'Vitrine',
-      subtitle: 'Catálogo de fotos com preços De/Por e mensagens prontas para WhatsApp',
+      name: 'Vitrine (Loja Online com Sacola)',
+      subtitle: 'Link da edição selecionada para envio no WhatsApp e fotos com De/Por',
       icon: Share2,
       color: 'text-rose-700 bg-rose-100 border-rose-200',
-      badge: 'WhatsApp',
+      badge: '4º Vitrine',
+    },
+    {
+      id: 'dashboard',
+      num: 5,
+      name: 'Relatórios e Dashboard',
+      subtitle: 'Painel em tempo real, apuração de lucro líquido real, gráficos e PDFs',
+      icon: LayoutDashboard,
+      color: 'text-teal-700 bg-teal-100 border-teal-200',
+      badge: '5º Relatórios',
     },
     {
       id: 'store',
-      num: 5,
+      num: 6,
       name: 'Dados da Loja',
       subtitle: 'Sua chave PIX, telefone de atendimento WhatsApp e perfil do Instagram',
       icon: Store,
-      color: 'text-teal-700 bg-teal-100 border-teal-200',
-      badge: 'PIX',
+      color: 'text-indigo-700 bg-indigo-100 border-indigo-200',
+      badge: '6º Dados da Loja',
     },
     {
       id: 'guide',
-      num: 6,
+      num: 7,
       name: 'Manual de Uso',
-      subtitle: 'Passo a passo didático, checklist pré-bazar e download em PDF impresso',
+      subtitle: 'Passo a passo didático completo, checklist e download em PDF para imprimir',
       icon: BookOpen,
       color: 'text-lime-800 bg-lime-100 border-lime-200',
-      badge: 'Didático',
+      badge: '7º Manual',
     },
     {
       id: 'next_steps',
-      num: 7,
+      num: 8,
       name: 'Próximos Passos',
       subtitle: 'Cursos oficiais, consultoria financeira individual e mentoria VIP com Danilla',
       icon: Compass,
       color: 'text-amber-800 bg-amber-100 border-amber-200',
-      badge: 'Cursos & Mentoria',
+      badge: '8º Próximos Passos',
     },
   ];
 
@@ -184,7 +197,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         <div className="px-5 py-2.5 bg-[#FEF9EE] border-b border-[#F5E6B8] flex items-start gap-2.5 text-xs text-[#78350F] shrink-0">
           <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
           <p className="leading-tight">
-            <strong className="text-amber-800 font-extrabold">Dica da Danilla:</strong> Cadastre suas peças no <strong>Estoque</strong> antes de abrir o evento. Facilita todo o processo!
+            <strong className="text-amber-800 font-extrabold">Fluxo Ideal:</strong> 1º Criar o Bazar ➔ 2º Produtos ➔ 3º Vendas ➔ 4º Vitrine ➔ 5º Relatórios!
           </p>
         </div>
 
@@ -250,7 +263,13 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             return (
               <button
                 key={item.id}
-                onClick={() => handleSelectTab(item.id)}
+                onClick={() => {
+                  if (item.action) {
+                    item.action();
+                  } else {
+                    handleSelectTab(item.id);
+                  }
+                }}
                 className={`w-full text-left p-3.5 rounded-2xl border transition flex items-center justify-between gap-3 ${
                   isActive
                     ? 'bg-[#E8EFE2] text-[#1F2919] border-2 border-[#8FA079] shadow-sm ring-1 ring-[#8FA079]'
