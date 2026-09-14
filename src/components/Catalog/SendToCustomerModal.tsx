@@ -106,15 +106,15 @@ export const SendToCustomerModal: React.FC<SendToCustomerModalProps> = ({
 
   // Build formatted announcement text for WhatsApp
   const shareText = 
-    `🔥 *ACHADO DO RX DO BAZAR DE SUCESSO!* 🔥\n\n` +
+    `🔥 *OFERTA IMPERDÍVEL!* 🔥\n\n` +
     (activeName ? `Olá *${activeName}*! Confira essa oferta especial separada para você:\n\n` : '') +
     `✨ *${product.name}*${product.sku ? ` (Cód: ${product.sku})` : ''}\n` +
     (product.sizeColor ? `📏 Detalhes: ${product.sizeColor}\n` : '') +
     (product.expirationDate ? `📅 Validade: ${product.expirationDate}\n` : '') +
     (product.description ? `📝 ${product.description}\n` : '') +
     (hasDiscount 
-      ? `\n🏷️ Preço Cheio: ~${formatCurrency(fullPrice)}~\n🔥 Preço no Bazar: *${formatCurrency(bazarPrice)}* (🔥 *${discountPercent}% OFF*)\n💰 Desconto Realizado: *${formatCurrency(discountAmount)}* de economia!\n`
-      : `\n💰 Preço no Bazar: *${formatCurrency(bazarPrice)}*!\n`) +
+      ? `\n🏷️ Preço Cheio: ~${formatCurrency(fullPrice)}~\n🔥 Preço Promocional: *${formatCurrency(bazarPrice)}* (🔥 *${discountPercent}% OFF*)\n💰 Desconto: *${formatCurrency(discountAmount)}* de economia!\n`
+      : `\n💰 Preço: *${formatCurrency(bazarPrice)}*!\n`) +
     (product.quantity > 0 ? `📦 Estoque Disponível: *${product.quantity} un.*\n` : `🔴 *PRODUTO ESGOTADO*\n`) +
     (product.imageUrl && !product.imageUrl.startsWith('data:') ? `\n📸 Foto da peça: ${product.imageUrl}\n` : '') +
     `\nMe chama no privado para garantir ou tirar dúvidas! 🛍️💖`;

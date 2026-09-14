@@ -263,13 +263,13 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
           <div className="flex items-center gap-3">
             {/* Boutique Logo/Avatar */}
             <div className="w-11 h-11 sm:w-13 sm:h-13 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-md shadow-rose-500/20 shrink-0">
-              Rx
+              <ShoppingBag className="h-6 w-6 text-white" />
             </div>
 
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="text-lg sm:text-2xl font-black tracking-tight text-slate-900 leading-tight">
-                  {storeInfo.name || 'Loja Online'}
+                  {(storeInfo.name && !storeInfo.name.toLowerCase().includes('rx do bazar')) ? storeInfo.name : 'Loja Online'}
                 </h1>
                 <span className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-extrabold uppercase tracking-wide">
                   <Sparkles className="h-3 w-3" />

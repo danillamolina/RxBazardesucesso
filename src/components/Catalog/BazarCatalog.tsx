@@ -533,7 +533,7 @@ export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreV
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                  {storeInfo.name || 'Rx do Bazar de Sucesso'}
+                  {(storeInfo.name && !storeInfo.name.toLowerCase().includes('rx do bazar')) ? storeInfo.name : 'Loja Online'}
                 </h3>
                 <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400">
                   🟢 Loja Online Aberta

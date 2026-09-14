@@ -49,14 +49,14 @@ export const PhotoOptionsModal: React.FC<PhotoOptionsModalProps> = ({
   const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(product);
 
   const formattedShareText =
-    `🔥 *ACHADO DO RX DO BAZAR DE SUCESSO!* 🔥\n\n` +
+    `🔥 *OFERTA IMPERDÍVEL!* 🔥\n\n` +
     `✨ *${product.name}*${product.sku ? ` (Cód: ${product.sku})` : ''}\n` +
     (product.sizeColor ? `📏 Detalhes: ${product.sizeColor}\n` : '') +
     (product.expirationDate ? `📅 Validade: ${product.expirationDate}\n` : '') +
     (product.description ? `📝 ${product.description}\n` : '') +
     (hasDiscount
-      ? `\n🏷️ Preço Normal: ~${formatCurrency(fullPrice)}~\n🔥 *Preço no Bazar: ${formatCurrency(bazarPrice)}* (🔥 *${formatPercent(discountPercent)} OFF*)\n💰 *Você Economiza: ${formatCurrency(discountAmount)}*!\n`
-      : `\n💰 *Preço no Bazar: ${formatCurrency(bazarPrice)}*!\n`) +
+      ? `\n🏷️ Preço Normal: ~${formatCurrency(fullPrice)}~\n🔥 *Preço Promocional: ${formatCurrency(bazarPrice)}* (🔥 *${formatPercent(discountPercent)} OFF*)\n💰 *Você Economiza: ${formatCurrency(discountAmount)}*!\n`
+      : `\n💰 *Preço: ${formatCurrency(bazarPrice)}*!\n`) +
     (product.quantity > 0 ? `📦 Estoque: *${product.quantity} un.*\n` : `🔴 *ESGOTADO*\n`) +
     (storeInfo.pixKey ? `\n🔑 Chave PIX: *${storeInfo.pixKey}*\n` : '') +
     `\nGaranta a sua peça comigo no WhatsApp! 🛍️💖`;

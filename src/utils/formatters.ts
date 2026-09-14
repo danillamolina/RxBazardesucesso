@@ -142,6 +142,16 @@ export function cleanPhoneNumber(phone?: string): string {
   return cleaned;
 }
 
+// Helper to sanitize store name so internal defaults or placeholders like "Rx do Bazar de Sucesso" are NEVER sent to customers
+export function sanitizeCustomerStoreName(name?: string): string {
+  if (!name) return '';
+  const trimmed = name.trim();
+  if (/^rx do bazar( de sucesso)?$/i.test(trimmed) || trimmed.toLowerCase().includes('rx do bazar') || trimmed.toLowerCase() === 'bazar de sucesso') {
+    return '';
+  }
+  return trimmed;
+}
+
 // Helper to retrieve store info from parameter or localStorage fallback
 function getEffectiveStoreInfo(storeInfo?: StoreInfo): StoreInfo | undefined {
   if (storeInfo) return storeInfo;
@@ -177,7 +187,7 @@ export function generateOrderReceiptText(
   storeInfo?: StoreInfo
 ): string {
   const store = getEffectiveStoreInfo(storeInfo);
-  const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
+  const storeName = sanitizeCustomerStoreName(store?.name);
   const storeAddress = store?.address?.trim();
   const storePixKey = store?.pixKey?.trim();
 
@@ -244,7 +254,7 @@ export function generateOrderReceiptText(
   if (storePixKey) {
     pixSection = `\n🔑 *DADOS PARA PAGAMENTO (CHAVE PIX):*\n` +
       `• Chave PIX: *${storePixKey}*\n` +
-      `• Favorecido: *${storeName}*\n`;
+      (storeName ? `• Favorecido: *${storeName}*\n` : '');
   }
 
   // Store Address Section
@@ -270,9 +280,11 @@ export function generateOrderReceiptText(
       ? `Anotamos o seu pagamento parcial! Segue a chave PIX acima para quitação do restante. Muito obrigada! 🥰`
       : `Por favor, envie o comprovante do PIX por aqui assim que realizar o pagamento para garantirmos suas peças! Qualquer dúvida estou à disposição! 😘`;
 
+  const storeHeadline = storeName ? ` na *${storeName}*` : '';
+
   return (
     `Olá ${sale.customerName}! ✨\n\n` +
-    `Aqui está o *Comprovante / Resumo do seu Pedido* no *${storeName}*! 🛍️💖\n\n` +
+    `Aqui está o *Comprovante / Resumo do seu Pedido*${storeHeadline}! 🛍️💖\n\n` +
     `📋 *ITENS DO PEDIDO:*\n` +
     `${itemsText}\n\n` +
     `💰 *RESUMO FINANCEIRO:*\n` +
@@ -368,7 +380,7 @@ export function generateCustomerSummaryText(
   storeInfo?: StoreInfo
 ): string {
   const store = getEffectiveStoreInfo(storeInfo);
-  const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
+  const storeName = sanitizeCustomerStoreName(store?.name);
   const storeAddress = store?.address?.trim();
   const storePixKey = store?.pixKey?.trim();
 
@@ -416,7 +428,7 @@ export function generateCustomerSummaryText(
   if (storePixKey) {
     pixSection = `\n🔑 *DADOS PARA PAGAMENTO (CHAVE PIX):*\n` +
       `• Chave PIX: *${storePixKey}*\n` +
-      `• Favorecido: *${storeName}*\n`;
+      (storeName ? `• Favorecido: *${storeName}*\n` : '');
   }
 
   let addressSection = '';
@@ -426,9 +438,11 @@ export function generateCustomerSummaryText(
       (store?.notes ? `_${store.notes}_\n` : '');
   }
 
+  const storeHeadline = storeName ? ` na *${storeName}*` : '';
+
   return (
     `Olá ${customerName}! ✨\n\n` +
-    `Aqui está o *Resumo Geral de Todos os seus Pedidos* no *${storeName}*! 🛍️💖\n\n` +
+    `Aqui está o *Resumo Geral de Todos os seus Pedidos*${storeHeadline}! 🛍️💖\n\n` +
     `${ordersListText}\n\n` +
     `📊 *EXTRATO GERAL DA CLIENTE:*\n` +
     `• Total dos Pedidos: *${formatCurrency(totalSpent)}*\n` +
@@ -496,7 +510,7 @@ export function generateProductShareText(product: ProductShareData): string {
     discountInfo = `Apenas: *${formatCurrency(bazarPrice)}*`;
   }
 
-  let text = `🔥 *ACHADO DO BAZAR SECRETO!* 🔥\n\n`;
+  let text = `🔥 *OFERTA IMPERDÍVEL!* 🔥\n\n`;
   text += `✨ *${productName}*\n`;
   if (category) text += `🏷️ Categoria: ${category}\n`;
   if (sizeColor) text += `📏 Detalhes/Tamanho: *${sizeColor}*\n`;
@@ -610,7 +624,7 @@ export function generateStoreInvitationWhatsAppText(
   editionName?: string
 ): string {
   const store = getEffectiveStoreInfo(storeInfo);
-  const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
+  const storeName = sanitizeCustomerStoreName(store?.name);
   const url = getStoreOnlineUrl(customUrlOrEditionId);
   const title = editionName ? `LOJA ONLINE: ${editionName.toUpperCase()}` : 'LOJA ONLINE & VITRINE DE OFERTAS';
 
@@ -623,8 +637,8 @@ export function generateStoreInvitationWhatsAppText(
     `1️⃣ Veja todas as fotos em alta definição com preços De/Por\n` +
     `2️⃣ Escolha seus tamanhos e adicione na sacolinha de compras\n` +
     `3️⃣ Clique em "Enviar Pedido" para me mandar seu pedido pronto pelo WhatsApp!\n\n` +
-    `🔥 Peças com até *70% OFF* e estoque limitado com pronta entrega imediata! Acesse agora e garanta as suas antes que esgotem! 🥰💖\n\n` +
-    `🏪 *${storeName}*`
+    `🔥 Peças com até *70% OFF* e estoque limitado com pronta entrega imediata! Acesse agora e garanta as suas antes que esgotem! 🥰💖\n` +
+    (storeName ? `\n🏪 *${storeName}*` : '')
   );
 }
 
@@ -644,23 +658,27 @@ export function generateFullCatalogExportText(
   storeInfoOrUrl?: StoreInfo | string
 ): string {
   if (!products || products.length === 0) {
-    return '🛍️ *RX DO BAZAR DE SUCESSO*: Nenhum produto selecionado no momento.';
+    return '🛍️ *CATÁLOGO DE PRODUTOS*: Nenhum produto selecionado no momento.';
   }
 
   let storeUrl = '';
-  let storeName = 'Rx do Bazar de Sucesso';
+  let storeName = '';
 
   if (typeof storeInfoOrUrl === 'string') {
     storeUrl = storeInfoOrUrl;
   } else if (storeInfoOrUrl && typeof storeInfoOrUrl === 'object') {
-    storeName = storeInfoOrUrl.name?.trim() || storeName;
+    storeName = sanitizeCustomerStoreName(storeInfoOrUrl.name);
   }
 
   if (!storeUrl) {
     storeUrl = getStoreOnlineUrl();
   }
 
-  let text = `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS — ${storeName.toUpperCase()}* ✨🛍️\n\n`;
+  const headerTitle = storeName 
+    ? `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS — ${storeName.toUpperCase()}* ✨🛍️\n\n`
+    : `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS* ✨🛍️\n\n`;
+
+  let text = headerTitle;
   if (storeUrl) {
     text += `🛒 *ACESSE NOSSA LOJA ONLINE COM SACOLA INTERATIVA:* \n`;
     text += `👉 ${storeUrl}\n`;

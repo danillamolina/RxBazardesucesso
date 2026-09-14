@@ -55,8 +55,11 @@ export const StoreDetails: React.FC = () => {
   const formattedWhatsappNumber = formData.whatsapp.replace(/\D/g, '');
 
   const getCardText = () => {
+    const storeDisplayName = (formData.name && !formData.name.toLowerCase().includes('rx do bazar')) 
+      ? formData.name 
+      : 'Nossa Loja';
     return (
-      `🏪 *${formData.name || 'Nossa Loja'}*\n\n` +
+      `🏪 *${storeDisplayName}*\n\n` +
       `📍 *Endereço:* ${formData.address || 'Não informado'}\n` +
       `📞 *Telefone:* ${formData.phone || 'Não informado'}\n` +
       `💬 *WhatsApp:* ${formData.whatsapp || 'Não informado'}\n` +
@@ -259,7 +262,7 @@ export const StoreDetails: React.FC = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                placeholder="Ex: Rx do Bazar de Sucesso"
+                placeholder="Ex: Minha Loja"
                 className="w-full bg-[#F7F4EB] dark:bg-[#1F2919] border border-[#E2D5C3] dark:border-[#3A4A30] rounded-xl px-4 py-3 text-sm text-[#2B3323] dark:text-[#F7F4EB] placeholder-[#C2AD8E] focus:outline-none focus:ring-2 focus:ring-[#8FA079] focus:bg-white dark:focus:bg-[#2A3722] transition"
               />
             </div>

@@ -116,7 +116,10 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
     let text = isGroup
       ? `🙋‍♀️ *MEU PEDIDO / RESERVA* 🛍️✨\n`
       : `🛍️ *${title}* 🛍️\n`;
-    text += `🏪 *Loja:* ${storeInfo.name || 'Loja Online'}\n`;
+    const validStoreName = (storeInfo.name && !storeInfo.name.toLowerCase().includes('rx do bazar')) ? storeInfo.name.trim() : '';
+    if (validStoreName) {
+      text += `🏪 *Loja:* ${validStoreName}\n`;
+    }
     if (editionName) {
       text += `🏷️ *Promoção/Coleção:* ${editionName}\n`;
     }
@@ -281,7 +284,7 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium">
-                {storeInfo.name || 'Loja Online'} • Finalização do Pedido
+                {(storeInfo.name && !storeInfo.name.toLowerCase().includes('rx do bazar')) ? storeInfo.name : 'Loja Online'} • Finalização do Pedido
               </p>
             </div>
           </div>

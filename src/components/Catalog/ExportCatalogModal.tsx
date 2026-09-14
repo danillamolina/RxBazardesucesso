@@ -301,9 +301,15 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
 
       // Header Text
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 30px system-ui, sans-serif';
+      ctx.font = 'bold 28px system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('🛍️ RX DO BAZAR DE SUCESSO — VITRINE DE FOTOS', canvas.width / 2, 60);
+      const customStoreName = storeInfo?.name && !storeInfo.name.toLowerCase().includes('rx do bazar')
+        ? storeInfo.name.trim().toUpperCase()
+        : '';
+      const bannerTitle = customStoreName 
+        ? `🛍️ ${customStoreName} — VITRINE DE FOTOS`
+        : '🛍️ VITRINE DE PRODUTOS & OFERTAS';
+      ctx.fillText(bannerTitle, canvas.width / 2, 60);
 
       ctx.font = '15px system-ui, sans-serif';
       ctx.fillStyle = '#ffe4e6';

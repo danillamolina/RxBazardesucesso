@@ -326,7 +326,7 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
     // Single price
     ctx.font = 'bold 18px system-ui, -apple-system, sans-serif';
     ctx.fillStyle = '#64748B';
-    ctx.fillText('Valor no Bazar:', priceCardX + priceCardW - 20, cardContentY);
+    ctx.fillText('Preço Especial:', priceCardX + priceCardW - 20, cardContentY);
 
     cardContentY += 36;
 
@@ -337,8 +337,8 @@ export async function generateProductJpgCanvas(product: Product): Promise<HTMLCa
 
   // 3. BOTTOM-LEFT OVERLAY BADGE ON PHOTO: CATEGORY & SUBCATEGORY PILL (Light pill with dark text)
   const catText = product.subcategory 
-    ? `${product.category || 'Bazar'} • ${product.subcategory}`
-    : (product.category || 'Bazar de Sucesso');
+    ? `${product.category || 'Destaque'} • ${product.subcategory}`
+    : (product.category || 'Oferta Especial');
   ctx.font = 'bold 19px system-ui, -apple-system, sans-serif';
   const catTextW = ctx.measureText(catText).width;
   const catPillW = catTextW + 32;
@@ -704,15 +704,15 @@ export async function shareProductJpgWhatsApp(
   const { fullPrice, bazarPrice, discountAmount, discountPercent, hasDiscount } = getProductPriceDetails(product);
 
   const fullShareText =
-    `🔥 *ACHADO DO RX DO BAZAR DE SUCESSO!* 🔥\n\n` +
+    `🔥 *OFERTA IMPERDÍVEL!* 🔥\n\n` +
     (customerName ? `Olá *${customerName}*! Confira essa oferta exclusiva:\n\n` : '') +
     `✨ *${product.name}*${product.sku ? ` (Cód: ${product.sku})` : ''}\n` +
     (product.sizeColor ? `📏 Detalhes: ${product.sizeColor}\n` : '') +
     (product.expirationDate ? `📅 Validade: ${product.expirationDate}\n` : '') +
     (product.description ? `📝 ${product.description}\n` : '') +
     (hasDiscount
-      ? `\n🏷️ Preço Cheio: ~${formatCurrency(fullPrice)}~\n🔥 Preço no Bazar: *${formatCurrency(bazarPrice)}* (🔥 *${formatPercent(discountPercent)} OFF*)\n💰 Desconto Realizado: *${formatCurrency(discountAmount)}* de economia!\n`
-      : `\n💰 Preço no Bazar: *${formatCurrency(bazarPrice)}*!\n`) +
+      ? `\n🏷️ Preço Cheio: ~${formatCurrency(fullPrice)}~\n🔥 Preço Promocional: *${formatCurrency(bazarPrice)}* (🔥 *${formatPercent(discountPercent)} OFF*)\n💰 Desconto Realizado: *${formatCurrency(discountAmount)}* de economia!\n`
+      : `\n💰 Preço Promocional: *${formatCurrency(bazarPrice)}*!\n`) +
     (product.quantity > 0 ? `📦 Estoque Disponível: *${product.quantity} un.*\n` : `🔴 *PRODUTO ESGOTADO*\n`) +
     `\nMe chama no privado para garantir ou tirar dúvidas! 🛍️💖`;
 
@@ -875,7 +875,7 @@ export async function shareMultipleProductsWithEditedImages(
   ) {
     try {
       await navigator.share({
-        title: 'Vitrine de Fotos — Rx do Bazar de Sucesso',
+        title: 'Vitrine de Fotos — Ofertas',
         text: shareText,
         files: filesToShare,
       });

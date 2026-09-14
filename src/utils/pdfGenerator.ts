@@ -22,7 +22,7 @@ function openPrintWindow(options: PrintDocumentOptions) {
     <html lang="pt-BR">
       <head>
         <meta charset="UTF-8" />
-        <title>${options.title} - Rx do Bazar de Sucesso</title>
+        <title>${options.title}</title>
         <style>
           @page {
             size: A4;
@@ -187,7 +187,7 @@ function openPrintWindow(options: PrintDocumentOptions) {
 
         <div class="header-banner">
           <div>
-            <h1 class="brand-title">Rx do Bazar de Sucesso</h1>
+            <h1 class="brand-title">${options.title}</h1>
             <div class="brand-subtitle">Estoque, Vendas & Lucro em Tempo Real</div>
           </div>
           <div class="doc-info">
@@ -204,7 +204,7 @@ function openPrintWindow(options: PrintDocumentOptions) {
         ${options.bodyHtml}
 
         <div class="footer-note">
-          <span>Rx do Bazar de Sucesso — Feito por @danillafinancas © Todos os direitos reservados</span>
+          <span>Relatório Gerencial • Documento Oficial</span>
           <span>Gerado em ${dateNow}</span>
         </div>
 
@@ -522,7 +522,7 @@ export function generateExecutiveSummaryPdf(
           <div>Custo das Mercadorias Vendidas (CMV): <strong>${formatCurrency(financialSummary.totalCostOfGoodsSold)}</strong></div>
           <div>Total de Edições Cadastradas: <strong>${editions.length}</strong></div>
           <div style="margin-top: 8px; font-size: 8pt; color: #64748b;">
-            Relatório gerado pelo sistema Rx do Bazar de Sucesso (por @danillafinancas) com consolidação em tempo real.
+            Relatório gerado com consolidação em tempo real.
           </div>
         </div>
       </div>
