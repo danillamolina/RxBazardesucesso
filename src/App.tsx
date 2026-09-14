@@ -48,6 +48,10 @@ function MainApp() {
     return false;
   });
 
+  // Track if merchant is currently previewing the store from inside admin panel
+  // (Customers opening via WhatsApp link will ALWAYS have isAdminPreview = false)
+  const [isAdminPreview, setIsAdminPreview] = useState<boolean>(false);
+
   const [activeTab, setActiveTab] = useState<string>(() => {
     // Na versão mobile, abre diretamente na Vitrine conforme solicitado pelo usuário
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
@@ -106,6 +110,7 @@ function MainApp() {
 
   const handleOpenCustomerStoreView = () => {
     setIsCustomerStoreView(true);
+    setIsAdminPreview(true);
     if (typeof window !== 'undefined' && window.history) {
       const url = new URL(window.location.href);
       url.searchParams.set('loja', '1');
@@ -113,20 +118,26 @@ function MainApp() {
     }
   };
 
+  const handleExitCustomerStoreView = () => {
+    setIsCustomerStoreView(false);
+    setIsAdminPreview(false);
+    if (typeof window !== 'undefined' && window.history) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('loja');
+      url.searchParams.delete('store');
+      url.searchParams.delete('view');
+      window.history.replaceState({}, '', url.pathname);
+    }
+  };
+
   // If viewing as pure Customer Online Store (via shared WhatsApp link ?loja=1 or merchant preview)
+  // For external customers, isAdminPreview is FALSE and onExitToAdmin is undefined,
+  // ensuring customers have ZERO access to the admin management app or "Painel do Bazar".
   if (isCustomerStoreView) {
     return (
       <CustomerOnlineStore
-        onExitToAdmin={() => {
-          setIsCustomerStoreView(false);
-          if (typeof window !== 'undefined' && window.history) {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('loja');
-            url.searchParams.delete('store');
-            url.searchParams.delete('view');
-            window.history.replaceState({}, '', url.pathname);
-          }
-        }}
+        isAdminPreview={isAdminPreview}
+        onExitToAdmin={isAdminPreview ? handleExitCustomerStoreView : undefined}
       />
     );
   }

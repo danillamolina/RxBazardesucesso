@@ -15,7 +15,6 @@ import {
   Check, 
   X, 
   ArrowRight, 
-  Lock, 
   Store, 
   ExternalLink,
   Info,
@@ -29,10 +28,14 @@ import { formatCurrency, formatPercent, getProductPriceDetails } from '../../uti
 import { OnlineStoreCartModal, CartItem } from '../Catalog/OnlineStoreCartModal';
 
 interface CustomerOnlineStoreProps {
+  isAdminPreview?: boolean;
   onExitToAdmin?: () => void;
 }
 
-export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExitToAdmin }) => {
+export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ 
+  isAdminPreview = false,
+  onExitToAdmin 
+}) => {
   const { products, categories, storeInfo, editions, activeEditionId } = useBazar();
 
   // Target Edition from URL (e.g. ?loja=1&edicao=edition_123)
@@ -221,28 +224,36 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({ onExit
   return (
     <div className="min-h-screen bg-[#FDFBF7] text-slate-800 font-sans antialiased pb-28 notranslate" translate="no">
       
+      {/* Merchant Preview Mode Bar (ONLY visible if merchant explicitly clicked Preview from Admin Panel) */}
+      {isAdminPreview && onExitToAdmin && (
+        <div className="bg-slate-900 text-amber-300 px-4 py-2 text-xs flex items-center justify-between border-b border-slate-800 shadow-md sticky top-0 z-40">
+          <div className="flex items-center gap-2 font-medium">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span>Modo Pré-visualização do Lojista (Seus clientes NÃO veem este aviso)</span>
+          </div>
+          <button
+            type="button"
+            onClick={onExitToAdmin}
+            className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-3 py-1 rounded-lg text-xs transition active:scale-95 flex items-center gap-1 shadow-xs"
+          >
+            <span>← Voltar ao Painel do Bazar</span>
+          </button>
+        </div>
+      )}
+
       {/* Top Header & Store Banner (Clean, warm boutique styling) */}
       <header className="bg-white border-b border-rose-100 shadow-xs sticky top-0 z-30">
         
-        {/* Top Mini Bar: Status & Admin Return */}
+        {/* Top Mini Bar: Status & Boutique Highlights (Clean for Customers - No Admin Buttons) */}
         <div className="bg-gradient-to-r from-rose-600 to-rose-700 text-white px-4 py-1.5 text-xs">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-2 font-medium truncate">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-300 animate-pulse shrink-0"></span>
               <span className="truncate">🛍️ Loja Online Aberta • Pronta Entrega</span>
             </div>
-
-            {/* If store owner wants to switch back to admin panel */}
-            {onExitToAdmin && (
-              <button
-                onClick={onExitToAdmin}
-                className="bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full transition flex items-center gap-1 shrink-0 ml-2"
-                title="Acessar o Painel de Gestão do Bazar"
-              >
-                <Lock className="h-3 w-3" />
-                <span>Painel do Bazar</span>
-              </button>
-            )}
+            <div className="text-[11px] font-medium text-rose-100 hidden sm:block">
+              ✨ Peças selecionadas para pronta entrega
+            </div>
           </div>
         </div>
 
