@@ -60,7 +60,7 @@ export const StoreDetails: React.FC = () => {
       `📍 *Endereço:* ${formData.address || 'Não informado'}\n` +
       `📞 *Telefone:* ${formData.phone || 'Não informado'}\n` +
       `💬 *WhatsApp:* ${formData.whatsapp || 'Não informado'}\n` +
-      (formData.whatsappGroupLink ? `👥 *Grupo do Bazar:* ${formData.whatsappGroupLink}\n` : '') +
+      (formData.whatsappGroupLink ? `👥 *Grupo da Promoção / VIP:* ${formData.whatsappGroupLink}\n` : '') +
       (formData.instagram ? `📸 *Instagram:* ${formData.instagram}\n` : '') +
       (formData.pixKey ? `🔑 *Chave Pix:* ${formData.pixKey}\n` : '') +
       (formData.notes ? `\nℹ️ *Informações:* ${formData.notes}\n` : '')
@@ -320,19 +320,19 @@ export const StoreDetails: React.FC = () => {
 
             </div>
 
-            {/* Link do Grupo do Bazar no WhatsApp */}
+            {/* Link do Grupo de Promoções / WhatsApp */}
             <div className="bg-[#FAF7F2] dark:bg-[#1A2315] border border-[#8FA079]/40 rounded-2xl p-4 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <label className="block text-xs font-bold uppercase tracking-wider text-[#2A3722] dark:text-[#E5EBDE] flex items-center gap-1.5">
                   <Users className="h-4 w-4 text-emerald-600" />
-                  Link do Grupo do Bazar no WhatsApp (Grupo VIP)
+                  Link do Grupo de Promoções no WhatsApp (Grupo VIP / Opcional)
                 </label>
                 <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-800 dark:text-emerald-300">
-                  Opcional & Recomendado
+                  Opcional
                 </span>
               </div>
               <p className="text-xs text-[#5C6E4D] dark:text-[#CAD7BE] leading-relaxed">
-                Cole o link de convite do grupo do WhatsApp onde as clientes participam do bazar. Na Loja Online, as clientes terão o botão direto para postar o pedido dentro do grupo para que todas as participantes vejam a reserva delas!
+                Cole o link de convite do grupo do WhatsApp definido para promoções ou clientes VIP. Na Loja Online, as clientes podem enviar o pedido para a loja no privado ou para este grupo definido na promoção!
               </p>
               <div className="flex items-center gap-2">
                 <input
@@ -484,7 +484,7 @@ export const StoreDetails: React.FC = () => {
                 <div className="flex items-start space-x-2.5">
                   <Users className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
                   <div>
-                    <span className="text-[#CAD7BE] font-bold block">Grupo do Bazar (WhatsApp):</span>
+                    <span className="text-[#CAD7BE] font-bold block">Grupo da Promoção (WhatsApp):</span>
                     <a 
                       href={formData.whatsappGroupLink}
                       target="_blank"

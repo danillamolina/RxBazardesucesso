@@ -112,13 +112,13 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
 
   // Build formatted WhatsApp message (adapted for Group or Direct)
   const generateWhatsAppOrderText = (isGroup: boolean = false) => {
-    const title = editionName ? `PEDIDO — ${editionName.toUpperCase()}` : 'PEDIDO DO BAZAR';
+    const title = editionName ? `PEDIDO — ${editionName.toUpperCase()}` : 'NOVO PEDIDO';
     let text = isGroup
-      ? `🙋‍♀️ *QUERO! MEU PEDIDO NO BAZAR* 🛍️✨\n`
+      ? `🙋‍♀️ *MEU PEDIDO / RESERVA* 🛍️✨\n`
       : `🛍️ *${title}* 🛍️\n`;
-    text += `🏪 *Loja:* ${storeInfo.name || 'Rx do Bazar de Sucesso'}\n`;
+    text += `🏪 *Loja:* ${storeInfo.name || 'Loja Online'}\n`;
     if (editionName) {
-      text += `🏷️ *Edição:* ${editionName}\n`;
+      text += `🏷️ *Promoção/Coleção:* ${editionName}\n`;
     }
     text += `📅 *Data:* ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}\n\n`;
 
@@ -134,7 +134,7 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
     }
     text += `💳 *Forma de Pagamento:* ${paymentLabel}\n\n`;
 
-    text += `📦 *PEÇAS QUE QUERO RESERVAR (${totalItems} peça${totalItems > 1 ? 's' : ''}):*\n`;
+    text += `📦 *ITENS DO PEDIDO (${totalItems} item${totalItems > 1 ? 's' : ''}):*\n`;
     cart.forEach(({ product, quantity }, idx) => {
       const { fullPrice, bazarPrice, hasDiscount } = getProductPriceDetails(product);
       const itemTotal = bazarPrice * quantity;
@@ -155,7 +155,7 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
     text += `\n─────────────────────\n`;
     if (totalSavings > 0) {
       text += `🏷️ *Valor de Tabela:* ${formatCurrency(subtotalFullPrice)}\n`;
-      text += `🔥 *ECONOMIA NO BAZAR:* ${formatCurrency(totalSavings)}\n`;
+      text += `🔥 *ECONOMIA:* ${formatCurrency(totalSavings)}\n`;
     }
     text += `✨ *VALOR TOTAL DO PEDIDO:* *${formatCurrency(totalBazarPrice)}*\n`;
     text += `─────────────────────\n`;
@@ -170,14 +170,14 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
     }
 
     if (isGroup) {
-      text += `\n⚠️ *Pedido postado no Grupo do Bazar para todos verem e garantirem a ordem de reserva! Aguardando confirmação da loja.* 💖✨`;
+      text += `\n⚠️ *Pedido enviado no grupo da promoção! Aguardo retorno da atendente para combinar pagamento e entrega.* 💖✨`;
     } else {
-      text += `\nMuito obrigado pela preferência! Aguardo confirmação e reserva das peças pela equipe. 💖✨`;
+      text += `\nMuito obrigado(a)! Aguardo confirmação e retorno da atendente no privado para combinar pagamento e entrega. 💖✨`;
     }
     return text;
   };
 
-  // Open WhatsApp directly in the Bazar Group (or WhatsApp with group text prefilled)
+  // Open WhatsApp directly in the Promotion Group (or WhatsApp with text prefilled)
   const handleSendToGroup = async () => {
     const text = generateWhatsAppOrderText(true);
     try {
@@ -192,8 +192,8 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
       window.open(storeInfo.whatsappGroupLink.trim(), '_blank', 'noopener,noreferrer');
       setSentFeedback({
         type: 'group',
-        title: 'Grupo do Bazar Aberto no WhatsApp!',
-        message: 'O link do grupo foi aberto e o seu pedido já está copiado. Basta colar (Ctrl+V ou Pressionar e Colar) e enviar a mensagem no grupo para que todas as participantes vejam o seu pedido!',
+        title: 'Grupo da Promoção Aberto no WhatsApp!',
+        message: 'O link do grupo foi aberto e o seu pedido já está copiado. Basta colar (Ctrl+V ou Pressionar e Colar) e enviar a mensagem no grupo para combinar pagamento e entrega com a atendente!',
       });
     } else {
       const encoded = encodeURIComponent(text);
@@ -201,8 +201,8 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
       window.open(url, '_blank', 'noopener,noreferrer');
       setSentFeedback({
         type: 'group',
-        title: 'WhatsApp Aberto para Enviar no Grupo!',
-        message: 'O WhatsApp foi aberto com o seu pedido formatado. Selecione o Grupo do Bazar da loja e envie para que todos vejam o seu pedido e garantam sua reserva!',
+        title: 'WhatsApp Aberto para Enviar!',
+        message: 'O WhatsApp foi aberto com o seu pedido formatado. Encaminhe para o grupo definido na promoção ou no contato desejado e combine pagamento e entrega com a atendente!',
       });
     }
   };
@@ -281,7 +281,7 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium">
-                {storeInfo.name || 'Rx do Bazar de Sucesso'} • Finalização do Pedido
+                {storeInfo.name || 'Loja Online'} • Finalização do Pedido
               </p>
             </div>
           </div>
@@ -473,7 +473,7 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
                   <div className="flex justify-between text-xs font-bold text-rose-600 dark:text-rose-400">
                     <span className="flex items-center gap-1">
                       <Sparkles className="h-3.5 w-3.5" />
-                      Economia no Bazar:
+                      Economia Total:
                     </span>
                     <span>-{formatCurrency(totalSavings)}</span>
                   </div>
@@ -657,7 +657,7 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
                 </div>
               </div>
 
-              {/* Informative Note: No Stock Deduction + Post to Group Instructions */}
+              {/* Informative Note: How Order Reservation Works */}
               <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl p-3.5 space-y-1.5">
                 <div className="flex items-center gap-2 text-amber-900 dark:text-amber-200">
                   <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -667,20 +667,19 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
                 </div>
                 <p className="text-xs text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
                   Ao clicar no botão abaixo, o WhatsApp será aberto com o seu pedido formatado. 
-                  <strong> Este envio NÃO altera o estoque automaticamente</strong>. 
-                  Para garantir suas peças com total transparência, 
-                  <strong> envie ou cole a mensagem no Grupo do Bazar da Loja</strong> para que todas as participantes vejam o seu pedido e a atendente confirme sua reserva!
+                  Basta encaminhar a mensagem <strong>para a loja no privado</strong> ou <strong>para o grupo definido na promoção</strong>. 
+                  Em seguida, combine o pagamento e a entrega diretamente com a atendente para confirmar a sua reserva!
                 </p>
               </div>
 
               {/* Action Buttons */}
               <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-                {/* 1. Main Action: Send to Bazar WhatsApp Group */}
+                {/* 1. Main Action: Send to Promotion WhatsApp Group */}
                 <button
                   type="button"
                   onClick={handleSendToGroup}
                   className="w-full p-3.5 sm:p-4 bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-black text-xs sm:text-sm flex items-center justify-between gap-3 shadow-lg shadow-emerald-600/25 transition active:scale-[0.99] group text-left"
-                  title="Abre o WhatsApp para você postar no Grupo do Bazar para todos verem seu pedido"
+                  title="Abre o WhatsApp para encaminhar o pedido ao grupo definido na promoção"
                 >
                   <div className="flex items-center gap-3">
                     <div className="p-2 sm:p-2.5 rounded-xl bg-white/20 group-hover:scale-105 transition shrink-0">
@@ -689,16 +688,16 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="text-sm sm:text-base font-black">
-                          Enviar no Grupo do Bazar (WhatsApp)
+                          Enviar no Grupo da Promoção (WhatsApp)
                         </span>
                         <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-300 text-amber-950 shrink-0">
-                          ⭐ Recomendado
+                          ⭐ Grupo
                         </span>
                       </div>
                       <p className="text-[11px] sm:text-xs font-medium text-emerald-100/90">
                         {storeInfo.whatsappGroupLink 
-                          ? 'Abre o link do grupo da loja para todos verem e garantirem sua reserva'
-                          : 'Abre o WhatsApp com o pedido pronto para você postar no grupo da loja'}
+                          ? 'Abre o link do grupo da promoção para você enviar o seu pedido'
+                          : 'Abre o WhatsApp com o pedido pronto para encaminhar ao grupo'}
                       </p>
                     </div>
                   </div>
@@ -711,10 +710,10 @@ export const OnlineStoreCartModal: React.FC<OnlineStoreCartModalProps> = ({
                     type="button"
                     onClick={handleSendToStore}
                     className="w-full p-3 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition active:scale-[0.99]"
-                    title="Enviar diretamente para a conversa privada do WhatsApp da Loja"
+                    title="Enviar diretamente para a conversa privada do WhatsApp da Loja e combinar com a atendente"
                   >
                     <MessageSquare className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>Enviar no WhatsApp Privado da Loja</span>
+                    <span>Enviar no Privado da Loja (WhatsApp)</span>
                   </button>
 
                   <button

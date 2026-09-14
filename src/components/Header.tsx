@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
     : editions.find(e => e.id === activeEditionId)?.name || 'Edição Atual';
 
   return (
-    <header className="bg-[#FAF8F5] md:bg-[#2A3722] text-[#2B3323] md:text-white shadow-xs md:shadow-lg border-b border-[#E5DDD0] md:border-[#3A4A30] sticky top-0 z-30 transition-colors">
+    <header className="bg-[#FAF8F5] md:bg-[#2A3722] text-[#2B3323] md:text-white shadow-xs md:shadow-lg border-b border-[#E5DDD0] md:border-[#3A4A30] sticky top-0 z-30 transition-colors notranslate" translate="no">
       {/* Top Banner Bar */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
         <div className="flex flex-col md:flex-row items-center justify-between gap-2.5">
@@ -118,11 +118,12 @@ export const Header: React.FC<HeaderProps> = ({
 
             <button
               onClick={() => onOpenNewProduct()}
-              className="flex items-center justify-center gap-1 py-2 px-1.5 bg-white hover:bg-[#F7F4EC] text-[#2B3323] font-bold rounded-xl text-xs border border-[#DDD3C2] shadow-xs transition active:scale-95"
+              className="flex items-center justify-center gap-1 py-2 px-1.5 bg-white hover:bg-[#F7F4EC] text-[#2B3323] font-bold rounded-xl text-xs border border-[#DDD3C2] shadow-xs transition active:scale-95 notranslate"
+              translate="no"
               title="Cadastrar Novo Produto"
             >
               <Package className="h-3.5 w-3.5 text-[#556348]" />
-              <span>+ Peça</span>
+              <span className="notranslate" translate="no">+ Produto</span>
             </button>
 
             <button

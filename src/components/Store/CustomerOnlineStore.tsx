@@ -236,7 +236,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
             onClick={onExitToAdmin}
             className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-3 py-1 rounded-lg text-xs transition active:scale-95 flex items-center gap-1 shadow-xs"
           >
-            <span>← Voltar ao Painel do Bazar</span>
+            <span>← Voltar ao Painel</span>
           </button>
         </div>
       )}
@@ -252,7 +252,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
               <span className="truncate">🛍️ Loja Online Aberta • Pronta Entrega</span>
             </div>
             <div className="text-[11px] font-medium text-rose-100 hidden sm:block">
-              ✨ Peças selecionadas para pronta entrega
+              ✨ Peças e ofertas selecionadas para pronta entrega
             </div>
           </div>
         </div>
@@ -269,7 +269,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
             <div>
               <div className="flex items-center gap-1.5">
                 <h1 className="text-lg sm:text-2xl font-black tracking-tight text-slate-900 leading-tight">
-                  {storeInfo.name || 'Rx do Bazar de Sucesso'}
+                  {storeInfo.name || 'Loja Online'}
                 </h1>
                 <span className="hidden sm:inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-extrabold uppercase tracking-wide">
                   <Sparkles className="h-3 w-3" />
@@ -277,7 +277,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
                 </span>
               </div>
               <p className="text-slate-500 text-xs sm:text-sm font-medium line-clamp-1">
-                {storeInfo.description || 'Peças selecionadas com preços imperdíveis de bazar!'}
+                {storeInfo.description || 'Peças selecionadas com preços imperdíveis e ofertas especiais!'}
               </p>
             </div>
           </div>
@@ -314,10 +314,10 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-600 text-white font-bold hover:bg-emerald-500 shadow-xs transition shrink-0"
-                title="Acessar o Grupo do Bazar no WhatsApp"
+                title="Acessar o Grupo da Promoção no WhatsApp"
               >
                 <Users className="h-3.5 w-3.5 text-emerald-100" />
-                <span>Grupo do Bazar (WhatsApp)</span>
+                <span>Grupo da Promoção (WhatsApp)</span>
                 <ExternalLink className="h-3 w-3 text-emerald-200" />
               </a>
             )}
@@ -385,7 +385,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
                   Edição Conectada
                 </span>
                 <span className="text-xs sm:text-sm font-bold text-slate-900">
-                  Peças do Bazar: <strong className="text-rose-700 font-extrabold">{targetEdition.name}</strong>
+                  Coleção / Promoção: <strong className="text-rose-700 font-extrabold">{targetEdition.name}</strong>
                 </span>
                 <span className="text-[11px] text-slate-500 font-medium hidden sm:inline">
                   ({catalogProducts.length} {catalogProducts.length === 1 ? 'peça vinculada' : 'peças vinculadas'})
@@ -425,7 +425,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
             <span className="font-semibold hidden sm:inline">Monte sua sacola</span>
             <ChevronRight className="h-3 w-3 text-slate-400 hidden sm:inline" />
             <span className="p-1 rounded-lg bg-emerald-100 text-emerald-800 font-black hidden sm:inline">3</span>
-            <span className="font-semibold text-emerald-800 hidden sm:inline">Envie no Grupo do Bazar no WhatsApp para todos verem!</span>
+            <span className="font-semibold text-emerald-800 hidden sm:inline">Envie no WhatsApp no privado ou no grupo da promoção!</span>
           </div>
 
           <span className="font-bold text-rose-700 bg-white px-2.5 py-1 rounded-full border border-rose-200 shadow-2xs self-start sm:self-auto">
@@ -612,7 +612,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
             </div>
             <h3 className="text-lg font-black text-slate-800">Nenhuma peça encontrada</h3>
             <p className="text-slate-500 text-xs">
-              Tente buscar por outro termo ou mude a categoria selecionada para ver mais produtos do bazar.
+              Tente buscar por outro termo ou mude a categoria selecionada para ver mais produtos da loja.
             </p>
             <button
               onClick={() => {

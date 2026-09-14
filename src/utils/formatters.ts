@@ -612,7 +612,7 @@ export function generateStoreInvitationWhatsAppText(
   const store = getEffectiveStoreInfo(storeInfo);
   const storeName = store?.name?.trim() || 'Rx do Bazar de Sucesso';
   const url = getStoreOnlineUrl(customUrlOrEditionId);
-  const title = editionName ? `LOJA ONLINE: ${editionName.toUpperCase()}` : 'LOJA ONLINE DO NOSSO BAZAR ABERTA!';
+  const title = editionName ? `LOJA ONLINE: ${editionName.toUpperCase()}` : 'LOJA ONLINE & VITRINE DE OFERTAS';
 
   return (
     `🛍️✨ *${title}* ✨🛍️\n\n` +
