@@ -21,9 +21,9 @@ export default defineConfig(() => {
         ],
         manifest: {
           id: '/',
-          name: 'Rx do Bazar de Sucesso',
-          short_name: 'Rx Bazar',
-          description: 'Sistema completo do Rx do Bazar de Sucesso: estoque, margem de lucro, vitrine e vendas por @danillafinancas.',
+          name: 'Loja Online • Catálogo & Ofertas',
+          short_name: 'Loja Online',
+          description: 'Vitrine virtual com catálogo de produtos, fotos e sacola de compras com pedido direto no WhatsApp.',
           theme_color: '#2A3722',
           background_color: '#F8F6F0',
           display: 'standalone',

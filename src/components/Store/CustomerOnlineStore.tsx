@@ -87,6 +87,14 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
     }
   }, [cart]);
 
+  // Update dynamic document title for store
+  useEffect(() => {
+    const storeDisplayName = (storeInfo.name && !storeInfo.name.toLowerCase().includes('rx do bazar'))
+      ? storeInfo.name.trim()
+      : 'Loja Online';
+    document.title = `${storeDisplayName} • Catálogo & Sacola de Pedidos`;
+  }, [storeInfo.name]);
+
   // Cart totals
   const totalCartItems = useMemo(() => cart.reduce((acc, item) => acc + item.quantity, 0), [cart]);
   const totalCartValue = useMemo(() => {
