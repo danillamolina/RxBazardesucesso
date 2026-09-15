@@ -585,6 +585,8 @@ export function getStoreOnlineUrl(editionIdOrCustomUrl?: string, explicitEdition
     } else {
       editionId = editionIdOrCustomUrl;
     }
+  } else if (explicitEditionId) {
+    editionId = explicitEditionId;
   }
 
   let baseUrl = customUrl;
@@ -625,8 +627,22 @@ export function generateStoreInvitationWhatsAppText(
 ): string {
   const store = getEffectiveStoreInfo(storeInfo);
   const storeName = sanitizeCustomerStoreName(store?.name);
-  const url = getStoreOnlineUrl(customUrlOrEditionId);
-  const title = editionName ? `LOJA ONLINE: ${editionName.toUpperCase()}` : 'LOJA ONLINE & VITRINE DE OFERTAS';
+  
+  // If customUrlOrEditionId is an already formatted URL, use it directly; otherwise construct via getStoreOnlineUrl
+  let url = '';
+  if (customUrlOrEditionId && (customUrlOrEditionId.startsWith('http://') || customUrlOrEditionId.startsWith('https://'))) {
+    url = customUrlOrEditionId;
+  } else {
+    url = getStoreOnlineUrl(customUrlOrEditionId);
+  }
+
+  const cleanEditionName = editionName && !editionName.toLowerCase().includes('rx do bazar') ? editionName.trim() : '';
+  let title = 'LOJA ONLINE & VITRINE DE OFERTAS';
+  if (cleanEditionName) {
+    title = `LOJA ONLINE: ${cleanEditionName.toUpperCase()}`;
+  } else if (storeName) {
+    title = `LOJA ONLINE — ${storeName.toUpperCase()}`;
+  }
 
   return (
     `🛍️✨ *${title}* ✨🛍️\n\n` +

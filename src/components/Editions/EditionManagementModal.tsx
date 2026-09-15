@@ -15,9 +15,12 @@ import {
   Layers,
   ChevronRight,
   Sparkles,
+  MessageSquare,
+  Copy,
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { BazarEdition, Product } from '../../types';
+import { getStoreOnlineUrl, generateStoreInvitationWhatsAppText } from '../../utils/formatters';
 
 interface EditionManagementModalProps {
   isOpen: boolean;
@@ -42,8 +45,10 @@ export const EditionManagementModal: React.FC<EditionManagementModalProps> = ({
     allProducts,
     allSales,
     categories,
+    storeInfo,
   } = useBazar();
 
+  const [copiedEditionId, setCopiedEditionId] = useState<string | null>(null);
   const [mode, setMode] = useState<'list' | 'create' | 'manage_products'>(initialMode);
   const [selectedEditionForManagement, setSelectedEditionForManagement] = useState<BazarEdition | null>(null);
 
@@ -378,6 +383,35 @@ export const EditionManagementModal: React.FC<EditionManagementModalProps> = ({
                             Ativo Agora
                           </span>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = getStoreOnlineUrl(undefined, ed.id);
+                            const text = generateStoreInvitationWhatsAppText(storeInfo, url, ed.name);
+                            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-2.5 py-2 rounded-xl transition flex items-center gap-1 shadow-xs"
+                          title={`Enviar link da Loja Online com a edição "${ed.name}" diretamente pelo WhatsApp`}
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Enviar</span> Link
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = getStoreOnlineUrl(undefined, ed.id);
+                            navigator.clipboard.writeText(url);
+                            setCopiedEditionId(ed.id);
+                            setTimeout(() => setCopiedEditionId(null), 2500);
+                          }}
+                          className="bg-[#242F1E] hover:bg-[#34442B] text-[#CAD7BE] hover:text-white text-xs font-medium px-2.5 py-2 rounded-xl border border-[#3A4A30] transition flex items-center gap-1"
+                          title="Copiar link da Loja com esta edição conectada"
+                        >
+                          {copiedEditionId === ed.id ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                          <span>{copiedEditionId === ed.id ? 'Copiado!' : 'Copiar'}</span>
+                        </button>
 
                         <button
                           type="button"

@@ -15,7 +15,7 @@ import { calculateMarginPercent } from '../utils/formatters';
 import { safeSave, safeRemove, idbGet } from '../utils/storage';
 
 const DEFAULT_STORE_INFO: StoreInfo = {
-  name: 'Rx do Bazar de Sucesso',
+  name: 'Loja Oficial',
   address: 'Rua Principal, 100 - Centro',
   phone: '(11) 99999-8888',
   whatsapp: '(11) 99999-8888',
@@ -72,6 +72,9 @@ interface BazarContextType {
   clearAllData: () => void;
   importAllData: (data: { products: Product[]; sales: Sale[]; editions: BazarEdition[]; categories?: CategoryStructure[]; activeEditionId?: string }) => void;
   
+  // Helper
+  isProductInEdition: (p: Product, editionId?: string) => boolean;
+
   // Computed Realtime Metrics
   stockMetrics: StockMetrics;
   financialSummary: FinancialSummary;
@@ -149,8 +152,28 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.error(e);
       }
     }
+    // Check URL query parameters if opening via direct edition link (e.g. ?loja=1&edicao=ed-2)
+    if (typeof window !== 'undefined' && window.location) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlEdition = params.get('edicao') || params.get('bazar') || params.get('edition') || params.get('editionId');
+        if (urlEdition) {
+          if (urlEdition === 'all') return 'all';
+          const match = currentEditions.find(e => 
+            e.id === urlEdition || 
+            (e as any).slug === urlEdition || 
+            e.name.toLowerCase().trim() === decodeURIComponent(urlEdition).toLowerCase().trim()
+          );
+          if (match) return match.id;
+          return urlEdition;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
     const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_EDITION);
-    if (saved && currentEditions.some(e => e.id === saved)) {
+    if (saved && (saved === 'all' || currentEditions.some(e => e.id === saved))) {
       return saved;
     }
     // Always default to the latest/most recent bazar edition on open
@@ -965,6 +988,7 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         resetToInitialData,
         clearAllData,
         importAllData,
+        isProductInEdition,
         stockMetrics,
         financialSummary,
       }}

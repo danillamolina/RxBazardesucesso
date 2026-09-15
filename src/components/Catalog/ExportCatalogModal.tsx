@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   X, 
   MessageSquare, 
@@ -61,10 +61,30 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   initialSelectedProductIds,
   onOpenCustomerStoreView,
 }) => {
-  const { products: contextProducts, categories, storeInfo } = useBazar();
+  const { products: contextProducts, categories, storeInfo, editions, activeEditionId } = useBazar();
   const allProducts = propsProducts || contextProducts || [];
 
-  const storeUrl = getStoreOnlineUrl();
+  // Selected edition for sharing the store link (defaults to activeEditionId if specific, or latest edition)
+  const [selectedEditionForLink, setSelectedEditionForLink] = useState<string>(() => {
+    if (activeEditionId && activeEditionId !== 'all') return activeEditionId;
+    return editions[0]?.id || 'all';
+  });
+
+  useEffect(() => {
+    if (activeEditionId && activeEditionId !== 'all') {
+      setSelectedEditionForLink(activeEditionId);
+    }
+  }, [activeEditionId]);
+
+  const selectedEditionObj = useMemo(() => {
+    if (selectedEditionForLink === 'all') return null;
+    return editions.find(e => e.id === selectedEditionForLink) || null;
+  }, [selectedEditionForLink, editions]);
+
+  const storeUrl = useMemo(() => {
+    return getStoreOnlineUrl(undefined, selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined);
+  }, [selectedEditionForLink]);
+
   const [copiedStoreUrl, setCopiedStoreUrl] = useState(false);
 
   // Filter only items with available quantity and visible in catalog
@@ -119,7 +139,9 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
     return true;
   });
 
-  const catalogText = generateFullCatalogExportText(selectedProducts);
+  const catalogText = useMemo(() => {
+    return generateFullCatalogExportText(selectedProducts, storeUrl);
+  }, [selectedProducts, storeUrl]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === availableProducts.length) {
@@ -216,7 +238,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
 
   // Share direct store link with invitation text focused on interactive cart
   const handleShareStoreLinkWhatsApp = (destination: 'standard' | 'business' = 'standard') => {
-    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl);
+    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name);
     const url = buildWhatsAppDirectUrl(text, undefined, destination, true);
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -607,6 +629,30 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
                     Seu cliente abre no WhatsApp como uma loja real com fotos, escolhe os tamanhos, coloca na sacola e te envia o pedido pronto!
                   </p>
                 </div>
+              </div>
+            </div>
+
+            {/* Edition Selector for this export link */}
+            <div className="bg-white/80 p-3 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                  <span>🏷️</span>
+                  <span>Edição conectada a este link:</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedEditionForLink}
+                  onChange={(e) => setSelectedEditionForLink(e.target.value)}
+                  className="w-full sm:w-auto text-xs font-extrabold bg-white border-2 border-emerald-400 text-emerald-950 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
+                >
+                  {editions.map((ed) => (
+                    <option key={ed.id} value={ed.id}>
+                      {ed.name} {ed.id === activeEditionId ? '★ (Edição Ativa Agora)' : ''}
+                    </option>
+                  ))}
+                  <option value="all">🌐 Catálogo Completo (Todas as Peças da Loja)</option>
+                </select>
               </div>
             </div>
 

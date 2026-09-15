@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Building2, 
   MapPin, 
@@ -20,7 +20,7 @@ import { useBazar } from '../../context/BazarContext';
 import { getStoreOnlineUrl, generateStoreInvitationWhatsAppText } from '../../utils/formatters';
 
 export const StoreDetails: React.FC = () => {
-  const { storeInfo, updateStoreInfo } = useBazar();
+  const { storeInfo, updateStoreInfo, editions, activeEditionId } = useBazar();
 
   const [formData, setFormData] = useState({
     name: storeInfo.name || '',
@@ -37,7 +37,26 @@ export const StoreDetails: React.FC = () => {
   const [copiedCard, setCopiedCard] = useState(false);
   const [copiedStoreUrl, setCopiedStoreUrl] = useState(false);
 
-  const storeUrl = getStoreOnlineUrl();
+  // Selected edition for sharing the store link (defaults to activeEditionId if specific, or latest edition)
+  const [selectedEditionForLink, setSelectedEditionForLink] = useState<string>(() => {
+    if (activeEditionId && activeEditionId !== 'all') return activeEditionId;
+    return editions[0]?.id || 'all';
+  });
+
+  useEffect(() => {
+    if (activeEditionId && activeEditionId !== 'all') {
+      setSelectedEditionForLink(activeEditionId);
+    }
+  }, [activeEditionId]);
+
+  const selectedEditionObj = useMemo(() => {
+    if (selectedEditionForLink === 'all') return null;
+    return editions.find(e => e.id === selectedEditionForLink) || null;
+  }, [selectedEditionForLink, editions]);
+
+  const storeUrl = useMemo(() => {
+    return getStoreOnlineUrl(undefined, selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined);
+  }, [selectedEditionForLink]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -86,7 +105,7 @@ export const StoreDetails: React.FC = () => {
   };
 
   const handleShareStoreLinkWhatsApp = () => {
-    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl);
+    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name);
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };
 
@@ -191,6 +210,30 @@ export const StoreDetails: React.FC = () => {
                 Envie este link para os clientes pelo WhatsApp ou Instagram. Eles acessam uma loja virtual completa, adicionam peças na sacola e te enviam o pedido com 1 clique!
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Edition Selector for the store link */}
+        <div className="bg-white/80 dark:bg-slate-900/60 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-1.5">
+              <span>🏷️</span>
+              <span>Edição conectada a este link:</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedEditionForLink}
+              onChange={(e) => setSelectedEditionForLink(e.target.value)}
+              className="w-full sm:w-auto text-xs font-extrabold bg-white dark:bg-slate-800 border-2 border-emerald-400 dark:border-emerald-600 text-emerald-950 dark:text-emerald-100 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
+            >
+              {editions.map((ed) => (
+                <option key={ed.id} value={ed.id}>
+                  {ed.name} {ed.id === activeEditionId ? '★ (Edição Ativa Agora)' : ''}
+                </option>
+              ))}
+              <option value="all">🌐 Catálogo Completo (Todas as Peças da Loja)</option>
+            </select>
           </div>
         </div>
 

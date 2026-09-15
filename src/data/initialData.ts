@@ -41,10 +41,10 @@ export const INITIAL_CATEGORIES: CategoryStructure[] = [
 export const INITIAL_EDITIONS: BazarEdition[] = [
   {
     id: 'ed-1',
-    name: 'Rx do Bazar de Sucesso',
+    name: 'Edição Principal',
     startDate: '2026-08-01T09:00:00.000Z',
     active: true,
-    notes: 'Edição de lançamento com novidades em moda, cosméticos e semijoias',
+    notes: 'Edição com novidades em moda, cosméticos e semijoias',
   },
   {
     id: 'ed-2',

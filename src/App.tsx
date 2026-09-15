@@ -78,7 +78,7 @@ function MainApp() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEditionModalOpen, setIsEditionModalOpen] = useState(false);
 
-  const { addProduct, updateProduct } = useBazar();
+  const { addProduct, updateProduct, activeEditionId } = useBazar();
 
   const handleOpenNewProduct = (prod?: Product) => {
     // Defend against DOM/React synthetic events being passed as prod
@@ -114,6 +114,11 @@ function MainApp() {
     if (typeof window !== 'undefined' && window.history) {
       const url = new URL(window.location.href);
       url.searchParams.set('loja', '1');
+      if (activeEditionId && activeEditionId !== 'all') {
+        url.searchParams.set('edicao', activeEditionId);
+      } else {
+        url.searchParams.delete('edicao');
+      }
       window.history.pushState({}, '', url.toString());
     }
   };
@@ -126,6 +131,9 @@ function MainApp() {
       url.searchParams.delete('loja');
       url.searchParams.delete('store');
       url.searchParams.delete('view');
+      url.searchParams.delete('edicao');
+      url.searchParams.delete('edition');
+      url.searchParams.delete('bazar');
       window.history.replaceState({}, '', url.pathname);
     }
   };

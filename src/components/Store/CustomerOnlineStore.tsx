@@ -36,21 +36,33 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
   isAdminPreview = false,
   onExitToAdmin 
 }) => {
-  const { products, categories, storeInfo, editions, activeEditionId } = useBazar();
+  const { products, allProducts, categories, storeInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
 
   // Target Edition from URL (e.g. ?loja=1&edicao=edition_123)
   const targetEditionId = useMemo(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      return params.get('edicao') || params.get('bazar') || params.get('edition') || params.get('editionId');
+      const urlParam = params.get('edicao') || params.get('bazar') || params.get('edition') || params.get('editionId');
+      if (urlParam) return urlParam;
     }
-    return null;
-  }, []);
+    return (activeEditionId && activeEditionId !== 'all') ? activeEditionId : null;
+  }, [activeEditionId]);
 
   const targetEdition = useMemo(() => {
     if (!targetEditionId || targetEditionId === 'all') return null;
-    return editions.find(e => e.id === targetEditionId || (e as any).slug === targetEditionId) || null;
+    return editions.find(e => 
+      e.id === targetEditionId || 
+      (e as any).slug === targetEditionId ||
+      e.name.toLowerCase().trim() === decodeURIComponent(targetEditionId).toLowerCase().trim()
+    ) || null;
   }, [targetEditionId, editions]);
+
+  // Sync active edition in context if visiting a specific edition link
+  useEffect(() => {
+    if (targetEdition && activeEditionId !== targetEdition.id) {
+      setActiveEditionId(targetEdition.id);
+    }
+  }, [targetEdition, activeEditionId, setActiveEditionId]);
 
   // Search & Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,8 +104,11 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
     const storeDisplayName = (storeInfo.name && !storeInfo.name.toLowerCase().includes('rx do bazar'))
       ? storeInfo.name.trim()
       : 'Loja Online';
-    document.title = `${storeDisplayName} • Catálogo & Sacola de Pedidos`;
-  }, [storeInfo.name]);
+    const cleanEdition = targetEdition?.name && !targetEdition.name.toLowerCase().includes('rx do bazar')
+      ? ` • ${targetEdition.name.trim()}`
+      : '';
+    document.title = `${storeDisplayName}${cleanEdition} • Catálogo & Sacola de Pedidos`;
+  }, [storeInfo.name, targetEdition]);
 
   // Cart totals
   const totalCartItems = useMemo(() => cart.reduce((acc, item) => acc + item.quantity, 0), [cart]);
@@ -103,7 +118,8 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
 
   // Available visible products - automatically connected to the edition link if specified
   const catalogProducts = useMemo(() => {
-    return products.filter((p) => {
+    const sourceProducts = (allProducts && allProducts.length > 0) ? allProducts : products;
+    return sourceProducts.filter((p) => {
       if (p.showInCatalog === false) return false;
 
       // When a specific bazar edition link is used, strictly show only that edition's products
@@ -114,9 +130,16 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
         return p.bazarEditionId === targetEdition.id;
       }
 
+      if (activeEditionId && activeEditionId !== 'all') {
+        if (p.bazarEditionIds && p.bazarEditionIds.length > 0) {
+          return p.bazarEditionIds.includes(activeEditionId);
+        }
+        return p.bazarEditionId === activeEditionId;
+      }
+
       return true;
     });
-  }, [products, targetEdition]);
+  }, [allProducts, products, targetEdition, activeEditionId]);
 
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
