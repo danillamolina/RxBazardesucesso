@@ -387,8 +387,16 @@ export const EditionManagementModal: React.FC<EditionManagementModalProps> = ({
                         <button
                           type="button"
                           onClick={() => {
-                            const url = getStoreOnlineUrl(undefined, ed.id);
-                            const text = generateStoreInvitationWhatsAppText(storeInfo, url, ed.name);
+                            const editionProds = allProducts
+                              .filter((p) => {
+                                if (p.bazarEditionIds && p.bazarEditionIds.length > 0) {
+                                  return p.bazarEditionIds.includes(ed.id);
+                                }
+                                return p.bazarEditionId === ed.id;
+                              })
+                              .map((p) => p.id);
+                            const url = getStoreOnlineUrl(undefined, ed.id, ed.name, editionProds);
+                            const text = generateStoreInvitationWhatsAppText(storeInfo, url, ed.name, editionProds);
                             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
                           }}
                           className="bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold px-2.5 py-2 rounded-xl transition flex items-center gap-1 shadow-xs"
@@ -401,7 +409,15 @@ export const EditionManagementModal: React.FC<EditionManagementModalProps> = ({
                         <button
                           type="button"
                           onClick={() => {
-                            const url = getStoreOnlineUrl(undefined, ed.id);
+                            const editionProds = allProducts
+                              .filter((p) => {
+                                if (p.bazarEditionIds && p.bazarEditionIds.length > 0) {
+                                  return p.bazarEditionIds.includes(ed.id);
+                                }
+                                return p.bazarEditionId === ed.id;
+                              })
+                              .map((p) => p.id);
+                            const url = getStoreOnlineUrl(undefined, ed.id, ed.name, editionProds);
                             navigator.clipboard.writeText(url);
                             setCopiedEditionId(ed.id);
                             setTimeout(() => setCopiedEditionId(null), 2500);

@@ -74,6 +74,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Natura Homem Essence celebra a sofisticação e a elegância masculina. com notas amadeiradas e especiadas, esta fragrância exala personalidade e é ideal para o homem que busca uma presença marcante.',
     sizeColor: '100ml',
     bazarEditionId: 'ed-1',
+    bazarEditionIds: ['ed-1', 'ed-2'],
     createdAt: '2026-08-01T09:30:00.000Z',
   },
   {
@@ -93,6 +94,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Vestido midi em tecido leve, estampa floral exclusiva, caimento perfeito.',
     sizeColor: 'Tam M / Floral Rosa',
     bazarEditionId: 'ed-1',
+    bazarEditionIds: ['ed-1', 'ed-2'],
     createdAt: '2026-08-01T10:00:00.000Z',
   },
   {
@@ -112,6 +114,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Fragrância marcante com notas florais e amadeiradas, fixa por mais de 12h.',
     sizeColor: '100ml / Fragrância Gold',
     bazarEditionId: 'ed-1',
+    bazarEditionIds: ['ed-1'],
     createdAt: '2026-08-01T10:15:00.000Z',
   },
   {
@@ -131,6 +134,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Bolsa transversal com alça ajustável, detalhes dourados e compartimento interno.',
     sizeColor: 'Caramelo / Comprimento 22cm',
     bazarEditionId: 'ed-1',
+    bazarEditionIds: ['ed-1', 'ed-2'],
     createdAt: '2026-08-01T10:30:00.000Z',
   },
   {
@@ -149,7 +153,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     imageUrl: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=600',
     description: 'Conjunto folheado 18k com zircônias brilhantes, antialérgico com garantia.',
     sizeColor: 'Dourado / Cristal',
-    bazarEditionId: 'ed-1',
+    bazarEditionId: 'ed-2',
+    bazarEditionIds: ['ed-2'],
     createdAt: '2026-08-01T11:00:00.000Z',
   },
   {
@@ -169,6 +174,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Sandália super confortável para usar o dia todo, sola antiderrapante.',
     sizeColor: 'Tam 37 / Nude',
     bazarEditionId: 'ed-1',
+    bazarEditionIds: ['ed-1', 'ed-2'],
     createdAt: '2026-08-01T11:20:00.000Z',
   },
   {
@@ -187,7 +193,8 @@ export const INITIAL_PRODUCTS: Product[] = [
     imageUrl: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=600',
     description: 'Sérum concentrado com efeito iluminador, atenua linhas de expressão.',
     sizeColor: 'Frasco 30ml',
-    bazarEditionId: 'ed-1',
+    bazarEditionId: 'ed-2',
+    bazarEditionIds: ['ed-2'],
     createdAt: '2026-08-01T11:45:00.000Z',
   },
   {
@@ -206,6 +213,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     description: 'Vela artesanal em copo de vidro fosco, cera de soja vegetal.',
     sizeColor: '200g / Aroma Baunilha',
     bazarEditionId: 'ed-1',
+    bazarEditionIds: ['ed-1'],
     createdAt: '2026-08-01T12:00:00.000Z',
   },
 ];

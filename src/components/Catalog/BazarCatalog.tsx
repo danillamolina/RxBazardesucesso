@@ -37,14 +37,21 @@ import {
   FileDown
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
-import { formatCurrency, formatPercent, getProductPriceDetails } from '../../utils/formatters';
+import { 
+  formatCurrency, 
+  formatPercent, 
+  getProductPriceDetails,
+  getStoreOnlineUrl,
+  generateStoreInvitationWhatsAppText
+} from '../../utils/formatters';
 import { Product } from '../../types';
 import { 
   shareProductJpgWhatsApp, 
   downloadProductJpg, 
   downloadMultipleProductsIndividualJpgs,
   downloadProductOriginalPhoto,
-  downloadMultipleOriginalPhotosZip
+  downloadMultipleOriginalPhotosZip,
+  buildWhatsAppDirectUrl
 } from '../../utils/productJpgGenerator';
 import { ExportCatalogModal } from './ExportCatalogModal';
 import { SendToCustomerModal } from './SendToCustomerModal';
@@ -53,11 +60,11 @@ import { PhotoOptionsModal } from './PhotoOptionsModal';
 import { OnlineStoreCartModal, CartItem } from './OnlineStoreCartModal';
 
 export interface BazarCatalogProps {
-  onOpenCustomerStoreView?: () => void;
+  onOpenCustomerStoreView?: (editionId?: string) => void;
 }
 
 export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreView }) => {
-  const { products, sales, categories, storeInfo } = useBazar();
+  const { products, sales, categories, storeInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -77,6 +84,53 @@ export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreV
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [sendCustomerProduct, setSendCustomerProduct] = useState<Product | null>(null);
   const [isSendCustomerOpen, setIsSendCustomerOpen] = useState(false);
+  const [copiedStoreLink, setCopiedStoreLink] = useState(false);
+
+  const activeEditionObj = useMemo(() => {
+    if (!activeEditionId || activeEditionId === 'all') return null;
+    return editions.find(e => e.id === activeEditionId) || null;
+  }, [activeEditionId, editions]);
+
+  // Current edition products (used for generating links and WhatsApp invitations)
+  const currentEditionProducts = useMemo(() => {
+    return products.filter(p => {
+      if (activeEditionId && activeEditionId !== 'all') {
+        if (p.bazarEditionIds && Array.isArray(p.bazarEditionIds) && p.bazarEditionIds.length > 0) {
+          return p.bazarEditionIds.includes(activeEditionId);
+        }
+        return p.bazarEditionId === activeEditionId;
+      }
+      return true;
+    });
+  }, [products, activeEditionId]);
+
+  const currentEditionStoreUrl = useMemo(() => {
+    const prods = currentEditionProducts.map(p => p.id);
+    return getStoreOnlineUrl(
+      undefined,
+      activeEditionId && activeEditionId !== 'all' ? activeEditionId : undefined,
+      activeEditionObj?.name,
+      prods
+    );
+  }, [activeEditionId, activeEditionObj, currentEditionProducts]);
+
+  const handleShareCurrentEditionWhatsApp = () => {
+    const prods = currentEditionProducts.map(p => p.id);
+    const text = generateStoreInvitationWhatsAppText(
+      storeInfo,
+      currentEditionStoreUrl,
+      activeEditionObj?.name,
+      prods
+    );
+    const url = buildWhatsAppDirectUrl(text, undefined, 'standard', true);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCopyCurrentEditionLink = () => {
+    navigator.clipboard.writeText(currentEditionStoreUrl);
+    setCopiedStoreLink(true);
+    setTimeout(() => setCopiedStoreLink(false), 2500);
+  };
 
   // Online Store Cart & Photo Options State
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -480,7 +534,7 @@ export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreV
           {onOpenCustomerStoreView && (
             <button
               type="button"
-              onClick={onOpenCustomerStoreView}
+              onClick={() => onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined)}
               className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition active:scale-95"
               title="Ver e testar a Loja Online com Sacola exatamente como o cliente vê pelo WhatsApp"
             >
@@ -514,7 +568,7 @@ export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreV
           </div>
           <button
             type="button"
-            onClick={onOpenCustomerStoreView}
+            onClick={() => onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined)}
             className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-xs transition active:scale-95 shrink-0 flex items-center gap-1"
           >
             <Store className="h-3.5 w-3.5" />
@@ -588,6 +642,74 @@ export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreV
           </button>
         </div>
       )}
+
+      {/* 🏷️ Current Active Bazar Edition Bar & Direct Store Sharing */}
+      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3.5">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs shrink-0">
+            <Tag className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                Bazar Ativo Selecionado:
+              </span>
+              <select
+                value={activeEditionId}
+                onChange={(e) => setActiveEditionId(e.target.value)}
+                className="text-xs font-black bg-white dark:bg-slate-900 border-2 border-emerald-400 text-emerald-950 dark:text-emerald-200 rounded-xl px-2.5 py-1 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
+              >
+                {editions.map((ed) => (
+                  <option key={ed.id} value={ed.id}>
+                    {ed.name} {ed.id === activeEditionId ? '★' : ''}
+                  </option>
+                ))}
+                <option value="all">🌐 Todas as Edições (Catálogo Global)</option>
+              </select>
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300 dark:bg-emerald-900 dark:text-emerald-200">
+                {currentEditionProducts.length} {currentEditionProducts.length === 1 ? 'peça' : 'peças'}
+              </span>
+            </div>
+            <p className="text-[11px] text-emerald-800 dark:text-emerald-300 font-medium mt-0.5 truncate">
+              O link enviado aos clientes abrirá exatamente este bazar selecionado ({activeEditionObj?.name || 'Geral'}).
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto justify-end">
+          <button
+            type="button"
+            onClick={handleCopyCurrentEditionLink}
+            className="px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 text-emerald-800 dark:text-emerald-200 font-bold text-xs shadow-2xs transition active:scale-95 flex items-center gap-1.5"
+            title="Copiar link da Loja Online com esta edição conectada"
+          >
+            {copiedStoreLink ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5 text-emerald-600" />}
+            <span>{copiedStoreLink ? 'Link Copiado!' : 'Copiar Link'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShareCurrentEditionWhatsApp}
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition active:scale-95 flex items-center gap-1.5"
+            title="Enviar convite da loja online pronto para o WhatsApp com link desta edição selecionada"
+          >
+            <MessageSquare className="h-3.5 w-3.5" />
+            <span>Enviar WhatsApp</span>
+          </button>
+
+          {onOpenCustomerStoreView && (
+            <button
+              type="button"
+              onClick={() => onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined)}
+              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5"
+              title="Abrir como Cliente exatamente com este bazar selecionado"
+            >
+              <Store className="h-3.5 w-3.5" />
+              <span>Testar Loja</span>
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* Real-time Status, Search, Categories, Subcategories and Sorting Toolbar */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-4">
@@ -1602,7 +1724,7 @@ export const BazarCatalog: React.FC<BazarCatalogProps> = ({ onOpenCustomerStoreV
         onClose={() => setIsExportCatalogOpen(false)}
         products={products}
         initialSelectedProductIds={selectedProductIds}
-        onOpenCustomerStoreView={onOpenCustomerStoreView}
+        onOpenCustomerStoreView={onOpenCustomerStoreView ? () => onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined) : undefined}
       />
 
       {/* Send to Customer Modal */}

@@ -101,11 +101,39 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [products, setProducts] = useState<Product[]>(() => {
+    let list = INITIAL_PRODUCTS;
     const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try { 
+        const parsed = JSON.parse(saved); 
+        if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+      } catch (e) { console.error(e); }
     }
-    return INITIAL_PRODUCTS;
+    // If URL has edicao and prods, associate those products with that edition
+    if (typeof window !== 'undefined' && window.location) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlEd = params.get('edicao') || params.get('bazar') || params.get('edition');
+        const urlProds = params.get('prods');
+        if (urlEd && urlEd !== 'all' && urlProds) {
+          const ids = urlProds.split(',').map(s => s.trim()).filter(Boolean);
+          if (ids.length > 0) {
+            list = list.map(p => {
+              if (ids.includes(p.id)) {
+                const currentIds = p.bazarEditionIds || (p.bazarEditionId ? [p.bazarEditionId] : []);
+                if (!currentIds.includes(urlEd)) {
+                  return { ...p, bazarEditionId: urlEd, bazarEditionIds: [...currentIds, urlEd] };
+                }
+              }
+              return p;
+            });
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    return list;
   });
 
   const [sales, setSales] = useState<Sale[]>(() => {
@@ -117,11 +145,34 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [editions, setEditions] = useState<BazarEdition[]>(() => {
+    let list = INITIAL_EDITIONS;
     const saved = localStorage.getItem(STORAGE_KEYS.EDITIONS);
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+      try { 
+        const parsed = JSON.parse(saved); 
+        if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+      } catch (e) { console.error(e); }
     }
-    return INITIAL_EDITIONS;
+    // Check if opening via direct edition link with a custom edition name or id
+    if (typeof window !== 'undefined' && window.location) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlEd = params.get('edicao') || params.get('bazar') || params.get('edition');
+        const urlName = params.get('nome') || params.get('bazarNome') || params.get('nomeEdicao');
+        if (urlEd && urlEd !== 'all' && !list.some(e => e.id === urlEd)) {
+          const newEd: BazarEdition = {
+            id: urlEd,
+            name: urlName ? decodeURIComponent(urlName) : `Bazar ${urlEd}`,
+            startDate: new Date().toISOString(),
+            active: true,
+          };
+          list = [newEd, ...list];
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+    return list;
   });
 
   const [categories, setCategories] = useState<CategoryStructure[]>(() => {
@@ -201,13 +252,23 @@ export const BazarProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
         const idbEditions = await idbGet<BazarEdition[]>(STORAGE_KEYS.EDITIONS);
         if (idbEditions && Array.isArray(idbEditions) && idbEditions.length > 0) {
-          setEditions(idbEditions);
-          setActiveEditionId((prev) => {
-            if (prev && idbEditions.some(e => e.id === prev)) {
-              return prev;
-            }
-            return idbEditions[0]?.id || 'ed-1';
+          setEditions((current) => {
+            const missing = current.filter(c => !idbEditions.some(ie => ie.id === c.id));
+            return [...missing, ...idbEditions];
           });
+
+          // If the page was opened with a specific edition in the URL, do not overwrite it!
+          const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+          const urlEdition = urlParams ? (urlParams.get('edicao') || urlParams.get('bazar') || urlParams.get('edition') || urlParams.get('editionId')) : null;
+
+          if (!urlEdition) {
+            setActiveEditionId((prev) => {
+              if (prev && (prev === 'all' || idbEditions.some(e => e.id === prev))) {
+                return prev;
+              }
+              return idbEditions[0]?.id || 'ed-1';
+            });
+          }
         }
 
         const idbCategories = await idbGet<CategoryStructure[]>(STORAGE_KEYS.CATEGORIES);

@@ -61,8 +61,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   initialSelectedProductIds,
   onOpenCustomerStoreView,
 }) => {
-  const { products: contextProducts, categories, storeInfo, editions, activeEditionId } = useBazar();
-  const allProducts = propsProducts || contextProducts || [];
+  const { products: contextProducts, categories, storeInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
 
   // Selected edition for sharing the store link (defaults to activeEditionId if specific, or latest edition)
   const [selectedEditionForLink, setSelectedEditionForLink] = useState<string>(() => {
@@ -81,16 +80,20 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
     return editions.find(e => e.id === selectedEditionForLink) || null;
   }, [selectedEditionForLink, editions]);
 
-  const storeUrl = useMemo(() => {
-    return getStoreOnlineUrl(undefined, selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined);
-  }, [selectedEditionForLink]);
-
-  const [copiedStoreUrl, setCopiedStoreUrl] = useState(false);
-
-  // Filter only items with available quantity and visible in catalog
+  // Filter only items with available quantity and visible in catalog, strictly matching the selected edition!
   const availableProducts = useMemo(() => {
-    return allProducts.filter((p) => p.quantity > 0 && p.showInCatalog !== false);
-  }, [allProducts]);
+    const source = contextProducts || propsProducts || [];
+    return source.filter((p) => {
+      if (p.quantity <= 0 || p.showInCatalog === false) return false;
+      if (selectedEditionForLink && selectedEditionForLink !== 'all') {
+        if (p.bazarEditionIds && Array.isArray(p.bazarEditionIds) && p.bazarEditionIds.length > 0) {
+          return p.bazarEditionIds.includes(selectedEditionForLink);
+        }
+        return p.bazarEditionId === selectedEditionForLink;
+      }
+      return true;
+    });
+  }, [contextProducts, propsProducts, selectedEditionForLink]);
 
   // Selected products state
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
@@ -99,6 +102,23 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
     }
     return availableProducts.map((p) => p.id);
   });
+
+  // When selected edition changes, reselect all products of this edition
+  useEffect(() => {
+    setSelectedIds(availableProducts.map((p) => p.id));
+  }, [availableProducts]);
+
+  const storeUrl = useMemo(() => {
+    const prods = availableProducts.map(p => p.id);
+    return getStoreOnlineUrl(
+      undefined, 
+      selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined,
+      selectedEditionObj?.name,
+      prods
+    );
+  }, [selectedEditionForLink, selectedEditionObj, availableProducts]);
+
+  const [copiedStoreUrl, setCopiedStoreUrl] = useState(false);
 
   // Filter inside modal
   const [modalCategoryFilter, setModalCategoryFilter] = useState<string>('Todas');
@@ -140,8 +160,8 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   });
 
   const catalogText = useMemo(() => {
-    return generateFullCatalogExportText(selectedProducts, storeUrl);
-  }, [selectedProducts, storeUrl]);
+    return generateFullCatalogExportText(selectedProducts, storeUrl, selectedEditionObj?.name);
+  }, [selectedProducts, storeUrl, selectedEditionObj]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === availableProducts.length) {
@@ -238,7 +258,8 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
 
   // Share direct store link with invitation text focused on interactive cart
   const handleShareStoreLinkWhatsApp = (destination: 'standard' | 'business' = 'standard') => {
-    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name);
+    const prods = selectedProducts.map(p => p.id);
+    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name, prods);
     const url = buildWhatsAppDirectUrl(text, undefined, destination, true);
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -643,7 +664,11 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
               <div className="flex items-center gap-2">
                 <select
                   value={selectedEditionForLink}
-                  onChange={(e) => setSelectedEditionForLink(e.target.value)}
+                  onChange={(e) => {
+                    const newId = e.target.value;
+                    setSelectedEditionForLink(newId);
+                    if (newId) setActiveEditionId(newId);
+                  }}
                   className="w-full sm:w-auto text-xs font-extrabold bg-white border-2 border-emerald-400 text-emerald-950 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
                 >
                   {editions.map((ed) => (

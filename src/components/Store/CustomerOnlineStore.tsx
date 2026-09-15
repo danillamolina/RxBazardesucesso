@@ -38,7 +38,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
 }) => {
   const { products, allProducts, categories, storeInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
 
-  // Target Edition from URL (e.g. ?loja=1&edicao=edition_123)
+  // Target Edition from URL (e.g. ?loja=1&edicao=edition_123&nome=Bazar&prods=prod1,prod2)
   const targetEditionId = useMemo(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -48,13 +48,39 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
     return (activeEditionId && activeEditionId !== 'all') ? activeEditionId : null;
   }, [activeEditionId]);
 
+  const targetProductIds = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const prodsParam = params.get('prods');
+      if (prodsParam) {
+        return prodsParam.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+    return null;
+  }, []);
+
   const targetEdition = useMemo(() => {
     if (!targetEditionId || targetEditionId === 'all') return null;
-    return editions.find(e => 
+    const match = editions.find(e => 
       e.id === targetEditionId || 
       (e as any).slug === targetEditionId ||
       e.name.toLowerCase().trim() === decodeURIComponent(targetEditionId).toLowerCase().trim()
-    ) || null;
+    );
+    if (match) return match;
+
+    // Synthesize from URL parameters if edition was not in local editions list
+    let nameFromUrl: string | null = null;
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      nameFromUrl = params.get('nome') || params.get('bazarNome') || params.get('nomeEdicao');
+    }
+
+    return {
+      id: targetEditionId,
+      name: nameFromUrl ? decodeURIComponent(nameFromUrl) : 'Bazar Selecionado',
+      startDate: new Date().toISOString(),
+      active: true,
+    };
   }, [targetEditionId, editions]);
 
   // Sync active edition in context if visiting a specific edition link
@@ -119,19 +145,30 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
   // Available visible products - automatically connected to the edition link if specified
   const catalogProducts = useMemo(() => {
     const sourceProducts = (allProducts && allProducts.length > 0) ? allProducts : products;
+
+    // 1. If explicit product IDs list in URL (&prods=id1,id2,...), strictly filter by those IDs
+    if (targetProductIds && targetProductIds.length > 0) {
+      const explicitMatches = sourceProducts.filter((p) => p.showInCatalog !== false && targetProductIds.includes(p.id));
+      if (explicitMatches.length > 0) {
+        return explicitMatches;
+      }
+    }
+
+    const targetId = targetEdition?.id || (targetEditionId && targetEditionId !== 'all' ? targetEditionId : null);
+
     return sourceProducts.filter((p) => {
       if (p.showInCatalog === false) return false;
 
       // When a specific bazar edition link is used, strictly show only that edition's products
-      if (targetEdition) {
-        if (p.bazarEditionIds && p.bazarEditionIds.length > 0) {
-          return p.bazarEditionIds.includes(targetEdition.id);
+      if (targetId) {
+        if (p.bazarEditionIds && Array.isArray(p.bazarEditionIds) && p.bazarEditionIds.length > 0) {
+          return p.bazarEditionIds.includes(targetId);
         }
-        return p.bazarEditionId === targetEdition.id;
+        return p.bazarEditionId === targetId;
       }
 
       if (activeEditionId && activeEditionId !== 'all') {
-        if (p.bazarEditionIds && p.bazarEditionIds.length > 0) {
+        if (p.bazarEditionIds && Array.isArray(p.bazarEditionIds) && p.bazarEditionIds.length > 0) {
           return p.bazarEditionIds.includes(activeEditionId);
         }
         return p.bazarEditionId === activeEditionId;
@@ -139,7 +176,7 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
 
       return true;
     });
-  }, [allProducts, products, targetEdition, activeEditionId]);
+  }, [allProducts, products, targetEdition, targetEditionId, targetProductIds, activeEditionId]);
 
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {

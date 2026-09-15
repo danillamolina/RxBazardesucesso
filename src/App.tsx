@@ -108,14 +108,18 @@ function MainApp() {
     setIsSaleModalOpen(true);
   };
 
-  const handleOpenCustomerStoreView = () => {
+  const handleOpenCustomerStoreView = (editionId?: string) => {
     setIsCustomerStoreView(true);
     setIsAdminPreview(true);
+    const targetId = (typeof editionId === 'string' && editionId) 
+      ? editionId 
+      : (activeEditionId && activeEditionId !== 'all' ? activeEditionId : undefined);
+
     if (typeof window !== 'undefined' && window.history) {
       const url = new URL(window.location.href);
       url.searchParams.set('loja', '1');
-      if (activeEditionId && activeEditionId !== 'all') {
-        url.searchParams.set('edicao', activeEditionId);
+      if (targetId && targetId !== 'all') {
+        url.searchParams.set('edicao', targetId);
       } else {
         url.searchParams.delete('edicao');
       }

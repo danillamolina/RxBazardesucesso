@@ -573,8 +573,13 @@ export function createWhatsAppProductShareLink(
 }
 
 // Helper to obtain the direct link to the customer-facing Online Store
-// Supports passing an editionId to connect that specific bazar edition to the link!
-export function getStoreOnlineUrl(editionIdOrCustomUrl?: string, explicitEditionId?: string): string {
+// Supports passing an editionId, editionName, and productIds to guarantee that ANY recipient device opens the exact edition!
+export function getStoreOnlineUrl(
+  editionIdOrCustomUrl?: string, 
+  explicitEditionId?: string,
+  editionName?: string,
+  productIds?: string[]
+): string {
   let customUrl = '';
   let editionId = '';
 
@@ -605,8 +610,16 @@ export function getStoreOnlineUrl(editionIdOrCustomUrl?: string, explicitEdition
     urlObj.searchParams.set('loja', '1');
     if (editionId && editionId !== 'all') {
       urlObj.searchParams.set('edicao', editionId);
+      if (editionName && editionName.trim()) {
+        urlObj.searchParams.set('nome', editionName.trim());
+      }
+      if (productIds && productIds.length > 0) {
+        urlObj.searchParams.set('prods', productIds.slice(0, 50).join(','));
+      }
     } else {
       urlObj.searchParams.delete('edicao');
+      urlObj.searchParams.delete('nome');
+      urlObj.searchParams.delete('prods');
     }
     return urlObj.toString();
   } catch {
@@ -614,6 +627,12 @@ export function getStoreOnlineUrl(editionIdOrCustomUrl?: string, explicitEdition
     let res = `${baseUrl}${separator}loja=1`;
     if (editionId && editionId !== 'all') {
       res += `&edicao=${encodeURIComponent(editionId)}`;
+      if (editionName && editionName.trim()) {
+        res += `&nome=${encodeURIComponent(editionName.trim())}`;
+      }
+      if (productIds && productIds.length > 0) {
+        res += `&prods=${encodeURIComponent(productIds.slice(0, 50).join(','))}`;
+      }
     }
     return res;
   }
@@ -623,7 +642,8 @@ export function getStoreOnlineUrl(editionIdOrCustomUrl?: string, explicitEdition
 export function generateStoreInvitationWhatsAppText(
   storeInfo?: StoreInfo, 
   customUrlOrEditionId?: string,
-  editionName?: string
+  editionName?: string,
+  productIds?: string[]
 ): string {
   const store = getEffectiveStoreInfo(storeInfo);
   const storeName = sanitizeCustomerStoreName(store?.name);
@@ -633,7 +653,7 @@ export function generateStoreInvitationWhatsAppText(
   if (customUrlOrEditionId && (customUrlOrEditionId.startsWith('http://') || customUrlOrEditionId.startsWith('https://'))) {
     url = customUrlOrEditionId;
   } else {
-    url = getStoreOnlineUrl(customUrlOrEditionId);
+    url = getStoreOnlineUrl(customUrlOrEditionId, undefined, editionName, productIds);
   }
 
   const cleanEditionName = editionName && !editionName.toLowerCase().includes('rx do bazar') ? editionName.trim() : '';
@@ -646,12 +666,13 @@ export function generateStoreInvitationWhatsAppText(
 
   return (
     `🛍️✨ *${title}* ✨🛍️\n\n` +
-    `Olá! Preparamos uma loja virtual completa para você escolher suas peças favoritas com muito conforto e rapidez:\n\n` +
+    `Olá! Preparamos uma loja virtual exclusiva para você conferir as peças deste bazar com muita comodidade e rapidez:\n\n` +
+    (cleanEditionName ? `🏷️ *Edição Selecionada:* ${cleanEditionName}\n` : '') +
     `👉 *CLIQUE NO LINK PARA ABRIR A LOJA E SACOLA:*\n` +
     `${url}\n\n` +
     `✨ *Como funciona:* \n` +
-    `1️⃣ Veja todas as fotos em alta definição com preços De/Por\n` +
-    `2️⃣ Escolha seus tamanhos e adicione na sacolinha de compras\n` +
+    `1️⃣ Veja todas as fotos em alta definição com preços promocionais\n` +
+    `2️⃣ Escolha seus produtos e adicione na sacolinha de compras\n` +
     `3️⃣ Clique em "Enviar Pedido" para me mandar seu pedido pronto pelo WhatsApp!\n\n` +
     `🔥 Peças com até *70% OFF* e estoque limitado com pronta entrega imediata! Acesse agora e garanta as suas antes que esgotem! 🥰💖\n` +
     (storeName ? `\n🏪 *${storeName}*` : '')
@@ -671,7 +692,8 @@ export function generateFullCatalogExportText(
     subcategory?: string;
     quantity?: number;
   }[],
-  storeInfoOrUrl?: StoreInfo | string
+  storeInfoOrUrl?: StoreInfo | string,
+  editionName?: string
 ): string {
   if (!products || products.length === 0) {
     return '🛍️ *CATÁLOGO DE PRODUTOS*: Nenhum produto selecionado no momento.';
@@ -690,11 +712,19 @@ export function generateFullCatalogExportText(
     storeUrl = getStoreOnlineUrl();
   }
 
-  const headerTitle = storeName 
-    ? `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS — ${storeName.toUpperCase()}* ✨🛍️\n\n`
-    : `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS* ✨🛍️\n\n`;
+  const cleanEditionName = editionName && !editionName.toLowerCase().includes('rx do bazar') ? editionName.trim() : '';
+
+  let headerTitle = `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS* ✨🛍️\n\n`;
+  if (cleanEditionName) {
+    headerTitle = `🛍️✨ *LOJA ONLINE: ${cleanEditionName.toUpperCase()}* ✨🛍️\n\n`;
+  } else if (storeName) {
+    headerTitle = `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS — ${storeName.toUpperCase()}* ✨🛍️\n\n`;
+  }
 
   let text = headerTitle;
+  if (cleanEditionName) {
+    text += `🏷️ *Edição do Bazar:* ${cleanEditionName}\n`;
+  }
   if (storeUrl) {
     text += `🛒 *ACESSE NOSSA LOJA ONLINE COM SACOLA INTERATIVA:* \n`;
     text += `👉 ${storeUrl}\n`;
