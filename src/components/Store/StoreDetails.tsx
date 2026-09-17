@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { 
   Building2, 
   MapPin, 
@@ -13,23 +13,14 @@ import {
   ExternalLink,
   Store,
   Sparkles,
-  ShoppingBag,
   Users
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
-import { getStoreOnlineUrl, generateStoreInvitationWhatsAppText } from '../../utils/formatters';
-import { buildWhatsAppDirectUrl } from '../../utils/productJpgGenerator';
 
-interface StoreDetailsProps {
-  onOpenCustomerStoreView?: (editionId?: string) => void;
-  onOpenGenerateStoreModal?: () => void;
-}
+interface StoreDetailsProps {}
 
-export const StoreDetails: React.FC<StoreDetailsProps> = ({
-  onOpenCustomerStoreView,
-  onOpenGenerateStoreModal,
-}) => {
-  const { storeInfo, updateStoreInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
+export const StoreDetails: React.FC<StoreDetailsProps> = () => {
+  const { storeInfo, updateStoreInfo } = useBazar();
 
   const [formData, setFormData] = useState({
     name: storeInfo.name || '',
@@ -44,32 +35,6 @@ export const StoreDetails: React.FC<StoreDetailsProps> = ({
 
   const [isSaved, setIsSaved] = useState(false);
   const [copiedCard, setCopiedCard] = useState(false);
-  const [copiedStoreUrl, setCopiedStoreUrl] = useState(false);
-
-  // Selected edition for sharing the store link (defaults to activeEditionId if specific, or latest edition)
-  const [selectedEditionForLink, setSelectedEditionForLink] = useState<string>(() => {
-    if (activeEditionId && activeEditionId !== 'all') return activeEditionId;
-    return editions[0]?.id || 'all';
-  });
-
-  useEffect(() => {
-    if (activeEditionId && activeEditionId !== 'all') {
-      setSelectedEditionForLink(activeEditionId);
-    }
-  }, [activeEditionId]);
-
-  const selectedEditionObj = useMemo(() => {
-    if (selectedEditionForLink === 'all') return null;
-    return editions.find(e => e.id === selectedEditionForLink) || null;
-  }, [selectedEditionForLink, editions]);
-
-  const storeUrl = useMemo(() => {
-    return getStoreOnlineUrl(
-      undefined, 
-      selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined,
-      selectedEditionObj?.name
-    );
-  }, [selectedEditionForLink, selectedEditionObj]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -115,18 +80,6 @@ export const StoreDetails: React.FC<StoreDetailsProps> = ({
       num = `55${num}`;
     }
     window.open(`https://wa.me/${num}`, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleShareStoreLinkWhatsApp = () => {
-    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name);
-    const url = buildWhatsAppDirectUrl(text, undefined, 'standard', true);
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleCopyStoreUrl = () => {
-    navigator.clipboard.writeText(storeUrl);
-    setCopiedStoreUrl(true);
-    setTimeout(() => setCopiedStoreUrl(false), 2500);
   };
 
   return (
@@ -203,114 +156,6 @@ export const StoreDetails: React.FC<StoreDetailsProps> = ({
           </div>
         </div>
       )}
-
-      {/* 🌟 LOJA ONLINE INTERATIVA COM SACOLA (Link e Convite para Clientes) */}
-      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-800 rounded-3xl p-5 sm:p-6 shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-600/20 shrink-0">
-              <ShoppingBag className="h-6 w-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-black text-base sm:text-lg text-emerald-950 dark:text-emerald-100">
-                  Link Oficial da Loja Online com Sacola
-                </h3>
-                <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300 dark:bg-emerald-900 dark:text-emerald-200 dark:border-emerald-700">
-                  Visão do Cliente
-                </span>
-              </div>
-              <p className="text-xs text-emerald-800 dark:text-emerald-300 font-medium mt-0.5">
-                Envie este link para os clientes pelo WhatsApp ou Instagram. Eles acessam uma loja virtual completa, adicionam peças na sacola e te enviam o pedido com 1 clique!
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Edition Selector for the store link */}
-        <div className="bg-white/80 dark:bg-slate-900/60 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-1.5">
-              <span>🏷️</span>
-              <span>Edição conectada a este link:</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedEditionForLink}
-              onChange={(e) => {
-                const newId = e.target.value;
-                setSelectedEditionForLink(newId);
-                if (newId) setActiveEditionId(newId);
-              }}
-              className="w-full sm:w-auto text-xs font-extrabold bg-white dark:bg-slate-800 border-2 border-emerald-400 dark:border-emerald-600 text-emerald-950 dark:text-emerald-100 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
-            >
-              {editions.map((ed) => (
-                <option key={ed.id} value={ed.id}>
-                  {ed.name} {ed.id === activeEditionId ? '★ (Edição Ativa Agora)' : ''}
-                </option>
-              ))}
-              <option value="all">🌐 Catálogo Completo (Todas as Peças da Loja)</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
-          <div className="flex-1 bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800 rounded-xl px-4 py-3 text-xs font-mono text-emerald-900 dark:text-emerald-300 truncate shadow-2xs">
-            <span className="truncate select-all">{storeUrl}</span>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <button
-              type="button"
-              onClick={handleCopyStoreUrl}
-              className="px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-slate-700 text-emerald-800 dark:text-emerald-200 font-bold text-xs shadow-2xs transition active:scale-95 flex items-center gap-1.5"
-              title="Copiar link da Loja Online para colar no WhatsApp ou Instagram"
-            >
-              {copiedStoreUrl ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-emerald-600" />}
-              <span>{copiedStoreUrl ? 'Link Copiado!' : 'Copiar Link'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleShareStoreLinkWhatsApp}
-              className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 transition active:scale-95 flex items-center gap-1.5"
-              title="Enviar mensagem com o link da loja pelo WhatsApp"
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span>Enviar no WhatsApp</span>
-            </button>
-
-            {onOpenGenerateStoreModal && (
-              <button
-                type="button"
-                onClick={onOpenGenerateStoreModal}
-                className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 transition active:scale-95 flex items-center gap-1.5"
-                title="Abrir gerador completo da loja online com QR Code e opções"
-              >
-                <Sparkles className="h-4 w-4 text-emerald-200" />
-                <span>Gerar Loja & QR Code</span>
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => {
-                if (onOpenCustomerStoreView) {
-                  onOpenCustomerStoreView(selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined);
-                } else {
-                  window.open(storeUrl, '_blank');
-                }
-              }}
-              className="px-4 py-3 rounded-xl bg-teal-900 hover:bg-teal-800 text-white font-extrabold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5"
-              title="Visualizar a loja exatamente como a cliente visualiza no celular"
-            >
-              <ExternalLink className="h-4 w-4 text-teal-300" />
-              <span>Abrir como Cliente</span>
-            </button>
-          </div>
-        </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         

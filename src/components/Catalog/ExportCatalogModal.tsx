@@ -32,9 +32,7 @@ import {
   formatCurrency, 
   formatPercent, 
   generateFullCatalogExportText, 
-  getProductPriceDetails,
-  getStoreOnlineUrl,
-  generateStoreInvitationWhatsAppText
+  getProductPriceDetails
 } from '../../utils/formatters';
 import { 
   downloadMultipleProductsIndividualJpgs, 
@@ -51,7 +49,6 @@ interface ExportCatalogModalProps {
   onClose: () => void;
   products?: Product[];
   initialSelectedProductIds?: string[];
-  onOpenCustomerStoreView?: (editionId?: string) => void;
 }
 
 export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
@@ -59,11 +56,10 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   onClose,
   products: propsProducts,
   initialSelectedProductIds,
-  onOpenCustomerStoreView,
 }) => {
   const { products: contextProducts, allProducts, categories, storeInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
 
-  // Selected edition for sharing the store link (defaults to activeEditionId if specific, or latest edition)
+  // Selected edition for exporting (defaults to activeEditionId if specific, or latest edition)
   const [selectedEditionForLink, setSelectedEditionForLink] = useState<string>(() => {
     if (activeEditionId && activeEditionId !== 'all') return activeEditionId;
     return editions[0]?.id || 'all';
@@ -113,16 +109,6 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
     setSelectedIds(availableProducts.map((p) => p.id));
   }, [availableProducts]);
 
-  const storeUrl = useMemo(() => {
-    return getStoreOnlineUrl(
-      undefined, 
-      selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined,
-      selectedEditionObj?.name
-    );
-  }, [selectedEditionForLink, selectedEditionObj]);
-
-  const [copiedStoreUrl, setCopiedStoreUrl] = useState(false);
-
   // Filter inside modal
   const [modalCategoryFilter, setModalCategoryFilter] = useState<string>('Todas');
   const [modalSubcategoryFilter, setModalSubcategoryFilter] = useState<string>('Todas');
@@ -163,8 +149,8 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   });
 
   const catalogText = useMemo(() => {
-    return generateFullCatalogExportText(selectedProducts, storeUrl, selectedEditionObj?.name);
-  }, [selectedProducts, storeUrl, selectedEditionObj]);
+    return generateFullCatalogExportText(selectedProducts, storeInfo, selectedEditionObj?.name);
+  }, [selectedProducts, storeInfo, selectedEditionObj]);
 
   const toggleSelectAll = () => {
     if (selectedIds.length === availableProducts.length) {
@@ -257,19 +243,6 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
     navigator.clipboard.writeText(catalogText);
     setCopiedText(true);
     setTimeout(() => setCopiedText(false), 2500);
-  };
-
-  // Share direct store link with invitation text focused on interactive cart
-  const handleShareStoreLinkWhatsApp = (destination: 'standard' | 'business' = 'standard') => {
-    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name);
-    const url = buildWhatsAppDirectUrl(text, undefined, destination, true);
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleCopyStoreUrl = () => {
-    navigator.clipboard.writeText(storeUrl);
-    setCopiedStoreUrl(true);
-    setTimeout(() => setCopiedStoreUrl(false), 2500);
   };
 
   // Quick single card download/save to gallery
@@ -632,110 +605,11 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
             </div>
           </div>
 
-          {/* 🌟 LOJA ONLINE INTERATIVA COM SACOLA (Para Enviar ao Cliente) */}
-          <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border-2 border-emerald-300 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-xs shrink-0">
-                  <ShoppingBag className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h4 className="font-black text-sm sm:text-base text-emerald-950">
-                      Loja Online Interativa com Sacola de Compras
-                    </h4>
-                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900 border border-emerald-300">
-                      Recomendado para Clientes
-                    </span>
-                  </div>
-                  <p className="text-xs text-emerald-800 font-medium mt-0.5">
-                    Seu cliente abre no WhatsApp como uma loja real com fotos, escolhe os tamanhos, coloca na sacola e te envia o pedido pronto!
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Edition Selector for this export link */}
-            <div className="bg-white/80 p-3 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-                  <span>🏷️</span>
-                  <span>Edição conectada a este link:</span>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={selectedEditionForLink}
-                  onChange={(e) => {
-                    const newId = e.target.value;
-                    setSelectedEditionForLink(newId);
-                    if (newId) setActiveEditionId(newId);
-                  }}
-                  className="w-full sm:w-auto text-xs font-extrabold bg-white border-2 border-emerald-400 text-emerald-950 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
-                >
-                  {editions.map((ed) => (
-                    <option key={ed.id} value={ed.id}>
-                      {ed.name} {ed.id === activeEditionId ? '★ (Edição Ativa Agora)' : ''}
-                    </option>
-                  ))}
-                  <option value="all">🌐 Catálogo Completo (Todas as Peças da Loja)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Link Box & Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
-              <div className="flex-1 bg-white border border-emerald-300 rounded-xl px-3.5 py-2.5 text-xs font-mono text-emerald-900 truncate flex items-center justify-between shadow-2xs">
-                <span className="truncate select-all">{storeUrl}</span>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                {/* Copy Link Button */}
-                <button
-                  type="button"
-                  onClick={handleCopyStoreUrl}
-                  className="px-3.5 py-2.5 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 font-extrabold text-xs shadow-2xs transition active:scale-95 flex items-center gap-1.5"
-                  title="Copiar link da Loja para colar no WhatsApp, Instagram ou Status"
-                >
-                  {copiedStoreUrl ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-emerald-600" />}
-                  <span>{copiedStoreUrl ? 'Link Copiado!' : 'Copiar Link'}</span>
-                </button>
-
-                {/* Send Store Link WhatsApp Button */}
-                <button
-                  type="button"
-                  onClick={() => handleShareStoreLinkWhatsApp('standard')}
-                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/20 transition active:scale-95 flex items-center gap-1.5"
-                  title="Enviar convite da loja online pronto para o WhatsApp com link e instruções da sacola"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  <span>Enviar Loja no WhatsApp</span>
-                </button>
-
-                {/* Preview as Customer */}
-                {onOpenCustomerStoreView && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      onOpenCustomerStoreView(selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined);
-                    }}
-                    className="px-3.5 py-2.5 rounded-xl bg-teal-900 hover:bg-teal-800 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5"
-                    title="Ver exatamente como seu cliente visualiza a Loja e a Sacola no celular"
-                  >
-                    <ExternalLink className="h-4 w-4 text-teal-300" />
-                    <span>Ver como Cliente</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Selection & Category Filtering Header */}
           <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-3">
             
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-700">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   Itens Selecionados para Exportação:
                 </span>
@@ -766,8 +640,30 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
               </div>
             </div>
 
-            {/* Category & Subcategory Filter Selectors */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            {/* Edition, Category & Subcategory Filter Selectors */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1 flex items-center gap-1">
+                  <Layers className="h-3 w-3 text-rose-500" />
+                  Filtrar por Edição do Bazar
+                </label>
+                <select
+                  value={selectedEditionForLink}
+                  onChange={(e) => {
+                    const newId = e.target.value;
+                    setSelectedEditionForLink(newId);
+                    if (newId) setActiveEditionId(newId);
+                  }}
+                  className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
+                >
+                  {editions.map((ed) => (
+                    <option key={ed.id} value={ed.id}>
+                      {ed.name} {ed.id === activeEditionId ? '★ (Ativa)' : ''}
+                    </option>
+                  ))}
+                  <option value="all">🌐 Todas as Peças do Estoque</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1 flex items-center gap-1">
                   <Tag className="h-3 w-3 text-rose-500" />

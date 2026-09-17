@@ -727,22 +727,16 @@ export function generateFullCatalogExportText(
 
   const cleanEditionName = editionName && !editionName.toLowerCase().includes('rx do bazar') ? editionName.trim() : '';
 
-  let headerTitle = `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS* ✨🛍️\n\n`;
+  let headerTitle = `📸✨ *VITRINE DE OFERTAS & FOTOS DO BAZAR* ✨📸\n\n`;
   if (cleanEditionName) {
-    headerTitle = `🛍️✨ *LOJA ONLINE: ${cleanEditionName.toUpperCase()}* ✨🛍️\n\n`;
+    headerTitle = `📸✨ *VITRINE DE OFERTAS: ${cleanEditionName.toUpperCase()}* ✨📸\n\n`;
   } else if (storeName) {
-    headerTitle = `🛍️✨ *LOJA ONLINE & VITRINE DE OFERTAS — ${storeName.toUpperCase()}* ✨🛍️\n\n`;
+    headerTitle = `📸✨ *VITRINE DE OFERTAS — ${storeName.toUpperCase()}* ✨📸\n\n`;
   }
 
   let text = headerTitle;
   if (cleanEditionName) {
     text += `🏷️ *Edição do Bazar:* ${cleanEditionName}\n`;
-  }
-  if (storeUrl) {
-    text += `🛒 *ACESSE NOSSA LOJA ONLINE COM SACOLA INTERATIVA:* \n`;
-    text += `👉 ${storeUrl}\n`;
-    text += `_(Acesse pelo link para ver fotos completas, colocar na sacolinha e enviar seu pedido com 1 toque no WhatsApp!)_\n\n`;
-    text += `───────────────────────\n`;
   }
   text += `Confira as peças selecionadas disponíveis para pronta entrega:\n\n`;
 

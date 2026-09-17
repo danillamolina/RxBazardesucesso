@@ -1,6 +1,6 @@
 {
   "name": "Loja Online • Catálogo & Ofertas",
-  "description": "Confira nossas peças selecionadas, fotos exclusivas e faça seu pedido direto pela nossa vitrine online com sacola de compras!",
+  "description": "Vitrine de fotos e catálogo de produtos para envio de imagens com texto e download em JPG.",
   "requestFramePermissions": [
     "camera"
   ],
