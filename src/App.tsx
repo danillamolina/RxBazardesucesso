@@ -32,21 +32,46 @@ import { UserGuide } from './components/Guide/UserGuide';
 import { MobileNavDrawer } from './components/Navigation/MobileNavDrawer';
 import { EditionManagementModal } from './components/Editions/EditionManagementModal';
 import { CustomerOnlineStore } from './components/Store/CustomerOnlineStore';
+import { GenerateStoreModal } from './components/Store/GenerateStoreModal';
 import { Product } from './types';
 import { useBazar } from './context/BazarContext';
 
-function MainApp() {
-  // Check if opened via customer store link (?loja=1 or ?loja=online)
-  const [isCustomerStoreView, setIsCustomerStoreView] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const lojaParam = params.get('loja') || params.get('store') || params.get('view');
-      if (lojaParam === '1' || lojaParam === 'online' || lojaParam === 'true' || lojaParam === 'loja') {
+function checkIsCustomerStoreUrl(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('loja') || params.has('store') || params.has('cliente') || params.has('sacola')) {
+      const val = (params.get('loja') || params.get('store') || params.get('cliente') || params.get('sacola') || '').toLowerCase();
+      if (val === '' || val === '1' || val === 'online' || val === 'true' || val === 'loja' || val === 'sim') {
         return true;
       }
     }
-    return false;
-  });
+    const hash = window.location.hash || '';
+    if (hash.includes('loja') || hash.includes('store') || hash.includes('sacola') || hash.includes('cliente')) {
+      return true;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return false;
+}
+
+function MainApp() {
+  // Check if opened via customer store link (?loja=1, ?loja=online, ?store=1, etc.)
+  const [isCustomerStoreView, setIsCustomerStoreView] = useState<boolean>(() => checkIsCustomerStoreUrl());
+
+  // Listen to popstate and hashchange events to react when URL parameters change
+  React.useEffect(() => {
+    const handleUrlChange = () => {
+      setIsCustomerStoreView(checkIsCustomerStoreUrl());
+    };
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
 
   // Track if merchant is currently previewing the store from inside admin panel
   // (Customers opening via WhatsApp link will ALWAYS have isAdminPreview = false)
@@ -77,8 +102,9 @@ function MainApp() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEditionModalOpen, setIsEditionModalOpen] = useState(false);
+  const [isGenerateStoreModalOpen, setIsGenerateStoreModalOpen] = useState(false);
 
-  const { addProduct, updateProduct, activeEditionId } = useBazar();
+  const { addProduct, updateProduct, activeEditionId, setActiveEditionId, editions } = useBazar();
 
   const handleOpenNewProduct = (prod?: Product) => {
     // Defend against DOM/React synthetic events being passed as prod
@@ -115,13 +141,22 @@ function MainApp() {
       ? editionId 
       : (activeEditionId && activeEditionId !== 'all' ? activeEditionId : undefined);
 
+    if (targetId && targetId !== 'all' && setActiveEditionId) {
+      setActiveEditionId(targetId);
+    }
+
     if (typeof window !== 'undefined' && window.history) {
       const url = new URL(window.location.href);
       url.searchParams.set('loja', '1');
       if (targetId && targetId !== 'all') {
         url.searchParams.set('edicao', targetId);
+        const edName = editions.find(e => e.id === targetId)?.name;
+        if (edName) {
+          url.searchParams.set('nome', edName);
+        }
       } else {
         url.searchParams.delete('edicao');
+        url.searchParams.delete('nome');
       }
       window.history.pushState({}, '', url.toString());
     }
@@ -166,6 +201,7 @@ function MainApp() {
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
         onOpenCustomerStoreView={handleOpenCustomerStoreView}
+        onOpenGenerateStoreModal={() => setIsGenerateStoreModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -194,12 +230,16 @@ function MainApp() {
 
         {activeTab === 'catalog' && (
           <BazarCatalog 
-            onOpenCustomerStoreView={() => setIsCustomerStoreView(true)}
+            onOpenCustomerStoreView={handleOpenCustomerStoreView}
+            onOpenGenerateStoreModal={() => setIsGenerateStoreModalOpen(true)}
           />
         )}
 
         {activeTab === 'store' && (
-          <StoreDetails />
+          <StoreDetails 
+            onOpenCustomerStoreView={handleOpenCustomerStoreView}
+            onOpenGenerateStoreModal={() => setIsGenerateStoreModalOpen(true)}
+          />
         )}
 
         {activeTab === 'guide' && (
@@ -308,12 +348,21 @@ function MainApp() {
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenEditionModal={() => setIsEditionModalOpen(true)}
         onOpenCustomerStoreView={handleOpenCustomerStoreView}
+        onOpenGenerateStoreModal={() => setIsGenerateStoreModalOpen(true)}
       />
 
       {/* Edition Management Modal */}
       <EditionManagementModal
         isOpen={isEditionModalOpen}
         onClose={() => setIsEditionModalOpen(false)}
+      />
+
+      {/* Generate Store Modal (Gerar Loja Online com Sacola para Cliente) */}
+      <GenerateStoreModal
+        isOpen={isGenerateStoreModalOpen}
+        onClose={() => setIsGenerateStoreModalOpen(false)}
+        onOpenCustomerStoreView={handleOpenCustomerStoreView}
+        defaultEditionId={activeEditionId !== 'all' ? activeEditionId : undefined}
       />
 
       {/* Footer */}

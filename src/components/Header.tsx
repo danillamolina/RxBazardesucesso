@@ -26,7 +26,8 @@ interface HeaderProps {
   onOpenNewProduct: () => void;
   onOpenSettings: () => void;
   onOpenMobileMenu?: () => void;
-  onOpenCustomerStoreView?: () => void;
+  onOpenCustomerStoreView?: (editionId?: string) => void;
+  onOpenGenerateStoreModal?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSettings,
   onOpenMobileMenu,
   onOpenCustomerStoreView,
+  onOpenGenerateStoreModal,
 }) => {
   const { editions, activeEditionId } = useBazar();
   const [showEditionModal, setShowEditionModal] = useState(false);
@@ -140,7 +142,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             <button
-              onClick={() => (onOpenCustomerStoreView ? onOpenCustomerStoreView() : setActiveTab('catalog'))}
+              onClick={() => (onOpenCustomerStoreView ? onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined) : setActiveTab('catalog'))}
               className="flex items-center justify-center gap-1 py-2 px-1.5 rounded-xl text-xs font-extrabold bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs transition active:scale-95 border border-emerald-500"
               title="Abrir Loja Online com Sacola (Visão do Cliente)"
             >
@@ -177,6 +179,22 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Criar Novo Bazar</span>
               </button>
             </div>
+
+            {/* Gerar Loja Online com Sacola Quick Button */}
+            <button
+              onClick={() => {
+                if (onOpenGenerateStoreModal) {
+                  onOpenGenerateStoreModal();
+                } else if (onOpenCustomerStoreView) {
+                  onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined);
+                }
+              }}
+              className="flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs sm:text-sm px-3.5 sm:px-4 py-2 rounded-xl shadow-md shadow-emerald-700/30 transition active:scale-95 border border-emerald-400"
+              title="Gerar Loja Online com Sacola para o Cliente (Link e WhatsApp)"
+            >
+              <ShoppingBag className="h-4 w-4 mr-1.5 text-emerald-200" />
+              <span>Gerar Loja Online</span>
+            </button>
 
             {/* New Sale Quick Button */}
             <button
@@ -270,6 +288,25 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-[#DDD3C2] text-[#22543D] md:bg-black/25 md:text-emerald-300">4</span>
             <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 md:text-emerald-400" />
             <span>Vitrine</span>
+          </button>
+
+          {/* 🛍️ Loja Online (Visão do Cliente & Gerar Link) */}
+          <button
+            onClick={() => {
+              if (onOpenGenerateStoreModal) {
+                onOpenGenerateStoreModal();
+              } else if (onOpenCustomerStoreView) {
+                onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined);
+              }
+            }}
+            className="flex items-center space-x-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition whitespace-nowrap shrink-0 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-900 md:text-emerald-200 border border-emerald-500/40 shadow-xs active:scale-95"
+            title="Gerar e Visualizar a Loja Online do Cliente"
+          >
+            <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 md:text-emerald-400" />
+            <span>Loja Online</span>
+            <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded-full bg-emerald-600 text-white shadow-2xs">
+              Cliente
+            </span>
           </button>
 
           {/* 5. Relatórios e Dashboard */}

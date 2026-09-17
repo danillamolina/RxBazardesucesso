@@ -18,9 +18,18 @@ import {
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { getStoreOnlineUrl, generateStoreInvitationWhatsAppText } from '../../utils/formatters';
+import { buildWhatsAppDirectUrl } from '../../utils/productJpgGenerator';
 
-export const StoreDetails: React.FC = () => {
-  const { storeInfo, updateStoreInfo, editions, activeEditionId } = useBazar();
+interface StoreDetailsProps {
+  onOpenCustomerStoreView?: (editionId?: string) => void;
+  onOpenGenerateStoreModal?: () => void;
+}
+
+export const StoreDetails: React.FC<StoreDetailsProps> = ({
+  onOpenCustomerStoreView,
+  onOpenGenerateStoreModal,
+}) => {
+  const { storeInfo, updateStoreInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
 
   const [formData, setFormData] = useState({
     name: storeInfo.name || '',
@@ -55,8 +64,12 @@ export const StoreDetails: React.FC = () => {
   }, [selectedEditionForLink, editions]);
 
   const storeUrl = useMemo(() => {
-    return getStoreOnlineUrl(undefined, selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined);
-  }, [selectedEditionForLink]);
+    return getStoreOnlineUrl(
+      undefined, 
+      selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined,
+      selectedEditionObj?.name
+    );
+  }, [selectedEditionForLink, selectedEditionObj]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -106,7 +119,8 @@ export const StoreDetails: React.FC = () => {
 
   const handleShareStoreLinkWhatsApp = () => {
     const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name);
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+    const url = buildWhatsAppDirectUrl(text, undefined, 'standard', true);
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const handleCopyStoreUrl = () => {
@@ -224,7 +238,11 @@ export const StoreDetails: React.FC = () => {
           <div className="flex items-center gap-2">
             <select
               value={selectedEditionForLink}
-              onChange={(e) => setSelectedEditionForLink(e.target.value)}
+              onChange={(e) => {
+                const newId = e.target.value;
+                setSelectedEditionForLink(newId);
+                if (newId) setActiveEditionId(newId);
+              }}
               className="w-full sm:w-auto text-xs font-extrabold bg-white dark:bg-slate-800 border-2 border-emerald-400 dark:border-emerald-600 text-emerald-950 dark:text-emerald-100 rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-emerald-500 shadow-2xs cursor-pointer"
             >
               {editions.map((ed) => (
@@ -247,6 +265,7 @@ export const StoreDetails: React.FC = () => {
               type="button"
               onClick={handleCopyStoreUrl}
               className="px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-slate-700 text-emerald-800 dark:text-emerald-200 font-bold text-xs shadow-2xs transition active:scale-95 flex items-center gap-1.5"
+              title="Copiar link da Loja Online para colar no WhatsApp ou Instagram"
             >
               {copiedStoreUrl ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 text-emerald-600" />}
               <span>{copiedStoreUrl ? 'Link Copiado!' : 'Copiar Link'}</span>
@@ -256,20 +275,39 @@ export const StoreDetails: React.FC = () => {
               type="button"
               onClick={handleShareStoreLinkWhatsApp}
               className="px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 transition active:scale-95 flex items-center gap-1.5"
+              title="Enviar mensagem com o link da loja pelo WhatsApp"
             >
               <MessageSquare className="h-4 w-4" />
               <span>Enviar no WhatsApp</span>
             </button>
 
-            <a
-              href={storeUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+            {onOpenGenerateStoreModal && (
+              <button
+                type="button"
+                onClick={onOpenGenerateStoreModal}
+                className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 transition active:scale-95 flex items-center gap-1.5"
+                title="Abrir gerador completo da loja online com QR Code e opções"
+              >
+                <Sparkles className="h-4 w-4 text-emerald-200" />
+                <span>Gerar Loja & QR Code</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenCustomerStoreView) {
+                  onOpenCustomerStoreView(selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined);
+                } else {
+                  window.open(storeUrl, '_blank');
+                }
+              }}
               className="px-4 py-3 rounded-xl bg-teal-900 hover:bg-teal-800 text-white font-extrabold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5"
+              title="Visualizar a loja exatamente como a cliente visualiza no celular"
             >
               <ExternalLink className="h-4 w-4 text-teal-300" />
               <span>Abrir como Cliente</span>
-            </a>
+            </button>
           </div>
         </div>
       </div>

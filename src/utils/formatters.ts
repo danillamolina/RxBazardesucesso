@@ -586,7 +586,20 @@ export function getStoreOnlineUrl(
   if (editionIdOrCustomUrl) {
     if (editionIdOrCustomUrl.startsWith('http://') || editionIdOrCustomUrl.startsWith('https://')) {
       customUrl = editionIdOrCustomUrl;
-      editionId = explicitEditionId || '';
+      // If explicitEditionId is given, use it; otherwise attempt to extract from customUrl
+      if (explicitEditionId) {
+        editionId = explicitEditionId;
+      } else {
+        try {
+          const parsed = new URL(customUrl);
+          editionId = parsed.searchParams.get('edicao') || parsed.searchParams.get('bazar') || parsed.searchParams.get('edition') || parsed.searchParams.get('editionId') || '';
+          if (!editionName) {
+            editionName = parsed.searchParams.get('nome') || parsed.searchParams.get('bazarNome') || undefined;
+          }
+        } catch {
+          // ignore
+        }
+      }
     } else {
       editionId = editionIdOrCustomUrl;
     }
@@ -616,7 +629,7 @@ export function getStoreOnlineUrl(
       if (productIds && productIds.length > 0) {
         urlObj.searchParams.set('prods', productIds.slice(0, 50).join(','));
       }
-    } else {
+    } else if (editionId === 'all') {
       urlObj.searchParams.delete('edicao');
       urlObj.searchParams.delete('nome');
       urlObj.searchParams.delete('prods');

@@ -51,7 +51,7 @@ interface ExportCatalogModalProps {
   onClose: () => void;
   products?: Product[];
   initialSelectedProductIds?: string[];
-  onOpenCustomerStoreView?: () => void;
+  onOpenCustomerStoreView?: (editionId?: string) => void;
 }
 
 export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
@@ -61,7 +61,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   initialSelectedProductIds,
   onOpenCustomerStoreView,
 }) => {
-  const { products: contextProducts, categories, storeInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
+  const { products: contextProducts, allProducts, categories, storeInfo, editions, activeEditionId, setActiveEditionId } = useBazar();
 
   // Selected edition for sharing the store link (defaults to activeEditionId if specific, or latest edition)
   const [selectedEditionForLink, setSelectedEditionForLink] = useState<string>(() => {
@@ -82,7 +82,12 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
 
   // Filter only items with available quantity and visible in catalog, strictly matching the selected edition!
   const availableProducts = useMemo(() => {
-    const source = contextProducts || propsProducts || [];
+    const source = (allProducts && allProducts.length > 0)
+      ? allProducts
+      : (propsProducts && propsProducts.length > 0)
+        ? propsProducts
+        : (contextProducts || []);
+
     return source.filter((p) => {
       if (p.quantity <= 0 || p.showInCatalog === false) return false;
       if (selectedEditionForLink && selectedEditionForLink !== 'all') {
@@ -93,7 +98,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
       }
       return true;
     });
-  }, [contextProducts, propsProducts, selectedEditionForLink]);
+  }, [allProducts, propsProducts, contextProducts, selectedEditionForLink]);
 
   // Selected products state
   const [selectedIds, setSelectedIds] = useState<string[]>(() => {
@@ -109,14 +114,12 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
   }, [availableProducts]);
 
   const storeUrl = useMemo(() => {
-    const prods = availableProducts.map(p => p.id);
     return getStoreOnlineUrl(
       undefined, 
       selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined,
-      selectedEditionObj?.name,
-      prods
+      selectedEditionObj?.name
     );
-  }, [selectedEditionForLink, selectedEditionObj, availableProducts]);
+  }, [selectedEditionForLink, selectedEditionObj]);
 
   const [copiedStoreUrl, setCopiedStoreUrl] = useState(false);
 
@@ -258,8 +261,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
 
   // Share direct store link with invitation text focused on interactive cart
   const handleShareStoreLinkWhatsApp = (destination: 'standard' | 'business' = 'standard') => {
-    const prods = selectedProducts.map(p => p.id);
-    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name, prods);
+    const text = generateStoreInvitationWhatsAppText(storeInfo, storeUrl, selectedEditionObj?.name);
     const url = buildWhatsAppDirectUrl(text, undefined, destination, true);
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -716,7 +718,7 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
                     type="button"
                     onClick={() => {
                       onClose();
-                      onOpenCustomerStoreView();
+                      onOpenCustomerStoreView(selectedEditionForLink !== 'all' ? selectedEditionForLink : undefined);
                     }}
                     className="px-3.5 py-2.5 rounded-xl bg-teal-900 hover:bg-teal-800 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5"
                     title="Ver exatamente como seu cliente visualiza a Loja e a Sacola no celular"

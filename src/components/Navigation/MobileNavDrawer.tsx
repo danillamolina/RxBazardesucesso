@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   X,
   Sparkles,
@@ -17,10 +17,14 @@ import {
   CheckCircle2,
   Info,
   ShoppingBag,
-  MessageSquare
+  MessageSquare,
+  Copy,
+  Check
 } from 'lucide-react';
 import { useBazar } from '../../context/BazarContext';
 import { PWAInstallButton } from '../PWA/PWAInstallButton';
+import { getStoreOnlineUrl, generateStoreInvitationWhatsAppText } from '../../utils/formatters';
+import { buildWhatsAppDirectUrl } from '../../utils/productJpgGenerator';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -31,7 +35,8 @@ interface MobileNavDrawerProps {
   onOpenNewProduct: () => void;
   onOpenSettings: () => void;
   onOpenEditionModal: () => void;
-  onOpenCustomerStoreView?: () => void;
+  onOpenCustomerStoreView?: (editionId?: string) => void;
+  onOpenGenerateStoreModal?: () => void;
 }
 
 export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
@@ -44,8 +49,39 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   onOpenSettings,
   onOpenEditionModal,
   onOpenCustomerStoreView,
+  onOpenGenerateStoreModal,
 }) => {
-  const { editions, activeEditionId } = useBazar();
+  const { editions, activeEditionId, storeInfo } = useBazar();
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const activeEditionObj = useMemo(() => {
+    if (!activeEditionId || activeEditionId === 'all') return null;
+    return editions.find(e => e.id === activeEditionId) || null;
+  }, [activeEditionId, editions]);
+
+  const activeStoreUrl = useMemo(() => {
+    return getStoreOnlineUrl(
+      undefined,
+      activeEditionId !== 'all' ? activeEditionId : undefined,
+      activeEditionObj?.name
+    );
+  }, [activeEditionId, activeEditionObj]);
+
+  const handleShareWhatsApp = () => {
+    const text = generateStoreInvitationWhatsAppText(
+      storeInfo,
+      activeStoreUrl,
+      activeEditionObj?.name
+    );
+    const url = buildWhatsAppDirectUrl(text, undefined, 'standard', true);
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(activeStoreUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
 
   if (!isOpen) return null;
 
@@ -215,36 +251,53 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                     Cliente
                   </span>
                 </div>
-                <p className="text-[11px] text-emerald-800 font-medium">Link que seu cliente abre no WhatsApp</p>
+                <p className="text-[11px] text-emerald-800 font-medium truncate">
+                  Edição: <strong className="text-emerald-950 font-black">{activeEditionName}</strong>
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-0.5">
+          <div className="grid grid-cols-3 gap-1.5 pt-0.5">
             <button
               onClick={() => {
                 onClose();
-                if (onOpenCustomerStoreView) {
-                  onOpenCustomerStoreView();
+                if (onOpenGenerateStoreModal) {
+                  onOpenGenerateStoreModal();
+                } else if (onOpenCustomerStoreView) {
+                  onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined);
                 } else {
                   setActiveTab('catalog');
                 }
               }}
-              className="py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center justify-center gap-1.5 shadow-xs active:scale-95"
+              className="py-2 px-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black flex items-center justify-center gap-1 shadow-xs active:scale-95"
+              title="Gerar Loja Online com opções completas e QR Code"
             >
-              <Store className="h-3.5 w-3.5" />
-              <span>Abrir Loja</span>
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Gerar Loja</span>
+            </button>
+
+            <button
+              onClick={handleShareWhatsApp}
+              className="py-2 px-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold flex items-center justify-center gap-1 shadow-xs active:scale-95"
+              title="Enviar link no WhatsApp com a edição selecionada"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>WhatsApp</span>
             </button>
             
             <button
               onClick={() => {
                 onClose();
-                setActiveTab('catalog');
+                if (onOpenCustomerStoreView) {
+                  onOpenCustomerStoreView(activeEditionId !== 'all' ? activeEditionId : undefined);
+                }
               }}
-              className="py-2 px-2.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black flex items-center justify-center gap-1.5 shadow-2xs active:scale-95"
+              className="py-2 px-1.5 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center justify-center gap-1 shadow-2xs active:scale-95"
+              title="Ver Loja exatamente como a cliente visualiza"
             >
-              <Share2 className="h-3.5 w-3.5 text-emerald-600" />
-              <span>Ver Vitrine</span>
+              <Store className="h-3.5 w-3.5 text-emerald-600" />
+              <span>Testar</span>
             </button>
           </div>
         </div>

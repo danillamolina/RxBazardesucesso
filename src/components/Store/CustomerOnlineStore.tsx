@@ -143,39 +143,53 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
   }, [cart]);
 
   // Available visible products - automatically connected to the edition link if specified
-  const catalogProducts = useMemo(() => {
+  const { catalogProducts, isFallbackToAll } = useMemo(() => {
     const sourceProducts = (allProducts && allProducts.length > 0) ? allProducts : products;
+    const allCatalogAvailable = sourceProducts.filter((p) => p.showInCatalog !== false);
 
     // 1. If explicit product IDs list in URL (&prods=id1,id2,...), strictly filter by those IDs
     if (targetProductIds && targetProductIds.length > 0) {
-      const explicitMatches = sourceProducts.filter((p) => p.showInCatalog !== false && targetProductIds.includes(p.id));
+      const explicitMatches = allCatalogAvailable.filter((p) => targetProductIds.includes(p.id));
       if (explicitMatches.length > 0) {
-        return explicitMatches;
+        return { catalogProducts: explicitMatches, isFallbackToAll: false };
       }
     }
 
     const targetId = targetEdition?.id || (targetEditionId && targetEditionId !== 'all' ? targetEditionId : null);
 
-    return sourceProducts.filter((p) => {
-      if (p.showInCatalog === false) return false;
-
-      // When a specific bazar edition link is used, strictly show only that edition's products
-      if (targetId) {
+    // When a specific bazar edition link is used, strictly show only that edition's products
+    if (targetId) {
+      const editionMatches = allCatalogAvailable.filter((p) => {
         if (p.bazarEditionIds && Array.isArray(p.bazarEditionIds) && p.bazarEditionIds.length > 0) {
           return p.bazarEditionIds.includes(targetId);
         }
         return p.bazarEditionId === targetId;
-      }
+      });
 
-      if (activeEditionId && activeEditionId !== 'all') {
+      // If the edition has matching products, display them
+      if (editionMatches.length > 0) {
+        return { catalogProducts: editionMatches, isFallbackToAll: false };
+      }
+      
+      // Graceful fallback: If this specific edition has 0 linked products, show all available store products
+      // so the customer NEVER encounters an empty or broken store!
+      return { catalogProducts: allCatalogAvailable, isFallbackToAll: true };
+    }
+
+    if (activeEditionId && activeEditionId !== 'all') {
+      const activeMatches = allCatalogAvailable.filter((p) => {
         if (p.bazarEditionIds && Array.isArray(p.bazarEditionIds) && p.bazarEditionIds.length > 0) {
           return p.bazarEditionIds.includes(activeEditionId);
         }
         return p.bazarEditionId === activeEditionId;
-      }
+      });
 
-      return true;
-    });
+      if (activeMatches.length > 0) {
+        return { catalogProducts: activeMatches, isFallbackToAll: false };
+      }
+    }
+
+    return { catalogProducts: allCatalogAvailable, isFallbackToAll: false };
   }, [allProducts, products, targetEdition, targetEditionId, targetProductIds, activeEditionId]);
 
   // Filtered & Sorted Products
@@ -456,7 +470,10 @@ export const CustomerOnlineStore: React.FC<CustomerOnlineStoreProps> = ({
                   Coleção / Promoção: <strong className="text-rose-700 font-extrabold">{targetEdition.name}</strong>
                 </span>
                 <span className="text-[11px] text-slate-500 font-medium hidden sm:inline">
-                  ({catalogProducts.length} {catalogProducts.length === 1 ? 'peça vinculada' : 'peças vinculadas'})
+                  {isFallbackToAll 
+                    ? `(Exibindo todo o estoque da loja: ${catalogProducts.length} peças disponíveis)` 
+                    : `(${catalogProducts.length} ${catalogProducts.length === 1 ? 'peça vinculada' : 'peças vinculadas'})`
+                  }
                 </span>
               </div>
 
