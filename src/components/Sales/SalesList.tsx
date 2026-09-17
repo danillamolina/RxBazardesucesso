@@ -501,7 +501,7 @@ export const SalesList: React.FC<SalesListProps> = ({ onOpenNewSale }) => {
                       <button
                         type="button"
                         onClick={() => {
-                          const text = generateCustomerSummaryText(c.customerName, c.sales, storeInfo);
+                          const text = generateCustomerSummaryText(c.customerName, c.cSales, storeInfo);
                           navigator.clipboard.writeText(text);
                           setCopiedClientId(c.customerName);
                           setTimeout(() => setCopiedClientId(null), 3000);

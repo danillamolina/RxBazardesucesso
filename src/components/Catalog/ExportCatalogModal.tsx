@@ -132,25 +132,29 @@ export const ExportCatalogModal: React.FC<ExportCatalogModalProps> = ({
     }
   }, [initialSelectedProductIds, isOpen, availableProducts]);
 
-  if (!isOpen) return null;
-
   // Selected products array
-  const selectedProducts = availableProducts.filter((p) => selectedIds.includes(p.id));
+  const selectedProducts = useMemo(() => {
+    return availableProducts.filter((p) => selectedIds.includes(p.id));
+  }, [availableProducts, selectedIds]);
 
   // Available subcategories for current modal filter
   const currentCategoryObj = categories.find((c) => c.name === modalCategoryFilter);
   const availableSubcategoriesInModal = currentCategoryObj?.subcategories || [];
 
   // Filtered products shown in selection list
-  const visibleProductsInList = availableProducts.filter((p) => {
-    if (modalCategoryFilter !== 'Todas' && p.category !== modalCategoryFilter) return false;
-    if (modalSubcategoryFilter !== 'Todas' && p.subcategory !== modalSubcategoryFilter) return false;
-    return true;
-  });
+  const visibleProductsInList = useMemo(() => {
+    return availableProducts.filter((p) => {
+      if (modalCategoryFilter !== 'Todas' && p.category !== modalCategoryFilter) return false;
+      if (modalSubcategoryFilter !== 'Todas' && p.subcategory !== modalSubcategoryFilter) return false;
+      return true;
+    });
+  }, [availableProducts, modalCategoryFilter, modalSubcategoryFilter]);
 
   const catalogText = useMemo(() => {
     return generateFullCatalogExportText(selectedProducts, storeInfo, selectedEditionObj?.name);
   }, [selectedProducts, storeInfo, selectedEditionObj]);
+
+  if (!isOpen) return null;
 
   const toggleSelectAll = () => {
     if (selectedIds.length === availableProducts.length) {

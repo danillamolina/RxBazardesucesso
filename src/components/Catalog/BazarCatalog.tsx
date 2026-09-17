@@ -1349,12 +1349,14 @@ export const BazarCatalog: React.FC<BazarCatalogProps> = () => {
       )}
 
       {/* Export Full/Selective Vitrine Modal */}
-      <ExportCatalogModal
-        isOpen={isExportCatalogOpen}
-        onClose={() => setIsExportCatalogOpen(false)}
-        products={allProducts && allProducts.length > 0 ? allProducts : products}
-        initialSelectedProductIds={selectedProductIds}
-      />
+      {isExportCatalogOpen && (
+        <ExportCatalogModal
+          isOpen={isExportCatalogOpen}
+          onClose={() => setIsExportCatalogOpen(false)}
+          products={allProducts && allProducts.length > 0 ? allProducts : products}
+          initialSelectedProductIds={selectedProductIds}
+        />
+      )}
 
       {/* Send to Customer Modal */}
       <SendToCustomerModal
